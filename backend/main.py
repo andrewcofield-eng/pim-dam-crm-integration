@@ -80,8 +80,8 @@ async def list_customers():
 async def generate_campaign(product_sku: str, target_segment: str):
     try:
         product = await get_product(product_sku)
-        product_name = product.get("name") or product.get("sku")
-        description = product.get("description") or product.get("short_description") or ""
+        product_name = product.get("product_name") or product.get("product_name") or product.get("sku")
+        description = product.get("Description") or product.get("short_description") or ""
         tags = product.get("tags", [])
         if isinstance(tags, list):
             tags_str = ", ".join(tags)
@@ -139,3 +139,5 @@ async def generate_campaign(product_sku: str, target_segment: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
