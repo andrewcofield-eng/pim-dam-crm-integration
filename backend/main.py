@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+﻿from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import os
@@ -32,43 +32,38 @@ async def get_directus_token():
         )
         return response.json()["data"]["access_token"]
 
+async def get_product(sku: str):
+    token = await get_directus_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{DIRECTUS_URL}/items/products?filter[sku][_eq]={sku}",
+            headers=headers
+        )
+    products = response.json()["data"]
+    if not products:
+        raise HTTPException(status_code=404, detail=f"Product {sku} not found")
+    return products[0]
+
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "UrbanThread Marketing API"}
+    return {"status": "healthy", "service": "UrbanThread Marketing API", "version": "2.0.0"}
 
 @app.get("/products")
 async def list_products():
     try:
         token = await get_directus_token()
         headers = {"Authorization": f"Bearer {token}"}
-        
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{DIRECTUS_URL}/items/products",
-                headers=headers
-            )
-        
+            response = await client.get(f"{DIRECTUS_URL}/items/products", headers=headers)
         return response.json()["data"]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/products/{sku}")
-async def get_product(sku: str):
+async def get_product_endpoint(sku: str):
     try:
-        token = await get_directus_token()
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{DIRECTUS_URL}/items/products?filter[sku][_eq]={sku}",
-                headers=headers
-            )
-        
-        products = response.json()["data"]
-        if not products:
-            raise HTTPException(status_code=404, detail=f"Product {sku} not found")
-        
-        return products[0]
+        return await get_product(sku)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -84,50 +79,58 @@ async def list_customers():
 @app.post("/campaigns/generate")
 async def generate_campaign(product_sku: str, target_segment: str):
     try:
-        token = await get_directus_token()
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{DIRECTUS_URL}/items/products?filter[sku][_eq]={product_sku}",
-                headers=headers
-            )
-        
-        products = response.json()["data"]
-        if not products:
-            raise HTTPException(status_code=404, detail=f"Product {product_sku} not found")
-        
-        product = products[0]
-        
-        prompt = f"""You are a creative marketing strategist for UrbanThread, a fashion brand.
+        product = await get_product(product_sku)
+        product_name = product.get("name") or product.get("sku")
+        description = product.get("description") or product.get("short_description") or ""
+        tags = product.get("tags", [])
+        if isinstance(tags, list):
+            tags_str = ", ".join(tags)
+        else:
+            tags_str = str(tags)
 
-Product: {product['sku']} - {product['short_description']}
-Category: {product['category']}
-Price: \
-Target Segment: {target_segment}
+        prompt = (
+            "You are a creative marketing strategist for UrbanThread, a fashion brand.\n\n"
+            f"Product: {product_name}\n"
+            f"Description: {description}\n"
+            f"Category: {product.get('category')}\n"
+            f"Price: \\n"
+            f"Tags: {tags_str}\n"
+            f"Target Segment: {target_segment}\n\n"
+            "Generate a complete marketing campaign with ALL of the following sections:\n\n"
+            "1. CAMPAIGN HEADLINE (max 10 words)\n"
+            "2. CAMPAIGN BODY COPY (3-4 sentences, engaging and on-brand)\n"
+            "3. CALL TO ACTION (punchy, max 8 words)\n"
+            "4. KEY BENEFITS (3 bullet points)\n"
+            "5. EMAIL SUBJECT LINE (max 50 characters, high open-rate)\n"
+            "6. EMAIL PREVIEW TEXT (max 90 characters)\n"
+            "7. EMAIL BODY (3 paragraphs: hook, product story, closing CTA)\n"
+            "8. INSTAGRAM AD COPY (max 125 characters, include 3 hashtags)\n"
+            "9. GOOGLE AD HEADLINE (max 30 characters)\n"
+            "10. GOOGLE AD DESCRIPTION (max 90 characters)\n\n"
+            f"Keep tone appropriate for the {target_segment} segment. Be specific to the product, no generic copy."
+        )
 
-Generate a compelling marketing campaign with:
-1. Headline (max 10 words)
-2. Body copy (2-3 sentences)
-3. Call-to-action
-4. Key benefits (3 bullets)
-
-Keep it professional and engaging."""
-        
         message = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a creative marketing expert."},
+                {"role": "system", "content": "You are a senior creative marketing director specializing in fashion and lifestyle brands."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=300
+            temperature=0.75,
+            max_tokens=1000
         )
-        
+
+        campaign_text = message.choices[0].message.content
+
         return {
             "product_sku": product_sku,
+            "product_name": product_name,
             "target_segment": target_segment,
-            "campaign": message.choices[0].message.content,
+            "category": product.get("category"),
+            "price": product.get("price"),
+            "cloudinary_url": product.get("cloudinary_url"),
+            "campaign": campaign_text,
+            "ai_model": "gpt-3.5-turbo",
             "status": "success"
         }
     except Exception as e:
