@@ -4,6 +4,8 @@ import httpx
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+from orchestrator import ABMSimulationOrchestrator
+import os
 
 load_dotenv()
 
@@ -136,8 +138,15 @@ async def generate_campaign(product_sku: str, target_segment: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+from abm_routes import router as abm_router
+app.include_router(abm_router)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
 
 
