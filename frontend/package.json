@@ -1,13 +1,1 @@
-﻿{
-  "name": "agenic-flow-dashboard",
-  "version": "1.0.0",
-  "engines": {
-    "node": "18.x"
-  },
-  "scripts": {
-    "start": "serve . -l "
-  },
-  "dependencies": {
-    "serve": "^14.2.0"
-  }
-}
+{"name":"agenic-flow-dashboard","version":"1.0.0","engines":{"node":"18.x"},"scripts":{"start":"serve . -l $PORT"},"dependencies":{"serve":"^14.2.0"}}
