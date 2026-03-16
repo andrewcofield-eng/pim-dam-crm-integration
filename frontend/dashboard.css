@@ -289,14 +289,15 @@ main {
 /* ─── Products Section ────────────────────────── */
 .products-section {
     max-width: 1400px;
-    margin: 0 auto 2rem;
-    padding: 0 2rem;
+    margin: 0 auto;
+    padding: 0 2rem 2rem 2rem;
 }
 
-.products-section .panel-header {
-    margin-bottom: 1rem;
-    border-bottom: none;
-}
+    .products-section .panel-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border);
+    }
 
 .badge {
     background: var(--primary-light);
