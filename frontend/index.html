@@ -10,7 +10,7 @@
 <header><div class="header-inner"><div class="logo"><span class="logo-main">Agenic Flow</span><span class="logo-sub">ABM Dashboard</span></div><div class="header-status"><span class="status-dot" id="statusDot"></span><span id="statusText">Connecting...</span></div></div></header>
 <main>
 <section class="panel"><div class="panel-header"><h2>Warm Prospects</h2><button class="btn-refresh" onclick="loadProspects()">Refresh</button></div><div id="prospectsMeta">Loading...</div><div id="prospectsList" class="prospects-list"></div></section>
-<section class="panel"><div class="panel-header"><h2>ABM Campaign</h2></div><div id="campaignPlaceholder"><p>Select a prospect</p></div><div id="campaignOutput" style="display:none;"><div id="campaignAccount"></div><div id="campaignText"></div></div></section>
+<section class="panel"><div class="panel-header"><h2>ABM Campaign</h2><span id="campaignStatus"></span></div><div id="campaignPlaceholder"><p>Select a prospect</p></div><div id="campaignOutput" style="display:none;"><div id="campaignAccount"></div><div id="campaignText" style="max-height:500px;overflow-y:auto;"></div></div></section>
 </main>
 <section><div class="panel-header"><h2>Products</h2><span id="productCount"></span></div><div id="productGrid" class="product-grid"></div></section>
 <footer><p>Agenic Flow Marketing</p></footer>
@@ -36,9 +36,8 @@ function getToken() {
 }
 
 function loadProspects() {
-    console.log("Loading prospects with token:", token);
     if (!token) {
-        console.error("No token available");
+        console.error("No token");
         return;
     }
     document.getElementById("prospectsMeta").textContent = "Loading...";
@@ -46,7 +45,6 @@ function loadProspects() {
     fetch(url)
     .then(r => r.json())
     .then(d => {
-        console.log("Prospects loaded:", d);
         document.getElementById("prospectsMeta").innerHTML = "<strong>" + d.warm_prospects_count + " prospects</strong>";
         var list = document.getElementById("prospectsList");
         list.innerHTML = "";
@@ -60,23 +58,44 @@ function loadProspects() {
     })
     .catch(e => {
         console.error("Prospects error:", e);
-        document.getElementById("prospectsMeta").textContent = "Error loading prospects";
     });
 }
 
 function selectProspect(p) {
-    console.log("Selected:", p);
     document.getElementById("campaignPlaceholder").style.display = "none";
     document.getElementById("campaignOutput").style.display = "block";
     document.getElementById("campaignAccount").innerHTML = "<strong>" + p.company_name + "</strong>";
-    document.getElementById("campaignText").innerHTML = "<p>Generating...</p>";
+    document.getElementById("campaignStatus").textContent = "Generating...";
+    document.getElementById("campaignText").innerHTML = "<p>Loading campaign...</p>";
+    
+    var url = API + "/abm/campaign/generate?account_id=" + p.account_id + "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
+    
+    fetch(url, {method: "POST"})
+    .then(r => {
+        console.log("Response status:", r.status);
+        return r.json();
+    })
+    .then(d => {
+        console.log("Campaign received:", d);
+        var text = d.campaign || "No campaign text";
+        var html = "<p>" + text.replace(/
+
+/g, "</p><p>").replace(/
+/g, "<br>") + "</p>";
+        document.getElementById("campaignText").innerHTML = html;
+        document.getElementById("campaignStatus").textContent = "Ready";
+    })
+    .catch(e => {
+        console.error("Campaign error:", e);
+        document.getElementById("campaignText").innerHTML = "<p>Error loading campaign</p>";
+        document.getElementById("campaignStatus").textContent = "Error";
+    });
 }
 
 function loadProducts() {
     fetch(API + "/products")
     .then(r => r.json())
     .then(products => {
-        console.log("Products:", products);
         document.getElementById("productCount").textContent = products.length + " products";
         var grid = document.getElementById("productGrid");
         products.forEach(p => {
@@ -89,9 +108,7 @@ function loadProducts() {
     .catch(e => console.error("Products error:", e));
 }
 
-console.log("Initializing...");
 getToken().then(function() {
-    console.log("Token obtained, loading data...");
     loadProspects();
     loadProducts();
 });
