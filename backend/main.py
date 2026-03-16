@@ -150,3 +150,8 @@ if __name__ == "__main__":
 
 
 
+
+@app.get("/auth/token")
+async def get_token():
+    token = await get_directus_token()
+    return {"token": token}
