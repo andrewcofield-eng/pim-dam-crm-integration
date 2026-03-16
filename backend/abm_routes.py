@@ -138,3 +138,22 @@ async def setup_abm_accounts(directus_url: str, directus_token: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/simulate-behaviors")
+async def simulate_and_log_behaviors(directus_url: str, directus_token: str, days: int = 7):
+    """Simulate account behaviors and log to HubSpot"""
+    try:
+        orchestrator = get_orchestrator(directus_url)
+        orchestrator.directus_token = directus_token
+        
+        # Run simulation and log all behaviors to HubSpot
+        behaviors = await orchestrator.simulate_all_behaviors(days=days)
+        
+        return {
+            "status": "success",
+            "message": f"Simulated behaviors for {len(behaviors)} accounts and logged to HubSpot",
+            "accounts_simulated": len(behaviors),
+            "total_behaviors": sum(len(b) for b in behaviors.values())
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
