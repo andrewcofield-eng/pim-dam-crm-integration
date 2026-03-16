@@ -1,0 +1,391 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-dark: #005280;
+    --primary-light: #4d9fcc;
+    --accent-warm: #dd0000;
+    --accent-tan: #a36214;
+    --accent-brown: #612e00;
+    --text-primary: #ffffff;
+    --text-secondary: #cce4f0;
+    --bg-dark: #0a1628;
+    --bg-card: rgba(255, 255, 255, 0.07);
+    --bg-card-hover: rgba(255, 255, 255, 0.12);
+    --border: rgba(255, 255, 255, 0.12);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #003d5c 40%, #002a40 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+/* ─── Header ──────────────────────────────────── */
+header {
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-main {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+
+.logo-sub {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-left: 0.75rem;
+    font-weight: 300;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #888;
+    transition: background 0.3s;
+}
+
+.status-dot.online { background: #00e676; box-shadow: 0 0 6px #00e676; }
+.status-dot.offline { background: var(--accent-warm); box-shadow: 0 0 6px var(--accent-warm); }
+
+/* ─── Main Layout ─────────────────────────────── */
+main {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 1.5rem;
+    min-height: 60vh;
+}
+
+/* ─── Panels ──────────────────────────────────── */
+.panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.panel-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* ─── Refresh Button ──────────────────────────── */
+.btn-refresh {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-refresh:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* ─── Prospect Cards ──────────────────────────── */
+.prospects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.prospect-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.prospect-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary-light);
+    transform: translateX(4px);
+}
+
+.prospect-card.selected {
+    border-color: var(--primary-light);
+    background: rgba(77, 159, 204, 0.15);
+}
+
+.prospect-card.hottest {
+    border-color: var(--accent-warm);
+}
+
+.prospect-rank {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    min-width: 30px;
+}
+
+.prospect-card.hottest .prospect-rank {
+    color: var(--accent-warm);
+}
+
+.prospect-info {
+    flex: 1;
+}
+
+.prospect-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+}
+
+.prospect-meta {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.2rem;
+    text-transform: capitalize;
+}
+
+.prospect-contact {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.prospect-score {
+    text-align: center;
+    min-width: 55px;
+}
+
+.score-number {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--primary-light);
+}
+
+.prospect-card.hottest .score-number {
+    color: var(--accent-warm);
+}
+
+.score-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+/* ─── Campaign Panel ──────────────────────────── */
+.campaign-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    text-align: center;
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+}
+
+.campaign-status {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.campaign-account {
+    background: rgba(77, 159, 204, 0.1);
+    border: 1px solid var(--primary-light);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.campaign-text {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.campaign-text h4 {
+    color: var(--primary-light);
+    font-size: 0.9rem;
+    margin: 1rem 0 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.campaign-text p {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 0.3rem;
+}
+
+.generating {
+    color: var(--primary-light);
+    font-size: 0.95rem;
+    padding: 2rem;
+    text-align: center;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ─── Products Section ────────────────────────── */
+.products-section {
+    max-width: 1400px;
+    margin: 0 auto 2rem;
+    padding: 0 2rem;
+}
+
+.products-section .panel-header {
+    margin-bottom: 1rem;
+    border-bottom: none;
+}
+
+.badge {
+    background: var(--primary-light);
+    color: var(--bg-dark);
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.product-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.2s;
+}
+
+.product-card:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+}
+
+.product-sku {
+    font-size: 0.7rem;
+    color: var(--accent-tan);
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 0.4rem;
+}
+
+.product-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
+}
+
+.product-category {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.product-price {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-light);
+}
+
+/* ─── Footer ──────────────────────────────────── */
+footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+footer a {
+    color: var(--primary-light);
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* ─── Scrollbar ───────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-light); }
+
+/* ─── Responsive ──────────────────────────────── */
+@media (max-width: 900px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+
+    .prospects-list {
+        max-height: 40vh;
+    }
+}

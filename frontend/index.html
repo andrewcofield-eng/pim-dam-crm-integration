@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenic Flow ABM Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-inner">
+            <div class="logo">
+                <span class="logo-main">Agenic Flow</span>
+                <span class="logo-sub">ABM Intelligence Dashboard</span>
+            </div>
+            <div class="header-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main>
+        <!-- Left Column: Warm Prospects -->
+        <section class="panel" id="prospectsPanel">
+            <div class="panel-header">
+                <h2>🔥 Warm Prospects</h2>
+                <button class="btn-refresh" onclick="loadProspects()">↻ Refresh</button>
+            </div>
+            <div class="panel-meta" id="prospectsMeta">Loading...</div>
+            <div id="prospectsList" class="prospects-list"></div>
+        </section>
+
+        <!-- Right Column: Campaign Output -->
+        <section class="panel" id="campaignPanel">
+            <div class="panel-header">
+                <h2>🤖 ABM Campaign Generator</h2>
+                <span id="campaignStatus" class="campaign-status"></span>
+            </div>
+            <div id="campaignPlaceholder" class="campaign-placeholder">
+                <p>← Select a prospect to generate a personalized ABM campaign</p>
+            </div>
+            <div id="campaignOutput" class="campaign-output" style="display:none;">
+                <div class="campaign-account" id="campaignAccount"></div>
+                <div class="campaign-text" id="campaignText"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom: Product Catalog -->
+    <section class="products-section">
+        <div class="panel-header">
+            <h2>📦 UrbanThread Product Catalog</h2>
+            <span id="productCount" class="badge"></span>
+        </div>
+        <div id="productGrid" class="product-grid"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>Agenic Flow Marketing · Autonomous ABM powered by PIM + AI · 
+        <a href="https://agenicflowmarketing.com" target="_blank">agenicflowmarketing.com</a> · 
+        <a href="https://github.com/andrewcofield-eng/pim-dam-crm-integration" target="_blank">GitHub</a>
+        </p>
+    </footer>
+
+    <script>
+        const API = "https://pim-dam-crm-integration-production.up.railway.app";
+        const DIRECTUS = "https://directus-production-9f53.up.railway.app";
+        let directusToken = null;
+        let currentProspect = null;
+
+        // ─── Auth ────────────────────────────────────────────────
+        async function getDirectusToken() {
+            try {
+                const res = await fetch(DIRECTUS + "/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: "admin@portfolio.com", password: "admin123" })
+                });
+                const data = await res.json();
+                directusToken = data.data.access_token;
+                setStatus(true);
+            } catch (e) {
+                setStatus(false);
+            }
+        }
+
+        // ─── Status Indicator ────────────────────────────────────
+        function setStatus(online) {
+            const dot = document.getElementById("statusDot");
+            const text = document.getElementById("statusText");
+            dot.className = online ? "status-dot online" : "status-dot offline";
+            text.textContent = online ? "System Online" : "Connection Error";
+        }
+
+        // ─── Load Warm Prospects ─────────────────────────────────
+        async function loadProspects() {
+            document.getElementById("prospectsMeta").textContent = "Loading...";
+            document.getElementById("prospectsList").innerHTML = "";
+
+            try {
+                const res = await fetch(
+                    API + "/abm/warm-prospects?directus_url=" + DIRECTUS + "&directus_token=" + directusToken
+                );
+                const data = await res.json();
+
+                document.getElementById("prospectsMeta").innerHTML =
+                    "<strong>" + data.warm_prospects_count + " warm prospects identified</strong> · Pipeline: " + (data.total_pipeline_value || "Calculating...");
+
+                const list = document.getElementById("prospectsList");
+                data.prospects.forEach((p, i) => {
+                    const card = document.createElement("div");
+                    card.className = "prospect-card" + (i === 0 ? " hottest" : "");
+                    card.onclick = () => selectProspect(p);
+                    card.innerHTML = 
+                        <div class="prospect-rank">#</div>
+                        <div class="prospect-info">
+                            <div class="prospect-name"></div>
+                            <div class="prospect-meta"> · </div>
+                            <div class="prospect-contact">👤  — </div>
+                        </div>
+                        <div class="prospect-score">
+                            <div class="score-number"></div>
+                            <div class="score-label">pts</div>
+                        </div>
+                    ;
+                    list.appendChild(card);
+                });
+            } catch (e) {
+                document.getElementById("prospectsMeta").textContent = "Error loading prospects.";
+            }
+        }
+
+        // ─── Select Prospect ─────────────────────────────────────
+        function selectProspect(prospect) {
+            currentProspect = prospect;
+
+            // Highlight selected card
+            document.querySelectorAll(".prospect-card").forEach(c => c.classList.remove("selected"));
+            event.currentTarget.classList.add("selected");
+
+            // Show loading in campaign panel
+            document.getElementById("campaignPlaceholder").style.display = "none";
+            document.getElementById("campaignOutput").style.display = "block";
+            document.getElementById("campaignAccount").innerHTML = 
+                <strong></strong> · <br>
+                <small>Contact:  ()</small>
+            ;
+            document.getElementById("campaignText").innerHTML = 
+                <div class="generating">⚡ Generating personalized ABM campaign...</div>
+            ;
+            document.getElementById("campaignStatus").textContent = "Generating...";
+
+            generateCampaign(prospect.account_id);
+        }
+
+        // ─── Generate Campaign ───────────────────────────────────
+        async function generateCampaign(accountId) {
+            try {
+                const res = await fetch(
+                    API + "/abm/campaign/generate?account_id=" + accountId +
+                    "&directus_url=" + DIRECTUS +
+                    "&directus_token=" + directusToken,
+                    { method: "POST" }
+                );
+                const data = await res.json();
+
+                const formatted = data.campaign
+                    .split("\n")
+                    .map(line => {
+                        if (line.match(/^\d+\./)) return "<h4>" + line + "</h4>";
+                        if (line.trim() === "") return "<br>";
+                        return "<p>" + line + "</p>";
+                    })
+                    .join("");
+
+                document.getElementById("campaignText").innerHTML = formatted;
+                document.getElementById("campaignStatus").textContent = "✅ Campaign Ready";
+            } catch (e) {
+                document.getElementById("campaignText").innerHTML = "<p>Error generating campaign. Please try again.</p>";
+                document.getElementById("campaignStatus").textContent = "❌ Error";
+            }
+        }
+
+        // ─── Load Products ───────────────────────────────────────
+        async function loadProducts() {
+            try {
+                const res = await fetch(API + "/products");
+                const products = await res.json();
+
+                document.getElementById("productCount").textContent = products.length + " products";
+
+                const grid = document.getElementById("productGrid");
+                products.forEach(p => {
+                    const card = document.createElement("div");
+                    card.className = "product-card";
+                    card.innerHTML = 
+                        <div class="product-sku"></div>
+                        <div class="product-name"></div>
+                        <div class="product-category"></div>
+                        <div class="product-price">frontend{parseFloat(p.price).toFixed(2)}</div>
+                    ;
+                    grid.appendChild(card);
+                });
+            } catch (e) {
+                console.error("Error loading products:", e);
+            }
+        }
+
+        // ─── Init ─────────────────────────────────────────────────
+        async function init() {
+            await getDirectusToken();
+            await loadProspects();
+            await loadProducts();
+        }
+
+        init();
+    </script>
+</body>
+</html>
