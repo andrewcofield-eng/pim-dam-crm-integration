@@ -121,3 +121,20 @@ async def generate_abm_campaign(account_id: str, directus_url: str, directus_tok
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/setup-accounts")
+async def setup_abm_accounts(directus_url: str, directus_token: str):
+    """Create all 10 B2B accounts in HubSpot"""
+    try:
+        orchestrator = get_orchestrator(directus_url)
+        orchestrator.directus_token = directus_token
+        accounts_map = await orchestrator.setup_accounts_in_hubspot()
+        
+        return {
+            "status": "success",
+            "message": f"Created {len(accounts_map)} accounts in HubSpot",
+            "accounts_created": len(accounts_map),
+            "accounts": accounts_map
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
