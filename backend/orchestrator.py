@@ -72,10 +72,10 @@ class ABMSimulationOrchestrator:
             company_id = self.accounts_map.get(account["id"])
             if company_id and behaviors:
                 # Get first contact for this company (simplified)
-                contact_id = None  # Would need to fetch this in production
-                
+                contact_ids = self.hubspot.get_contacts_for_company(company_id)
                 for behavior in behaviors:
-                    self.hubspot.log_behavior_activity(behavior, company_id, contact_id)
+                    for contact_id in contact_ids:
+                        self.hubspot.log_behavior_activity(contact_id, behavior)
                 
                 # Calculate and update engagement
                 engagement = self.simulator.aggregate_account_engagement(behaviors)
@@ -143,3 +143,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
