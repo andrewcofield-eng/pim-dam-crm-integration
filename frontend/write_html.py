@@ -8,105 +8,67 @@ html = '''<!DOCTYPE html>
 <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-<header><div class="header-inner"><div class="logo"><span class="logo-main">Agenic Flow</span><span class="logo-sub">ABM Dashboard</span></div><div class="header-status"><span class="status-dot" id="statusDot"></span><span id="statusText">Connecting...</span></div></div></header>
+<header><div class="header-inner"><div class="logo"><span class="logo-main">Agenic Flow</span></div></div></header>
 <main>
-<section class="panel"><div class="panel-header"><h2>Warm Prospects</h2><button class="btn-refresh" onclick="loadProspects()">Refresh</button></div><div id="prospectsMeta">Loading...</div><div id="prospectsList" class="prospects-list"></div></section>
-<section class="panel"><div class="panel-header"><h2>ABM Campaign</h2><span id="campaignStatus"></span></div><div id="campaignPlaceholder"><p>Select a prospect</p></div><div id="campaignOutput" style="display:none;"><div id="campaignAccount"></div><div id="campaignText" style="max-height:500px;overflow-y:auto;"></div></div></section>
+<section class="panel"><div class="panel-header"><h2>Prospects</h2><button onclick="loadProspects()">Refresh</button></div><div id="prospectsMeta"></div><div id="prospectsList"></div></section>
+<section class="panel"><div class="panel-header"><h2>Campaign</h2></div><div id="campaignPlaceholder"><p>Select prospect</p></div><div id="campaignOutput" style="display:none"><div id="campaignAccount"></div><div id="campaignText"></div></div></section>
 </main>
-<section><div class="panel-header"><h2>Products</h2><span id="productCount"></span></div><div id="productGrid" class="product-grid"></div></section>
-<footer><p>Agenic Flow Marketing</p></footer>
+<section><div id="productGrid" class="product-grid"></div></section>
 <script>
 var API = "https://pim-dam-crm-integration-production.up.railway.app";
 var token = null;
 
-function setStatus(online) {
-    var dot = document.getElementById("statusDot");
-    dot.className = online ? "status-dot online" : "status-dot offline";
-    document.getElementById("statusText").textContent = online ? "Online" : "Error";
-}
-
 function getToken() {
     return fetch(API + "/auth/token").then(r => r.json()).then(d => {
         token = d.token;
-        setStatus(true);
         return token;
-    }).catch(e => {
-        console.error("Token error:", e);
-        setStatus(false);
     });
 }
 
 function loadProspects() {
-    if (!token) {
-        console.error("No token");
-        return;
-    }
-    document.getElementById("prospectsMeta").textContent = "Loading...";
+    if (!token) return;
     var url = API + "/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
-    fetch(url)
-    .then(r => r.json())
-    .then(d => {
-        document.getElementById("prospectsMeta").innerHTML = "<strong>" + d.warm_prospects_count + " prospects</strong>";
+    fetch(url).then(r => r.json()).then(d => {
+        document.getElementById("prospectsMeta").textContent = d.warm_prospects_count + " prospects";
         var list = document.getElementById("prospectsList");
         list.innerHTML = "";
         d.prospects.forEach(function(p, i) {
             var card = document.createElement("div");
             card.className = "prospect-card";
-            card.innerHTML = "<div class='prospect-rank'>#" + (i+1) + "</div><div class='prospect-info'><div class='prospect-name'>" + p.company_name + "</div><div class='prospect-meta'>" + p.industry + "</div></div><div class='prospect-score'>" + p.engagement_score + "</div>";
+            card.textContent = p.company_name + " (" + p.engagement_score + ")";
             card.onclick = function() { selectProspect(p); };
             list.appendChild(card);
         });
-    })
-    .catch(e => {
-        console.error("Prospects error:", e);
     });
 }
 
 function selectProspect(p) {
     document.getElementById("campaignPlaceholder").style.display = "none";
     document.getElementById("campaignOutput").style.display = "block";
-    document.getElementById("campaignAccount").innerHTML = "<strong>" + p.company_name + "</strong>";
-    document.getElementById("campaignStatus").textContent = "Generating...";
-    document.getElementById("campaignText").innerHTML = "<p>Loading campaign...</p>";
+    document.getElementById("campaignAccount").textContent = p.company_name;
+    document.getElementById("campaignText").textContent = "Loading...";
     
     var url = API + "/abm/campaign/generate?account_id=" + p.account_id + "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
     
-    fetch(url, {method: "POST"})
-    .then(r => {
-        console.log("Response status:", r.status);
-        return r.json();
-    })
-    .then(d => {
-        console.log("Campaign received:", d);
-        var text = d.campaign || "No campaign text";
-        var html = "<p>" + text.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>") + "</p>";
-        document.getElementById("campaignText").innerHTML = html;
-        document.getElementById("campaignStatus").textContent = "Ready";
-    })
-    .catch(e => {
-        console.error("Campaign error:", e);
-        document.getElementById("campaignText").innerHTML = "<p>Error loading campaign</p>";
-        document.getElementById("campaignStatus").textContent = "Error";
+    fetch(url, {method: "POST"}).then(r => r.json()).then(d => {
+        document.getElementById("campaignText").textContent = d.campaign;
+    }).catch(e => {
+        document.getElementById("campaignText").textContent = "Error: " + e;
     });
 }
 
 function loadProducts() {
-    fetch(API + "/products")
-    .then(r => r.json())
-    .then(products => {
-        document.getElementById("productCount").textContent = products.length + " products";
+    fetch(API + "/products").then(r => r.json()).then(products => {
         var grid = document.getElementById("productGrid");
         products.forEach(p => {
             var card = document.createElement("div");
-            card.className = "product-card";
-            card.innerHTML = "<div class='product-sku'>" + p.sku + "</div><div class='product-name'>" + p.product_name + "</div>";
+            card.textContent = p.sku + ": " + p.product_name;
             grid.appendChild(card);
         });
-    })
-    .catch(e => console.error("Products error:", e));
+    });
 }
 
-getToken().then(function() {
+getToken().then(() => {
     loadProspects();
     loadProducts();
 });
@@ -115,4 +77,4 @@ getToken().then(function() {
 </html>'''
 f.write(html)
 f.close()
-print("Updated")
+print("Done")
