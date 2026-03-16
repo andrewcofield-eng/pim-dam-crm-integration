@@ -1,8 +1,11 @@
 ﻿{
   "name": "agenic-flow-dashboard",
   "version": "1.0.0",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
-    "start": "npx serve . -l "
+    "start": "serve . -l "
   },
   "dependencies": {
     "serve": "^14.2.0"
