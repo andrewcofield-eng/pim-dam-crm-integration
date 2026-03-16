@@ -1,0 +1,10 @@
+﻿{
+  "name": "agenic-flow-dashboard",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx serve . -l "
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}
