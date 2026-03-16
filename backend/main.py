@@ -141,6 +141,11 @@ async def generate_campaign(product_sku: str, target_segment: str):
 from abm_routes import router as abm_router
 app.include_router(abm_router)
 
+@app.get("/auth/token")
+async def get_token():
+    token = await get_directus_token()
+    return {"token": token}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
@@ -151,7 +156,5 @@ if __name__ == "__main__":
 
 
 
-@app.get("/auth/token")
-async def get_token():
-    token = await get_directus_token()
-    return {"token": token}
+
+
