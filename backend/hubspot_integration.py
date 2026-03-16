@@ -1,4 +1,5 @@
 ﻿import requests
+import os
 import json
 from typing import Dict, List
 from datetime import datetime
@@ -138,3 +139,5 @@ if __name__ == "__main__":
     api_key = "YOUR_API_KEY_HERE"
     hs = HubSpotIntegration(api_key)
     print("HubSpot integration ready!")
+
+

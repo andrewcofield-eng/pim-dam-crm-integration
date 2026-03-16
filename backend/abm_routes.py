@@ -14,7 +14,7 @@ def get_orchestrator(directus_url: str):
     global _orchestrator
     if _orchestrator is None:
         _orchestrator = ABMSimulationOrchestrator(
-            hubspot_api_key="na2-394a-0c81-46e7-bba3-58a01dcca7c2",
+            hubspot_api_key=os.getenv("HUBSPOT_API_KEY"),
             directus_url=directus_url,
             directus_token=None
         )
@@ -120,3 +120,4 @@ async def generate_abm_campaign(account_id: str, directus_url: str, directus_tok
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
