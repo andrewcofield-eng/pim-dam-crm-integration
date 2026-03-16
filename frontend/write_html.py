@@ -11,9 +11,10 @@ html = '''<!DOCTYPE html>
 <header><div class="header-inner"><div class="logo"><span class="logo-main">Agenic Flow</span></div></div></header>
 <main>
 <section class="panel"><div class="panel-header"><h2>Prospects</h2><button onclick="loadProspects()">Refresh</button></div><div id="prospectsMeta"></div><div id="prospectsList"></div></section>
-<section class="panel"><div class="panel-header"><h2>Campaign</h2></div><div id="campaignPlaceholder"><p>Select prospect</p></div><div id="campaignOutput" style="display:none"><div id="campaignAccount"></div><div id="campaignText"></div></div></section>
+<section class="panel"><div class="panel-header"><h2>Campaign</h2></div><div id="campaignPlaceholder"><p>Select prospect</p></div><div id="campaignOutput" style="display:none"><div id="campaignAccount"></div><div id="campaignText" style="max-height:400px;overflow-y:auto"></div></div></section>
 </main>
-<section><div id="productGrid" class="product-grid"></div></section>
+<section><div class="panel-header"><h2>Products</h2></div><div id="productGrid" class="product-grid"></div></section>
+<footer><p>Agenic Flow Marketing</p></footer>
 <script>
 var API = "https://pim-dam-crm-integration-production.up.railway.app";
 var token = null;
@@ -58,11 +59,64 @@ function selectProspect(p) {
 }
 
 function loadProducts() {
-    fetch(API + "/products").then(r => r.json()).then(products => {
+    fetch(API + "/products").then(r => r.json()).then(data => {
+        var products = data.value || data;
         var grid = document.getElementById("productGrid");
+        grid.innerHTML = "";
         products.forEach(p => {
             var card = document.createElement("div");
-            card.textContent = p.sku + ": " + p.product_name;
+            card.className = "product-card";
+            card.style.padding = "12px";
+            card.style.border = "1px solid #ddd";
+            card.style.borderRadius = "8px";
+            card.style.backgroundColor = "#f9f9f9";
+            
+            var img = document.createElement("img");
+            img.src = p.cloudinary_url || "https://via.placeholder.com/200";
+            img.alt = p.product_name;
+            img.style.width = "100%";
+            img.style.height = "200px";
+            img.style.objectFit = "cover";
+            img.style.borderRadius = "6px";
+            img.style.marginBottom = "10px";
+            
+            var sku = document.createElement("div");
+            sku.style.fontSize = "0.75rem";
+            sku.style.color = "#999";
+            sku.style.marginBottom = "4px";
+            sku.textContent = p.sku;
+            
+            var name = document.createElement("div");
+            name.style.fontWeight = "600";
+            name.style.fontSize = "0.95rem";
+            name.style.marginBottom = "4px";
+            name.textContent = p.product_name;
+            
+            var short = document.createElement("div");
+            short.style.fontSize = "0.8rem";
+            short.style.color = "#666";
+            short.style.marginBottom = "6px";
+            short.textContent = p.short_description;
+            
+            var desc = document.createElement("div");
+            desc.style.fontSize = "0.75rem";
+            desc.style.color = "#888";
+            desc.style.lineHeight = "1.3";
+            desc.style.marginBottom = "8px";
+            desc.textContent = p.Description;
+            
+            var price = document.createElement("div");
+            price.style.fontWeight = "700";
+            price.style.fontSize = "0.95rem";
+            price.style.color = "#005280";
+            price.textContent = "$" + parseFloat(p.price).toFixed(2);
+            
+            card.appendChild(img);
+            card.appendChild(sku);
+            card.appendChild(name);
+            card.appendChild(short);
+            card.appendChild(desc);
+            card.appendChild(price);
             grid.appendChild(card);
         });
     });
@@ -77,4 +131,4 @@ getToken().then(() => {
 </html>'''
 f.write(html)
 f.close()
-print("Done")
+print("Updated with images and descriptions")
