@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+﻿f = open('index.html', 'w', encoding='utf-8')
+html = '''<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -105,8 +106,7 @@ function generateCampaign(accountId) {
     fetch(API + "/abm/campaign/generate?account_id=" + accountId + "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + directusToken, {method:"POST"})
     .then(r => r.json())
     .then(d => {
-        document.getElementById("campaignText").innerHTML = "<p>" + d.campaign.replace(/
-/g, "</p><p>") + "</p>";
+        document.getElementById("campaignText").innerHTML = "<p>" + d.campaign.replace(/\n/g, "</p><p>") + "</p>";
         document.getElementById("campaignStatus").textContent = "Ready";
     })
     .catch(e => console.error("Campaign error:", e));
@@ -130,4 +130,7 @@ function loadProducts() {
 getDirectusToken().then(() => { loadProspects(); loadProducts(); });
 </script>
 </body>
-</html>
+</html>'''
+f.write(html)
+f.close()
+print("HTML written successfully")
