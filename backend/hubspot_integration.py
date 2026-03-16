@@ -166,3 +166,56 @@ if __name__ == "__main__":
     api_key = os.getenv("HUBSPOT_API_KEY", "")
     hs = HubSpotIntegration(api_key)
     print("HubSpot integration ready!")
+
+    def log_behavior_activity(self, contact_id: str, behavior: Dict) -> bool:
+        """Log behavior as HubSpot activity/note"""
+        url = f"{self.base_url}/crm/v3/objects/notes"
+        
+        action_text = behavior.get('action', 'unknown').replace('_', ' ').title()
+        note_body = f"[ABM Behavior] {action_text}: {behavior.get('product_name', 'Unknown')} ({behavior.get('product_sku', 'N/A')}) - Engagement: {behavior.get('engagement_score', 0)}"
+        
+        payload = {
+            "properties": {
+                "hs_note_body": note_body
+            }
+        }
+        
+        try:
+            response = requests.post(url, json=payload, headers=self.headers)
+            response.raise_for_status()
+            note_id = response.json()["id"]
+            
+            # Associate note to contact
+            self.associate_note_to_contact(note_id, contact_id)
+            print(f"✅ Logged behavior for contact {contact_id}")
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Failed to log behavior: {str(e)}")
+            return False
+
+    def associate_note_to_contact(self, note_id: str, contact_id: str):
+        """Associate a note with a contact"""
+        url = f"{self.base_url}/crm/v4/objects/notes/{note_id}/associations/contacts/{contact_id}"
+        payload = [{"associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 27}]
+        try:
+            requests.put(url, json=payload, headers=self.headers)
+        except:
+            pass
+
+    def update_lifecycle_stage(self, contact_id: str, stage: str) -> bool:
+        """Update contact lifecycle stage based on engagement"""
+        url = f"{self.base_url}/crm/v3/objects/contacts/{contact_id}"
+        
+        payload = {
+            "properties": {
+                "lifecyclestage": stage
+            }
+        }
+        
+        try:
+            requests.patch(url, json=payload, headers=self.headers)
+            print(f"✅ Updated lifecycle to {stage}")
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Failed to update lifecycle: {str(e)}")
+            return False
