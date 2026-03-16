@@ -4,6 +4,19 @@ import json
 from typing import Dict, List
 from datetime import datetime
 
+INDUSTRY_MAP = {
+    "Outdoor Apparel Retail": "RETAIL",
+    "Fitness Chain": "HEALTH_WELLNESS_AND_FITNESS",
+    "Corporate Merchandise": "CONSUMER_GOODS",
+    "Adventure Travel": "LEISURE_TRAVEL_TOURISM",
+    "Fashion Retail": "RETAIL",
+    "Employee Benefits": "HUMAN_RESOURCES",
+    "Event Management": "EVENTS_SERVICES",
+    "College Merchandise": "RETAIL",
+    "Non-Profit": "NON_PROFIT_ORGANIZATION_MANAGEMENT",
+    "Hospitality": "HOSPITALITY"
+}
+
 class HubSpotIntegration:
     """Integrate behavior simulator with real HubSpot CRM"""
     
@@ -22,7 +35,7 @@ class HubSpotIntegration:
         payload = {
             "properties": {
                 "name": account["company_name"],
-                "industry": account["industry"],
+                "industry": INDUSTRY_MAP.get(account["industry"], "OTHER"),
                 "numberofemployees": str(account["employees"]),
                 "annualrevenue": account["annual_revenue"],
                 "lifecyclestage": "subscriber",
@@ -139,5 +152,7 @@ if __name__ == "__main__":
     api_key = "YOUR_API_KEY_HERE"
     hs = HubSpotIntegration(api_key)
     print("HubSpot integration ready!")
+
+
 
 
