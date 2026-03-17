@@ -1,6 +1,5 @@
 ﻿import requests
 import os
-import json
 from typing import Dict, List
 from datetime import datetime
 
@@ -29,12 +28,12 @@ class HubSpotIntegration:
         self.api_key = api_key
         self.base_url = "https://api.hubapi.com"
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": "Bearer " + api_key,
             "Content-Type": "application/json"
         }
 
     def create_company(self, account: Dict) -> Dict:
-        url = f"{self.base_url}/crm/v3/objects/companies"
+        url = self.base_url + "/crm/v3/objects/companies"
         revenue_str = str(account.get("annual_revenue", "0"))
         if "M" in revenue_str:
             revenue = float(revenue_str.replace("M", "")) * 1000000
@@ -58,23 +57,16 @@ class HubSpotIntegration:
             response = requests.post(url, json=payload, headers=self.headers)
             response.raise_for_status()
             company_id = response.json()["id"]
-            print(f"✅ Created company: {account['company_name']} (ID: {company_id})")
-            return {"success": True, "company_id": company_id, "company_name": account["company_name"]}
+            print("Created company: " + account["company_name"] + " ID: " + company_id)
+            return {"success": True, "company_id": company_id}
         except requests.exceptions.RequestException as e:
-            print(f"❌ Failed to create company {account['company_name']}: {str(e)}")
-            try:
-                print(f"   Detail: {e.response.json()}")
-            except:
-                pass
+            print("Failed to create company " + account["company_name"] + ": " + str(e))
             return {"success": False, "error": str(e)}
 
     def get_or_create_contact(self, account: Dict, company_id: str) -> str:
-        """Get existing contact by email or create new one. Returns contact_id or None."""
         contact = account["contact"]
         email = contact["email"]
-
-        # First try to find existing contact by email
-        search_url = f"{self.base_url}/crm/v3/objects/contacts/search"
+        search_url = self.base_url + "/crm/v3/objects/contacts/search"
         search_payload = {
             "filterGroups": [{
                 "filters": [{
@@ -91,14 +83,12 @@ class HubSpotIntegration:
             results = response.json().get("results", [])
             if results:
                 contact_id = results[0]["id"]
-                print(f"  📧 Found existing contact: {contact['name']} (ID: {contact_id})")
+                print("  Found existing contact: " + contact["name"] + " ID: " + contact_id)
                 self.associate_contact_to_company(contact_id, company_id)
                 return contact_id
         except Exception as e:
-            print(f"  ⚠️  Contact search failed: {e}")
-
-        # Create new contact if not found
-        url = f"{self.base_url}/crm/v3/objects/contacts"
+            print("  Contact search failed: " + str(e))
+        url = self.base_url + "/crm/v3/objects/contacts"
         name_parts = contact["name"].split()
         firstname = name_parts[0]
         lastname = name_parts[-1] if len(name_parts) > 1 else name_parts[0]
@@ -116,14 +106,14 @@ class HubSpotIntegration:
             response.raise_for_status()
             contact_id = response.json()["id"]
             self.associate_contact_to_company(contact_id, company_id)
-            print(f"  ✅ Created contact: {contact['name']} (ID: {contact_id})")
+            print("  Created contact: " + contact["name"] + " ID: " + contact_id)
             return contact_id
         except Exception as e:
-            print(f"  ❌ Could not get or create contact {contact['name']}: {e}")
+            print("  Could not get or create contact " + contact["name"] + ": " + str(e))
             return None
 
     def associate_contact_to_company(self, contact_id: str, company_id: str):
-        url = f"{self.base_url}/crm/v4/objects/contacts/{contact_id}/associations/companies/{company_id}"
+        url = self.base_url + "/crm/v4/objects/contacts/" + contact_id + "/associations/companies/" + company_id
         payload = [{"associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 279}]
         try:
             requests.put(url, json=payload, headers=self.headers)
@@ -131,27 +121,27 @@ class HubSpotIntegration:
             pass
 
     def get_contacts_for_company(self, company_id: str) -> List[str]:
-        url = f"{self.base_url}/crm/v3/objects/companies/{company_id}/associations/contacts"
+        url = self.base_url + "/crm/v3/objects/companies/" + company_id + "/associations/contacts"
         try:
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
             results = response.json().get("results", [])
             contact_ids = [r["id"] for r in results]
-            print(f"  📋 Found {len(contact_ids)} contact(s) for company {company_id}")
+            print("  Found " + str(len(contact_ids)) + " contact(s) for company " + company_id)
             return contact_ids
         except Exception as e:
-            print(f"  ⚠️  Could not fetch contacts for company {company_id}: {e}")
+            print("  Could not fetch contacts for company " + company_id + ": " + str(e))
             return []
 
     def log_behavior_activity(self, contact_id: str, behavior: Dict, company_id: str = None) -> bool:
         action_text = behavior.get("action", "unknown").replace("_", " ").title()
         note_body = (
-            f"[ABM Behavior] {action_text}: "
-            f"{behavior.get('product_name', 'Unknown')} "
-            f"({behavior.get('product_sku', 'N/A')}) "
-            f"- Engagement Score: {behavior.get('engagement_score', 0)}"
+            "[ABM Behavior] " + action_text + ": " +
+            behavior.get("product_name", "Unknown") + " (" +
+            behavior.get("product_sku", "N/A") + ") - Score: " +
+            str(behavior.get("engagement_score", 0))
         )
-        note_url = f"{self.base_url}/crm/v3/objects/notes"
+        note_url = self.base_url + "/crm/v3/objects/notes"
         payload = {
             "properties": {
                 "hs_note_body": note_body,
@@ -162,50 +152,44 @@ class HubSpotIntegration:
             response = requests.post(note_url, json=payload, headers=self.headers)
             response.raise_for_status()
             note_id = response.json()["id"]
-            print(f"  ✅ Created note {note_id}: {action_text}")
+            print("  Note created " + note_id + ": " + action_text)
         except Exception as e:
-            err_detail = ""
-            try:
-                err_detail = e.response.text
-            except:
-                pass
-            print(f"  ❌ Failed to create note: {e} | {err_detail}")
+            print("  Failed to create note: " + str(e))
             return False
         if contact_id:
-            assoc_url = f"{self.base_url}/crm/v3/associations/notes/contacts/batch/create"
+            assoc_url = self.base_url + "/crm/v3/associations/notes/contacts/batch/create"
             assoc_payload = {"inputs": [{"from": {"id": note_id}, "to": {"id": contact_id}, "type": "note_to_contact"}]}
             try:
                 r = requests.post(assoc_url, json=assoc_payload, headers=self.headers)
                 r.raise_for_status()
-                print(f"  ✅ Associated note {note_id} -> contact {contact_id}")
+                print("  Note " + note_id + " -> contact " + contact_id)
             except Exception as e:
-                print(f"  ⚠️  Contact association failed: {e}")
+                print("  Contact association failed: " + str(e))
         if company_id:
-            assoc_url = f"{self.base_url}/crm/v3/associations/notes/companies/batch/create"
+            assoc_url = self.base_url + "/crm/v3/associations/notes/companies/batch/create"
             assoc_payload = {"inputs": [{"from": {"id": note_id}, "to": {"id": company_id}, "type": "note_to_company"}]}
             try:
                 r = requests.post(assoc_url, json=assoc_payload, headers=self.headers)
                 r.raise_for_status()
-                print(f"  ✅ Associated note {note_id} -> company {company_id}")
+                print("  Note " + note_id + " -> company " + company_id)
             except Exception as e:
-                print(f"  ⚠️  Company association failed: {e}")
+                print("  Company association failed: " + str(e))
         return True
 
-    def update_company_engagement(self, company_id: str -> bool:
-        url = f"{self.base_url}/crm/v3/objects/companies/{company_id}"
-        # Only update page views - skip lifecyclestage (HubSpot blocks backwards movement)
+    def update_company_engagement(self, company_id: str, bool:
+        url = self.base_url + "/crm/v3/objects/companies/" + company_id
         payload = {
             "properties": {
-                "hs_analytics_num_page_views": str(engagement_data.get("interaction_count", 0)),
+                "hs_analytics_num_page_views": str(engagement_data.get("interaction_count", 0))
             }
         }
         try:
             response = requests.patch(url, json=payload, headers=self.headers)
             response.raise_for_status()
-            print(f"✅ Updated engagement for company {company_id}")
+            print("  Updated engagement for company " + company_id)
             return True
         except requests.exceptions.RequestException as e:
-            print(f"❌ Failed to update company {company_id}: {str(e)}")
+            print("  Failed to update company " + company_id + ": " + str(e))
             return False
 
 if __name__ == "__main__":
