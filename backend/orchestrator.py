@@ -14,7 +14,8 @@ class ABMSimulationOrchestrator:
         self.hubspot = HubSpotIntegration(hubspot_api_key)
         self.directus_url = directus_url
         self.directus_token = directus_token
-        self.accounts_map = {}
+        self.accounts_map = {}  # account_id -> company_id
+        self.contacts_map = {}  # account_id -> contact_id
 
     async def fetch_products_from_directus(self) -> List[Dict]:
         """Fetch all products from live Directus"""
@@ -37,7 +38,9 @@ class ABMSimulationOrchestrator:
             if company_result["success"]:
                 company_id = company_result["company_id"]
                 self.accounts_map[account["id"]] = company_id
-                self.hubspot.get_or_create_contact(account, company_id)
+                contact_id = self.hubspot.get_or_create_contact(account, company_id)
+                if contact_id:
+                    self.contacts_map[account["id"]] = contact_id
             await asyncio.sleep(0.5)
         print(f"Created {len(self.accounts_map)} accounts in HubSpot")
         return self.accounts_map
@@ -56,10 +59,11 @@ class ABMSimulationOrchestrator:
             all_behaviors[account["id"]] = behaviors
             company_id = self.accounts_map.get(account["id"])
             if company_id and behaviors:
-                contact_ids = self.hubspot.get_contacts_for_company(company_id)
+                contact_id = self.contacts_map.get(account["id"])
+                contact_ids = [contact_id] if contact_id else self.hubspot.get_contacts_for_company(company_id)
                 for behavior in behaviors:
-                    for contact_id in contact_ids:
-                        self.hubspot.log_behavior_activity(contact_id, behavior, company_id=company_id)
+                    for cid in contact_ids:
+                        self.hubspot.log_behavior_activity(cid, behavior, company_id=company_id)
                 engagement = self.simulator.aggregate_account_engagement(behaviors)
                 self.hubspot.update_company_engagement(company_id, engagement)
             await asyncio.sleep(0.3)
