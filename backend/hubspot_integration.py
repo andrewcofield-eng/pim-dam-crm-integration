@@ -116,9 +116,10 @@ class HubSpotIntegration:
         url = self.base_url + "/crm/v4/objects/contacts/" + contact_id + "/associations/companies/" + company_id
         payload = [{"associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 279}]
         try:
-            requests.put(url, json=payload, headers=self.headers)
-        except:
-            pass
+            r = requests.put(url, json=payload, headers=self.headers)
+            print("  Association status: " + str(r.status_code) + " contact " + contact_id + " -> company " + company_id)
+        except Exception as e:
+            print("  Association error: " + str(e))
 
     def get_contacts_for_company(self, company_id: str) -> List[str]:
         url = self.base_url + "/crm/v3/objects/companies/" + company_id + "/associations/contacts"
