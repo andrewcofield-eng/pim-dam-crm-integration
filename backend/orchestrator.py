@@ -52,7 +52,7 @@ class ABMSimulationOrchestrator:
         print(f"\n✅ Created {len(self.accounts_map)} accounts in HubSpot")
         return self.accounts_map
     
-        async def simulate_all_behaviors(self, days: int = 7) -> Dict:
+    async def simulate_all_behaviors(self, days: int = 7) -> Dict:
         """Simulate behavior for all accounts"""
         print(f"
 🎬 Simulating behaviors for {len(ACCOUNTS)} accounts over {days} days...")
