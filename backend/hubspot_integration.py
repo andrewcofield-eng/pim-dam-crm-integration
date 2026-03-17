@@ -176,7 +176,7 @@ class HubSpotIntegration:
                 print("  Company association failed: " + str(e))
         return True
 
-    def update_company_engagement(self, company_id: str, bool:
+    def update_company_engagement(self, company_id: str, engagement_data: Dict) -> bool:
         url = self.base_url + "/crm/v3/objects/companies/" + company_id
         payload = {
             "properties": {
@@ -196,3 +196,4 @@ if __name__ == "__main__":
     api_key = os.getenv("HUBSPOT_API_KEY", "")
     hs = HubSpotIntegration(api_key)
     print("HubSpot integration ready!")
+
