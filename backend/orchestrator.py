@@ -52,43 +52,41 @@ class ABMSimulationOrchestrator:
         print(f"\n✅ Created {len(self.accounts_map)} accounts in HubSpot")
         return self.accounts_map
     
-    async def simulate_all_behaviors(self, days: int = 7) -> Dict:
+        async def simulate_all_behaviors(self, days: int = 7) -> Dict:
         """Simulate behavior for all accounts"""
-        print(f"\n🎬 Simulating behaviors for {len(ACCOUNTS)} accounts over {days} days...")
-        
+        print(f"
+🎬 Simulating behaviors for {len(ACCOUNTS)} accounts over {days} days...")
+
         products = await self.fetch_products_from_directus()
         if not products:
             print("❌ No products available for simulation")
             return {}
-        
+
         all_behaviors = {}
-        
+
         for account in ACCOUNTS:
-            # Simulate behaviors
             behaviors = self.simulator.simulate_account_behavior(account, products, days=days)
             all_behaviors[account["id"]] = behaviors
-            
-            # Log each behavior to HubSpot
+
             company_id = self.accounts_map.get(account["id"])
             if company_id and behaviors:
-                # Get first contact for this company (simplified)
                 contact_ids = self.hubspot.get_contacts_for_company(company_id)
-                print(f"🔍 Checking contacts: company_id={company_id}, contact_ids={contact_ids}")
+                print(f"🔍 Company {account['company_name']}: Found {len(contact_ids)} contacts")
+                
                 if not contact_ids:
-                    print(f"⚠️ NO CONTACTS FOUND for company {company_id}!")
-                print(f"DEBUG: Found {len(contact_ids)} contacts for company {company_id}: {contact_ids}")
+                    print(f"⚠️ NO CONTACTS for {account['company_name']}!")
+                
                 for behavior in behaviors:
                     for contact_id in contact_ids:
-                        self.hubspot.log_behavior_activity(contact_id, behavior)
-                
-                # Calculate and update engagement
+                        result = self.hubspot.log_behavior_activity(contact_id, behavior)
+
                 engagement = self.simulator.aggregate_account_engagement(behaviors)
                 self.hubspot.update_company_engagement(company_id, engagement)
-                
-                print(f"  {account['company_name']}: {len(behaviors)} behaviors, score: {engagement['total_engagement_score']}")
-            
+
+                print(f"  {account['company_name']}: {len(behaviors)} behaviors")
+
             await asyncio.sleep(0.3)
-        
+
         return all_behaviors
     
     async def get_warm_prospects(self) -> List[Dict]:
