@@ -33,10 +33,9 @@ class ABMSimulationOrchestrator:
     async def setup_accounts_in_hubspot(self) -> Dict[str, str]:
         """Create all B2B accounts in HubSpot"""
         print("Setting up accounts in HubSpot...")
-        for account in ACCOUNTS:
-            company_result = self.hubspot.create_company(account)
-            if company_result["success"]:
-                company_id = company_result["company_id"]
+               for account in ACCOUNTS:
+            company_id = self.hubspot.get_or_create_company(account)
+            if company_id:
                 self.accounts_map[account["id"]] = company_id
                 contact_id = self.hubspot.get_or_create_contact(account, company_id)
                 if contact_id:
