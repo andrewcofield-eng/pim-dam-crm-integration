@@ -32,8 +32,7 @@ class HubSpotIntegration:
             "Content-Type": "application/json"
         }
 
-    def search_company_by_name(self, company_name: str) -> str | None:
-        """Search HubSpot for an existing company by name. Returns company ID or None."""
+    def search_company_by_name(self, company_name: str):
         url = self.base_url + "/crm/v3/objects/companies/search"
         payload = {
             "filterGroups": [{
@@ -59,20 +58,14 @@ class HubSpotIntegration:
             print("  Company search failed for " + company_name + ": " + str(e))
             return None
 
-    def get_or_create_company(self, account: Dict) -> str | None:
-        """Find existing company by name, or create if not found."""
+    def get_or_create_company(self, account: Dict):
         company_name = account["company_name"]
-
-        # 1. Search first
         existing_id = self.search_company_by_name(company_name)
         if existing_id:
             return existing_id
-
-        # 2. Create only if not found
         result = self.create_company(account)
         if result["success"]:
             return result["company_id"]
-
         return None
 
     def create_company(self, account: Dict) -> Dict:
@@ -220,7 +213,7 @@ class HubSpotIntegration:
                 print("  Company association failed: " + str(e))
         return True
 
-    def update_company_engagement(self, company_id: str, engagement:
+    def update_company_engagement(self, company_id: str, engagement_:
         url = self.base_url + "/crm/v3/objects/companies/" + company_id
         payload = {
             "properties": {
