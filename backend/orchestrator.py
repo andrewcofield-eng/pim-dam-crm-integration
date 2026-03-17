@@ -73,6 +73,9 @@ class ABMSimulationOrchestrator:
             if company_id and behaviors:
                 # Get first contact for this company (simplified)
                 contact_ids = self.hubspot.get_contacts_for_company(company_id)
+                print(f"🔍 Checking contacts: company_id={company_id}, contact_ids={contact_ids}")
+                if not contact_ids:
+                    print(f"⚠️ NO CONTACTS FOUND for company {company_id}!")
                 print(f"DEBUG: Found {len(contact_ids)} contacts for company {company_id}: {contact_ids}")
                 for behavior in behaviors:
                     for contact_id in contact_ids:
@@ -144,5 +147,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
