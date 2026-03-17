@@ -45,6 +45,8 @@ class ABMSimulationOrchestrator:
     async def simulate_all_behaviors(self, days: int = 7) -> Dict:
         """Simulate behavior for all accounts"""
         print(f"Simulating behaviors for {len(ACCOUNTS)} accounts over {days} days...")
+        if not self.accounts_map:
+            await self.setup_accounts_in_hubspot()
         products = await self.fetch_products_from_directus()
         if not products:
             return {}
@@ -66,6 +68,8 @@ class ABMSimulationOrchestrator:
     async def get_warm_prospects(self) -> List[Dict]:
         """Get accounts that are warm prospects"""
         print("Identifying warm prospects...")
+        if not self.accounts_map:
+            await self.setup_accounts_in_hubspot()
         products = await self.fetch_products_from_directus()
         warm_prospects = []
         for account in ACCOUNTS:

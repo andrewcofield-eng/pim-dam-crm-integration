@@ -180,7 +180,7 @@ class HubSpotIntegration:
         url = self.base_url + "/crm/v3/objects/companies/" + company_id
         payload = {
             "properties": {
-                "hs_analytics_num_page_views": str(engagement_data.get("interaction_count", 0))
+                "description": "ABM Score: " + str(engagement_data.get("total_engagement_score", 0)) + " Interactions: " + str(engagement_data.get("interaction_count", 0))
             }
         }
         try:
