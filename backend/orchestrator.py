@@ -57,7 +57,7 @@ class ABMSimulationOrchestrator:
                 contact_ids = self.hubspot.get_contacts_for_company(company_id)
                 for behavior in behaviors:
                     for contact_id in contact_ids:
-                        self.hubspot.log_behavior_activity(contact_id, behavior)
+                        self.hubspot.log_behavior_activity(contact_id, behavior, company_id=company_id)
                 engagement = self.simulator.aggregate_account_engagement(behaviors)
                 self.hubspot.update_company_engagement(company_id, engagement)
             await asyncio.sleep(0.3)
@@ -99,3 +99,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
