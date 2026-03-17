@@ -25,8 +25,6 @@ LIFECYCLE_MAP = {
 }
 
 class HubSpotIntegration:
-    """Integrate behavior simulator with real HubSpot CRM"""
-
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "https://api.hubapi.com"
@@ -36,9 +34,7 @@ class HubSpotIntegration:
         }
 
     def create_company(self, account: Dict) -> Dict:
-        """Create a company in HubSpot from account data"""
         url = f"{self.base_url}/crm/v3/objects/companies"
-
         revenue_str = str(account.get("annual_revenue", "0"))
         if "M" in revenue_str:
             revenue = float(revenue_str.replace("M", "")) * 1000000
@@ -46,10 +42,8 @@ class HubSpotIntegration:
             revenue = float(revenue_str.replace("K", "")) * 1000
         else:
             revenue = float(revenue_str) if revenue_str.isdigit() else 0
-
         industry = INDUSTRY_MAP.get(account.get("industry", ""), "RETAIL")
         lifecycle = LIFECYCLE_MAP.get(account.get("buying_stage", "awareness"), "lead")
-
         payload = {
             "properties": {
                 "name": account["company_name"],
@@ -60,7 +54,6 @@ class HubSpotIntegration:
                 "description": account.get("use_case", ""),
             }
         }
-
         try:
             response = requests.post(url, json=payload, headers=self.headers)
             response.raise_for_status()
@@ -76,14 +69,11 @@ class HubSpotIntegration:
             return {"success": False, "error": str(e)}
 
     def create_contact(self, account: Dict, company_id: str) -> Dict:
-        """Create a contact in HubSpot for the account"""
         url = f"{self.base_url}/crm/v3/objects/contacts"
-
         contact = account["contact"]
         name_parts = contact["name"].split()
         firstname = name_parts[0]
         lastname = name_parts[-1] if len(name_parts) > 1 else name_parts[0]
-
         payload = {
             "properties": {
                 "firstname": firstname,
@@ -93,7 +83,6 @@ class HubSpotIntegration:
                 "lifecyclestage": "lead",
             }
         }
-
         try:
             response = requests.post(url, json=payload, headers=self.headers)
             response.raise_for_status()
@@ -106,7 +95,6 @@ class HubSpotIntegration:
             return {"success": False, "error": str(e)}
 
     def associate_contact_to_company(self, contact_id: str, company_id: str):
-        """Associate a contact with a company"""
         url = f"{self.base_url}/crm/v4/objects/contacts/{contact_id}/associations/companies/{company_id}"
         payload = [{"associationCategory": "HUBSPOT_DEFINED", "associationTypeId": 279}]
         try:
@@ -115,7 +103,6 @@ class HubSpotIntegration:
             pass
 
     def get_contacts_for_company(self, company_id: str) -> List[str]:
-        """Get all contact IDs associated with a company"""
         url = f"{self.base_url}/crm/v3/objects/companies/{company_id}/associations/contacts"
         try:
             response = requests.get(url, headers=self.headers)
@@ -129,7 +116,6 @@ class HubSpotIntegration:
             return []
 
     def log_behavior_activity(self, contact_id: str, behavior: Dict, company_id: str = None) -> bool:
-        """Log behavior as a HubSpot note, associated to contact AND company"""
         action_text = behavior.get("action", "unknown").replace("_", " ").title()
         note_body = (
             f"[ABM Behavior] {action_text}: "
@@ -137,8 +123,6 @@ class HubSpotIntegration:
             f"({behavior.get('product_sku', 'N/A')}) "
             f"- Engagement Score: {behavior.get('engagement_score', 0)}"
         )
-
-        # Step 1: Create the note
         note_url = f"{self.base_url}/crm/v3/objects/notes"
         payload = {
             "properties": {
@@ -159,8 +143,6 @@ class HubSpotIntegration:
                 pass
             print(f"  ❌ Failed to create note: {e} | {err_detail}")
             return False
-
-        # Step 2: Associate note to contact
         if contact_id:
             assoc_url = f"{self.base_url}/crm/v3/associations/notes/contacts/batch/create"
             assoc_payload = {"inputs": [{"from": {"id": note_id}, "to": {"id": contact_id}, "type": "note_to_contact"}]}
@@ -170,8 +152,6 @@ class HubSpotIntegration:
                 print(f"  ✅ Associated note {note_id} -> contact {contact_id}")
             except Exception as e:
                 print(f"  ⚠️  Contact association failed: {e}")
-
-        # Step 3: Associate note to company
         if company_id:
             assoc_url = f"{self.base_url}/crm/v3/associations/notes/companies/batch/create"
             assoc_payload = {"inputs": [{"from": {"id": note_id}, "to": {"id": company_id}, "type": "note_to_company"}]}
@@ -181,11 +161,9 @@ class HubSpotIntegration:
                 print(f"  ✅ Associated note {note_id} -> company {company_id}")
             except Exception as e:
                 print(f"  ⚠️  Company association failed: {e}")
-
         return True
 
-    def update_company_engagement(self, company_id: str, engagement_
-        """Update company with engagement score and warm prospect status"""
+    def update_company_engagement(self, company_id: str, engagement_data: Dict) -> bool:
         url = f"{self.base_url}/crm/v3/objects/companies/{company_id}"
         lifecycle = "marketingqualifiedlead" if engagement_data.get("warm_prospect") else "lead"
         payload = {
