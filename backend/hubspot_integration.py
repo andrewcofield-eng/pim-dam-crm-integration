@@ -213,7 +213,7 @@ class HubSpotIntegration:
                 print("  Company association failed: " + str(e))
         return True
 
-    def update_company_engagement(self, company_id Dict) -> bool:
+    def update_company_engagement(self, company_id: str, engagement_data: Dict) -> bool:
         url = self.base_url + "/crm/v3/objects/companies/" + company_id
         payload = {
             "properties": {
