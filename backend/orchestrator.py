@@ -37,7 +37,7 @@ class ABMSimulationOrchestrator:
             if company_result["success"]:
                 company_id = company_result["company_id"]
                 self.accounts_map[account["id"]] = company_id
-                self.hubspot.create_contact(account, company_id)
+                self.hubspot.get_or_create_contact(account, company_id)
             await asyncio.sleep(0.5)
         print(f"Created {len(self.accounts_map)} accounts in HubSpot")
         return self.accounts_map
@@ -99,4 +99,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 

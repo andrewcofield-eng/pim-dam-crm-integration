@@ -68,9 +68,37 @@ class HubSpotIntegration:
                 pass
             return {"success": False, "error": str(e)}
 
-    def create_contact(self, account: Dict, company_id: str) -> Dict:
-        url = f"{self.base_url}/crm/v3/objects/contacts"
+    def get_or_create_contact(self, account: Dict, company_id: str) -> str:
+        """Get existing contact by email or create new one. Returns contact_id or None."""
         contact = account["contact"]
+        email = contact["email"]
+
+        # First try to find existing contact by email
+        search_url = f"{self.base_url}/crm/v3/objects/contacts/search"
+        search_payload = {
+            "filterGroups": [{
+                "filters": [{
+                    "propertyName": "email",
+                    "operator": "EQ",
+                    "value": email
+                }]
+            }],
+            "properties": ["email", "firstname", "lastname"]
+        }
+        try:
+            response = requests.post(search_url, json=search_payload, headers=self.headers)
+            response.raise_for_status()
+            results = response.json().get("results", [])
+            if results:
+                contact_id = results[0]["id"]
+                print(f"  📧 Found existing contact: {contact['name']} (ID: {contact_id})")
+                self.associate_contact_to_company(contact_id, company_id)
+                return contact_id
+        except Exception as e:
+            print(f"  ⚠️  Contact search failed: {e}")
+
+        # Create new contact if not found
+        url = f"{self.base_url}/crm/v3/objects/contacts"
         name_parts = contact["name"].split()
         firstname = name_parts[0]
         lastname = name_parts[-1] if len(name_parts) > 1 else name_parts[0]
@@ -78,7 +106,7 @@ class HubSpotIntegration:
             "properties": {
                 "firstname": firstname,
                 "lastname": lastname,
-                "email": contact["email"],
+                "email": email,
                 "jobtitle": contact["title"],
                 "lifecyclestage": "lead",
             }
@@ -88,11 +116,11 @@ class HubSpotIntegration:
             response.raise_for_status()
             contact_id = response.json()["id"]
             self.associate_contact_to_company(contact_id, company_id)
-            print(f"✅ Created contact: {contact['name']} (ID: {contact_id})")
-            return {"success": True, "contact_id": contact_id}
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Failed to create contact {contact['name']}: {str(e)}")
-            return {"success": False, "error": str(e)}
+            print(f"  ✅ Created contact: {contact['name']} (ID: {contact_id})")
+            return contact_id
+        except Exception as e:
+            print(f"  ❌ Could not get or create contact {contact['name']}: {e}")
+            return None
 
     def associate_contact_to_company(self, contact_id: str, company_id: str):
         url = f"{self.base_url}/crm/v4/objects/contacts/{contact_id}/associations/companies/{company_id}"
@@ -163,12 +191,11 @@ class HubSpotIntegration:
                 print(f"  ⚠️  Company association failed: {e}")
         return True
 
-    def update_company_engagement(self, company_id: str, engagement_data: Dict) -> bool:
+    def update_company_engagement(self, company_id: str -> bool:
         url = f"{self.base_url}/crm/v3/objects/companies/{company_id}"
-        lifecycle = "marketingqualifiedlead" if engagement_data.get("warm_prospect") else "lead"
+        # Only update page views - skip lifecyclestage (HubSpot blocks backwards movement)
         payload = {
             "properties": {
-                "lifecyclestage": lifecycle,
                 "hs_analytics_num_page_views": str(engagement_data.get("interaction_count", 0)),
             }
         }
