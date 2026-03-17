@@ -33,7 +33,7 @@ class ABMSimulationOrchestrator:
     async def setup_accounts_in_hubspot(self) -> Dict[str, str]:
         """Create all B2B accounts in HubSpot"""
         print("Setting up accounts in HubSpot...")
-               for account in ACCOUNTS:
+        for account in ACCOUNTS:
             company_id = self.hubspot.get_or_create_company(account)
             if company_id:
                 self.accounts_map[account["id"]] = company_id
@@ -41,7 +41,7 @@ class ABMSimulationOrchestrator:
                 if contact_id:
                     self.contacts_map[account["id"]] = contact_id
             await asyncio.sleep(0.5)
-        print(f"Created {len(self.accounts_map)} accounts in HubSpot")
+        print(f"Setup complete: {len(self.accounts_map)} accounts ready in HubSpot")
         return self.accounts_map
 
     async def simulate_all_behaviors(self, days: int = 7) -> Dict:
@@ -106,6 +106,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
