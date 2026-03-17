@@ -157,3 +157,4 @@ async def simulate_and_log_behaviors(directus_url: str, directus_token: str, day
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
