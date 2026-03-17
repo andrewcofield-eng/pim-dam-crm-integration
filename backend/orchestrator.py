@@ -8,100 +8,69 @@ import httpx
 
 class ABMSimulationOrchestrator:
     """Orchestrates behavior simulation and CRM logging"""
-    
+
     def __init__(self, hubspot_api_key: str, directus_url: str, directus_token: str):
         self.simulator = BehaviorSimulator()
         self.hubspot = HubSpotIntegration(hubspot_api_key)
         self.directus_url = directus_url
         self.directus_token = directus_token
-        self.accounts_map = {}  # Map account IDs to HubSpot company IDs
-    
+        self.accounts_map = {}
+
     async def fetch_products_from_directus(self) -> List[Dict]:
         """Fetch all products from live Directus"""
         headers = {"Authorization": f"Bearer {self.directus_token}"}
-        
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self.directus_url}/items/products",
-                    headers=headers
-                )
+                response = await client.get(f"{self.directus_url}/items/products", headers=headers)
                 products = response.json()["data"]
-                print(f"✅ Fetched {len(products)} products from Directus")
+                print(f"Fetched {len(products)} products from Directus")
                 return products
         except Exception as e:
-            print(f"❌ Failed to fetch products: {str(e)}")
+            print(f"Failed to fetch products: {str(e)}")
             return []
-    
+
     async def setup_accounts_in_hubspot(self) -> Dict[str, str]:
         """Create all B2B accounts in HubSpot"""
-        print("\n🚀 Setting up accounts in HubSpot...")
-        
+        print("Setting up accounts in HubSpot...")
         for account in ACCOUNTS:
-            # Create company
             company_result = self.hubspot.create_company(account)
             if company_result["success"]:
                 company_id = company_result["company_id"]
                 self.accounts_map[account["id"]] = company_id
-                
-                # Create contact
                 self.hubspot.create_contact(account, company_id)
-            
-            await asyncio.sleep(0.5)  # Rate limit
-        
-        print(f"\n✅ Created {len(self.accounts_map)} accounts in HubSpot")
+            await asyncio.sleep(0.5)
+        print(f"Created {len(self.accounts_map)} accounts in HubSpot")
         return self.accounts_map
-    
+
     async def simulate_all_behaviors(self, days: int = 7) -> Dict:
         """Simulate behavior for all accounts"""
-        print(f"
-🎬 Simulating behaviors for {len(ACCOUNTS)} accounts over {days} days...")
-
+        print(f"Simulating behaviors for {len(ACCOUNTS)} accounts over {days} days...")
         products = await self.fetch_products_from_directus()
         if not products:
-            print("❌ No products available for simulation")
             return {}
-
         all_behaviors = {}
-
         for account in ACCOUNTS:
             behaviors = self.simulator.simulate_account_behavior(account, products, days=days)
             all_behaviors[account["id"]] = behaviors
-
             company_id = self.accounts_map.get(account["id"])
             if company_id and behaviors:
                 contact_ids = self.hubspot.get_contacts_for_company(company_id)
-                print(f"🔍 Company {account['company_name']}: Found {len(contact_ids)} contacts")
-                
-                if not contact_ids:
-                    print(f"⚠️ NO CONTACTS for {account['company_name']}!")
-                
                 for behavior in behaviors:
                     for contact_id in contact_ids:
-                        result = self.hubspot.log_behavior_activity(contact_id, behavior)
-
+                        self.hubspot.log_behavior_activity(contact_id, behavior)
                 engagement = self.simulator.aggregate_account_engagement(behaviors)
                 self.hubspot.update_company_engagement(company_id, engagement)
-
-                print(f"  {account['company_name']}: {len(behaviors)} behaviors")
-
             await asyncio.sleep(0.3)
-
         return all_behaviors
-    
+
     async def get_warm_prospects(self) -> List[Dict]:
-        """Get accounts that are warm prospects (high engagement)"""
-        print("\n🔥 Identifying warm prospects...")
-        
+        """Get accounts that are warm prospects"""
+        print("Identifying warm prospects...")
         products = await self.fetch_products_from_directus()
         warm_prospects = []
-        
         for account in ACCOUNTS:
-            behaviors = self.simulator.simulate_account_behavior(
-                account, products, days=14
-            )
+            behaviors = self.simulator.simulate_account_behavior(account, products, days=14)
             engagement = self.simulator.aggregate_account_engagement(behaviors)
-            
             if engagement.get("warm_prospect"):
                 warm_prospects.append({
                     "account_id": account["id"],
@@ -114,38 +83,19 @@ class ABMSimulationOrchestrator:
                     "buying_stage": account["buying_stage"],
                     "actions": engagement["actions"],
                 })
-        
         warm_prospects.sort(key=lambda x: x["engagement_score"], reverse=True)
-        print(f"✅ Found {len(warm_prospects)} warm prospects")
-        
+        print(f"Found {len(warm_prospects)} warm prospects")
         return warm_prospects
 
-# Example usage
 async def main():
-    # Would be passed from FastAPI environment
     hubspot_api_key = "YOUR_KEY"
     directus_url = "https://directus-production-9f53.up.railway.app"
     directus_token = "YOUR_TOKEN"
-    
-    orchestrator = ABMSimulationOrchestrator(
-        hubspot_api_key,
-        directus_url,
-        directus_token
-    )
-    
-    # Setup accounts
+    orchestrator = ABMSimulationOrchestrator(hubspot_api_key, directus_url, directus_token)
     await orchestrator.setup_accounts_in_hubspot()
-    
-    # Run simulation
     behaviors = await orchestrator.simulate_all_behaviors(days=7)
-    
-    # Get warm prospects
     warm = await orchestrator.get_warm_prospects()
     print(json.dumps([w for w in warm[:3]], indent=2, default=str))
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
-
