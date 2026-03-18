@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿html = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -133,7 +133,7 @@ function selectProspect(p) {
 
 function writeHubSpotNote(cid,company,text){
   fetch(API+"/hubspot/note",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({contact_id:String(cid),note:"[Agenic Flow]\nAccount: "+company+"\n\n"+text})})
+    body:JSON.stringify({contact_id:String(cid),note:"[Agenic Flow]\\nAccount: "+company+"\\n\\n"+text})})
   .then(function(r){return r.json();}).then(function(d){console.log("HubSpot note:",d);})
   .catch(function(e){console.warn("HubSpot skip:",e);});
 }
@@ -175,7 +175,7 @@ function loadShopifyChart(){
     var labels=[],values=[],colors=[];
     Object.keys(m).forEach(function(k){
       if(typeof m[k]==="number"){
-        labels.push(k.replace(/_/g," ").replace(/\b\w/g,function(c){return c.toUpperCase();}));
+        labels.push(k.replace(/_/g," ").replace(/\\b\\w/g,function(c){return c.toUpperCase();}));
         values.push(m[k]); colors.push(cm[k]||"rgba(255,255,255,0.5)");
       }
     });
@@ -183,7 +183,7 @@ function loadShopifyChart(){
     if(shopifyChartInstance) shopifyChartInstance.destroy();
     shopifyChartInstance=new Chart(ctx,{
       type:"bar",
-      data:{labels:labels,datasets:[{label:"Shopify Metrics",data:values,backgroundColor:colors,borderRadius:6}]},
+      :[{label:"Shopify Metrics",data:values,backgroundColor:colors,borderRadius:6}]},
       options:{responsive:true,plugins:{legend:{labels:{color:"#cce4f0"}}},scales:{x:{ticks:{color:"#cce4f0"},grid:{color:"rgba(255,255,255,0.08)"}},y:{ticks:{color:"#cce4f0"},grid:{color:"rgba(255,255,255,0.08)"}}}}
     });
   })
@@ -218,4 +218,11 @@ function loadProducts(){
 getToken().then(function(){ loadProspects(); loadProducts(); loadShopifyChart(); });
 </script>
 </body>
-</html>
+</html>"""
+
+with open("index.html","w",encoding="utf-8") as f:
+    f.write(html)
+print("Written:", len(html), "chars")
+print("Has Array.isArray:", "Array.isArray" in html)
+print("Has new Chart:", 'new Chart(ctx' in html)
+print("Chart type bar OK:", 'type:\"bar\"' in html)
