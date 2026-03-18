@@ -204,7 +204,7 @@ async def get_campaign_brief(
                 "generated_at": datetime.utcnow().isoformat(),
                 "product": {
                     "sku": product.get("sku"),
-                    "name": product.get("name"),
+                    "product_name": product.get("product_name"),
                     "description": product.get("description"),
                     "short_description": product.get("short_description"),
                     "category": product.get("category"),
@@ -232,3 +232,4 @@ async def get_campaign_brief(
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
