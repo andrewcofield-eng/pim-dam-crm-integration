@@ -227,9 +227,10 @@ async def get_campaign_brief(
                 "target_audience": {
                     "warm_prospects": warm_prospects,
                     "prospect_count": len(warm_prospects),
-                    "total_pipeline_value": sum(p.get("account_value", 0) for p in warm_prospects)
+                    "total_pipeline_value": sum(int(p.get("account_value", 0) or 0) for p in warm_prospects)
                 }
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
