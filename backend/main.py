@@ -146,15 +146,9 @@ async def get_token():
     token = await get_directus_token()
     return {"token": token}
 
+from campaign_routes import router as campaign_router
+app.include_router(campaign_router)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-
-
-
-
-
-
-

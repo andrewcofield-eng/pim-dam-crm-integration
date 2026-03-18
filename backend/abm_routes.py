@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException
 import httpx
 import json
 from orchestrator import ABMSimulationOrchestrator
@@ -22,7 +22,7 @@ def get_orchestrator(directus_url: str):
 
 @router.get("/warm-prospects")
 async def get_warm_prospects(directus_url: str, directus_token: str):
-    """Get warm ABM prospects"""
+    "Get warm ABM prospects"
     try:
         orchestrator = get_orchestrator(directus_url)
         orchestrator.directus_token = directus_token
@@ -37,7 +37,7 @@ async def get_warm_prospects(directus_url: str, directus_token: str):
             "status": "success",
             "warm_prospects_count": len(warm_prospects),
             "prospects": warm_prospects,
-            "total_pipeline_value": f""
+            "total_pipeline_value": f"${total_pipeline:,.0f}"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -45,7 +45,7 @@ async def get_warm_prospects(directus_url: str, directus_token: str):
 
 @router.post("/campaign/generate")
 async def generate_abm_campaign(account_id: str, directus_url: str, directus_token: str):
-    """Generate personalized ABM campaign for a specific account"""
+    "Generate personalized ABM campaign for a specific account"
     try:
         account = None
         for acc in ACCOUNTS:
@@ -124,7 +124,7 @@ async def generate_abm_campaign(account_id: str, directus_url: str, directus_tok
 
 @router.post("/setup-accounts")
 async def setup_abm_accounts(directus_url: str, directus_token: str):
-    """Create all 10 B2B accounts in HubSpot"""
+    "Create all 10 B2B accounts in HubSpot"
     try:
         orchestrator = get_orchestrator(directus_url)
         orchestrator.directus_token = directus_token
@@ -141,7 +141,7 @@ async def setup_abm_accounts(directus_url: str, directus_token: str):
 
 @router.post("/simulate-behaviors")
 async def simulate_and_log_behaviors(directus_url: str, directus_token: str, days: int = 7):
-    """Simulate account behaviors and log to HubSpot"""
+    "Simulate account behaviors and log to HubSpot"
     try:
         orchestrator = get_orchestrator(directus_url)
         orchestrator.directus_token = directus_token
@@ -236,13 +236,13 @@ async def get_campaign_brief(
 
 
 
-@router.post(""/products/{sku}/generate-campaign"")
+@router.post("/products/{sku}/generate-campaign")
 async def generate_ai_campaign(
     sku: str,
     directus_url: str,
     directus_token: str,
     openai_api_key: str = None,
-    campaign_type: str = ""email""
+    campaign_type: str = "email"
 ):
     from openai import OpenAI
     from datetime import datetime
@@ -250,28 +250,28 @@ async def generate_ai_campaign(
     import os
     
     try:
-        headers = {""Authorization"": f""Bearer {directus_token}""}
+        headers = {"Authorization": f"Bearer {directus_token}"}
         
         async with httpx.AsyncClient() as client:
             product_response = await client.get(
-                f""{directus_url}/items/products?filter[sku][_eq]={sku}"",
+                f"{directus_url}/items/products?filter[sku][_eq]={sku}",
                 headers=headers
             )
             product_response.raise_for_status()
-            products = product_response.json().get(""data"", [])
+            products = product_response.json().get("data", [])
             if not products:
-                raise HTTPException(status_code=404, detail=f""Product SKU {sku} not found"")
+                raise HTTPException(status_code=404, detail=f"Product SKU {sku} not found")
             product = products[0]
             
             brand_response = await client.get(
-                f""{directus_url}/items/brand_guidelines"",
+                f"{directus_url}/items/brand_guidelines",
                 headers=headers
             )
             brand_response.raise_for_status()
-            brands = brand_response.json().get(""data"", [])
-            brand = brands[0] if brands else {{}}
+            brands = brand_response.json().get("data", [])
+            brand = brands[0] if brands else {}
         
-        system_prompt = f""""""You are a senior B2B marketing copywriter for {brand.get('brand_name', 'UrbanThread')}.
+        system_prompt = f"""You are a senior B2B marketing copywriter for {brand.get('brand_name', 'UrbanThread')}.
 Voice: {brand.get('voice_tone', 'professional')}
 Brand Promise: {brand.get('brand_promise', '')}
 
@@ -284,9 +284,9 @@ Write {campaign_type} copy for this product:
 Name: {product.get('product_name')}
 Description: {product.get('short_description')}
 Category: {product.get('category')}
-Price: """"""
+Price: """
 
-        user_prompt = f""""""Generate a complete {campaign_type} campaign with:
+        user_prompt = f"""Generate a complete {campaign_type} campaign with:
 
 1. HEADLINE: Attention-grabbing subject line or headline (max 60 chars)
 2. HOOK: Opening line that speaks to B2B buyer pain points (max 150 chars)
@@ -294,41 +294,41 @@ Price: """"""
 4. CTA: Clear call-to-action button text (max 30 chars)
 5. ALT_VERSIONS: 2 alternative headline variations
 
-Format as JSON with keys: headline, hook, body, cta, alt_versions (array)""""""
+Format as JSON with keys: headline, hook, body, cta, alt_versions (array)"""
 
-        api_key = openai_api_key or os.getenv(""OPENAI_API_KEY"")
+        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise HTTPException(status_code=400, detail=""OpenAI API key required"")
+            raise HTTPException(status_code=400, detail="OpenAI API key required")
         
         client_ai = OpenAI(api_key=api_key)
         
         response = client_ai.chat.completions.create(
-            model=""gpt-4o"",
+            model="gpt-4o",
             messages=[
-                {""role"": ""system"", ""content"": system_prompt},
-                {""role"": ""user"", ""content"": user_prompt}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
             ],
             temperature=0.7,
             max_tokens=800,
-            response_format={""type"": ""json_object""}
+            response_format={"type": "json_object"}
         )
         
         campaign_copy = json.loads(response.choices[0].message.content)
         
         return {{
-            ""generated_at"": datetime.utcnow().isoformat(),
-            ""sku"": sku,
-            ""campaign_type"": campaign_type,
-            ""ai_model"": ""gpt-4o"",
-            ""brand_compliance"": {{
-                ""voice_used"": brand.get('voice_tone'),
-                ""approved_words_used"": brand.get('words_to_use', '').split(', ')[:3],
-                ""avoided_words"": brand.get('words_to_avoid', '').split(', ')[:3]
+            "generated_at": datetime.utcnow().isoformat(),
+            "sku": sku,
+            "campaign_type": campaign_type,
+            "ai_model": "gpt-4o",
+            "brand_compliance": {{
+                "voice_used": brand.get('voice_tone'),
+                "approved_words_used": brand.get('words_to_use', '').split(', ')[:3],
+                "avoided_words": brand.get('words_to_avoid', '').split(', ')[:3]
             }},
-            ""campaign"": campaign_copy,
-            ""source_product"": {{
-                ""name"": product.get('product_name'),
-                ""image_url"": product.get('cloudinary_url')
+            "campaign": campaign_copy,
+            "source_product": {{
+                "name": product.get('product_name'),
+                "image_url": product.get('cloudinary_url')
             }}
         }}
         
