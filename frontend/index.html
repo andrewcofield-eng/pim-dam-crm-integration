@@ -120,7 +120,7 @@ function loadShopifyChart() {
       var ctx = document.getElementById('shopifyChart').getContext('2d');
       if (shopifyChart) shopifyChart.destroy();
       shopifyChart = new Chart(ctx, {
-        type: 'bar', data: { labels: labels, datasets: [{ label: 'Shopify Metrics', data: values, backgroundColor: bgColors, borderRadi
+                type: 'bar', data: { labels: labels, datasets: [{ label: 'Shopify Metrics', data: values, backgroundColor: bgColors, borderRadius: 6 }] },
         options: { responsive: true, plugins: { legend: { labels: { color: '#cce4f0' } } }, scales: { x: { ticks: { color: '#cce4f0' }, grid: { color: 'rgba(255,255,255,0.08)' } }, y: { ticks: { color: '#cce4f0' }, grid: { color: 'rgba(255,255,255,0.08)' } } } }
       });
     })
