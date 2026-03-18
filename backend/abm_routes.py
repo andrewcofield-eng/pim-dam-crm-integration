@@ -235,3 +235,102 @@ async def get_campaign_brief(
 
 
 
+
+@router.post(""/products/{sku}/generate-campaign"")
+async def generate_ai_campaign(
+    sku: str,
+    directus_url: str,
+    directus_token: str,
+    openai_api_key: str = None,
+    campaign_type: str = ""email""
+):
+    from openai import OpenAI
+    from datetime import datetime
+    import json
+    import os
+    
+    try:
+        headers = {""Authorization"": f""Bearer {directus_token}""}
+        
+        async with httpx.AsyncClient() as client:
+            product_response = await client.get(
+                f""{directus_url}/items/products?filter[sku][_eq]={sku}"",
+                headers=headers
+            )
+            product_response.raise_for_status()
+            products = product_response.json().get(""data"", [])
+            if not products:
+                raise HTTPException(status_code=404, detail=f""Product SKU {sku} not found"")
+            product = products[0]
+            
+            brand_response = await client.get(
+                f""{directus_url}/items/brand_guidelines"",
+                headers=headers
+            )
+            brand_response.raise_for_status()
+            brands = brand_response.json().get(""data"", [])
+            brand = brands[0] if brands else {{}}
+        
+        system_prompt = f""""""You are a senior B2B marketing copywriter for {brand.get('brand_name', 'UrbanThread')}.
+Voice: {brand.get('voice_tone', 'professional')}
+Brand Promise: {brand.get('brand_promise', '')}
+
+RULES:
+- Use these words: {brand.get('words_to_use', 'performance, quality, durable')}
+- NEVER use these words: {brand.get('words_to_avoid', 'cheap, basic, discount')}
+- {brand.get('compliance_notes', 'Avoid unsubstantiated claims')}
+
+Write {campaign_type} copy for this product:
+Name: {product.get('product_name')}
+Description: {product.get('short_description')}
+Category: {product.get('category')}
+Price: """"""
+
+        user_prompt = f""""""Generate a complete {campaign_type} campaign with:
+
+1. HEADLINE: Attention-grabbing subject line or headline (max 60 chars)
+2. HOOK: Opening line that speaks to B2B buyer pain points (max 150 chars)
+3. BODY: 2-3 paragraphs of persuasive copy highlighting key benefits
+4. CTA: Clear call-to-action button text (max 30 chars)
+5. ALT_VERSIONS: 2 alternative headline variations
+
+Format as JSON with keys: headline, hook, body, cta, alt_versions (array)""""""
+
+        api_key = openai_api_key or os.getenv(""OPENAI_API_KEY"")
+        if not api_key:
+            raise HTTPException(status_code=400, detail=""OpenAI API key required"")
+        
+        client_ai = OpenAI(api_key=api_key)
+        
+        response = client_ai.chat.completions.create(
+            model=""gpt-4o"",
+            messages=[
+                {""role"": ""system"", ""content"": system_prompt},
+                {""role"": ""user"", ""content"": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=800,
+            response_format={""type"": ""json_object""}
+        )
+        
+        campaign_copy = json.loads(response.choices[0].message.content)
+        
+        return {{
+            ""generated_at"": datetime.utcnow().isoformat(),
+            ""sku"": sku,
+            ""campaign_type"": campaign_type,
+            ""ai_model"": ""gpt-4o"",
+            ""brand_compliance"": {{
+                ""voice_used"": brand.get('voice_tone'),
+                ""approved_words_used"": brand.get('words_to_use', '').split(', ')[:3],
+                ""avoided_words"": brand.get('words_to_avoid', '').split(', ')[:3]
+            }},
+            ""campaign"": campaign_copy,
+            ""source_product"": {{
+                ""name"": product.get('product_name'),
+                ""image_url"": product.get('cloudinary_url')
+            }}
+        }}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
