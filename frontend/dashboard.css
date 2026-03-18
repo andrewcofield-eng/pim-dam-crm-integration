@@ -390,3 +390,60 @@ footer a:hover {
         max-height: 40vh;
     }
 }
+
+/* ─── AI Campaign Generator ───────────────────── */
+.seg-select {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    min-width: 220px;
+}
+
+.seg-select option {
+    background: #0a1628;
+    color: #fff;
+}
+
+.ai-campaign-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.ai-block {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+}
+
+.ai-block h4 {
+    color: var(--primary-light);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.6rem;
+}
+
+.ai-block p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.ai-block ul {
+    padding-left: 1.2rem;
+    list-style: disc;
+}
+
+.ai-block li {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
