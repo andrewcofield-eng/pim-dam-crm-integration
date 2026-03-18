@@ -158,3 +158,77 @@ async def simulate_and_log_behaviors(directus_url: str, directus_token: str, day
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.get("/products/{sku}/campaign-brief")
+async def get_campaign_brief(
+    sku: str,
+    directus_url: str,
+    directus_token: str,
+    hubspot_api_key: str = None
+):
+    from datetime import datetime
+    try:
+        headers = {"Authorization": f"Bearer {directus_token}"}
+        
+        async with httpx.AsyncClient() as client:
+            # Fetch product
+            product_response = await client.get(
+                f"{directus_url}/items/products?filter[sku][_eq]={sku}",
+                headers=headers
+            )
+            product_response.raise_for_status()
+            products = product_response.json().get("data", [])
+            if not products:
+                raise HTTPException(status_code=404, detail=f"Product SKU {sku} not found")
+            product = products[0]
+            
+            # Fetch brand guidelines
+            brand_response = await client.get(
+                f"{directus_url}/items/brand_guidelines",
+                headers=headers
+            )
+            brand_response.raise_for_status()
+            brands = brand_response.json().get("data", [])
+            brand = brands[0] if brands else {}
+            
+            # Fetch warm prospects
+            hs_key = hubspot_api_key or os.getenv("HUBSPOT_API_KEY")
+            orchestrator = ABMSimulationOrchestrator(
+                hubspot_api_key=hs_key,
+                directus_url=directus_url,
+                directus_token=directus_token
+            )
+            warm_prospects = await orchestrator.get_warm_prospects()
+            
+            return {
+                "generated_at": datetime.utcnow().isoformat(),
+                "product": {
+                    "sku": product.get("sku"),
+                    "name": product.get("name"),
+                    "description": product.get("description"),
+                    "short_description": product.get("short_description"),
+                    "category": product.get("category"),
+                    "brand": product.get("brand"),
+                    "price": product.get("price"),
+                    "status": product.get("status"),
+                    "tags": product.get("tags", []),
+                    "image_url": product.get("cloudinary_url")
+                },
+                "brand_context": {
+                    "brand_name": brand.get("brand_name", "UrbanThread"),
+                    "tagline": brand.get("tagline"),
+                    "voice_tone": brand.get("voice_tone"),
+                    "brand_promise": brand.get("brand_promise"),
+                    "key_messages": brand.get("key_messages", "").split(", ") if brand.get("key_messages") else [],
+                    "words_to_use": brand.get("words_to_use", "").split(", ") if brand.get("words_to_use") else [],
+                    "words_to_avoid": brand.get("words_to_avoid", "").split(", ") if brand.get("words_to_avoid") else [],
+                    "compliance_notes": brand.get("compliance_notes")
+                },
+                "target_audience": {
+                    "warm_prospects": warm_prospects,
+                    "prospect_count": len(warm_prospects),
+                    "total_pipeline_value": sum(p.get("account_value", 0) for p in warm_prospects)
+                }
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
