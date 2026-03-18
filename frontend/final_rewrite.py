@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+﻿f = open("index.html","w",encoding="utf-8")
+f.write("""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -113,7 +114,7 @@ function loadShopifyChart() {
       var labels = []; var values = []; var bgColors = [];
       keys.forEach(function(k, i) {
         if (typeof m[k] === 'number') {
-          labels.push(k.replace(/_/g,' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }));
+          labels.push(k.replace(/_/g,' ').replace(/\\b\\w/g, function(c) { return c.toUpperCase(); }));
           values.push(m[k]); bgColors.push(clrs[i]);
         }
       });
@@ -155,4 +156,12 @@ function loadProducts() {
 getToken().then(function() { loadProspects(); loadProducts(); loadShopifyChart(); });
 </script>
 </body>
-</html>
+</html>""")
+f.close()
+print("Written OK")
+
+import ast, re
+html = open("index.html","r",encoding="utf-8").read()
+script = html[html.find("<script>")+8:html.rfind("</script>")]
+print("Script length:", len(script))
+print("Chart block:", repr(script[script.find("shopifyChart = new Chart"):script.find("shopifyChart = new Chart")+120]))
