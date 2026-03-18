@@ -21,6 +21,78 @@ class ManualOrderRequest(BaseModel):
     product_sku:   Optional[str] = None
 
 
+def flatten_campaign_copy(campaign_copy: dict) -> dict:
+    """
+    GPT-4o returns nested objects for email, ad_headlines, landing_page.
+    This flattens them into the top-level keys the frontend JS expects:
+      email_copy, ad_headlines (list), landing_page_copy, campaign_summary
+    """
+    email_block   = campaign_copy.get("email", {})
+    ad_block      = campaign_copy.get("ad_headlines", {})
+    landing_block = campaign_copy.get("landing_page", {})
+    summary_block = campaign_copy.get("campaign_summary", {})
+
+    # --- email_copy: flat string ---
+    if isinstance(email_block, dict):
+        subject = email_block.get("subject_lines", [""])[0]
+        email_copy = "\n\n".join(filter(None, [
+            f"Subject: {subject}" if subject else "",
+            email_block.get("headline", ""),
+            email_block.get("body_copy", ""),
+            f"CTA: {email_block.get('cta_button', '')}",
+            f"PS: {email_block.get('ps_line', '')}"
+        ])).strip()
+    else:
+        email_copy = str(email_block)
+
+    # --- ad_headlines: flat list of strings ---
+    if isinstance(ad_block, dict):
+        ad_headlines = (
+            ad_block.get("google_search", []) +
+            [ad_block.get("meta_headline", "")] +
+            [ad_block.get("meta_primary", "")]
+        )
+        ad_headlines = [h for h in ad_headlines if h]
+    elif isinstance(ad_block, list):
+        ad_headlines = ad_block
+    else:
+        ad_headlines = [str(ad_block)] if ad_block else []
+
+    # --- landing_page_copy: flat string ---
+    if isinstance(landing_block, dict):
+        props = landing_block.get("value_props", [])
+        props_text = " | ".join(
+            f"{p.get('title','')}: {p.get('description','')}"
+            for p in props if isinstance(p, dict)
+        )
+        landing_page_copy = "\n\n".join(filter(None, [
+            landing_block.get("hero_headline", ""),
+            landing_block.get("hero_subheadline", ""),
+            props_text,
+            landing_block.get("social_proof", ""),
+            f"CTA: {landing_block.get('cta_primary', '')}"
+        ])).strip()
+    else:
+        landing_page_copy = str(landing_block)
+
+    # --- campaign_summary: flat string ---
+    if isinstance(summary_block, dict):
+        campaign_summary = " | ".join(filter(None, [
+            summary_block.get("strategy_rationale", ""),
+            summary_block.get("key_message", ""),
+            summary_block.get("urgency_hook", "")
+        ])).strip()
+    else:
+        campaign_summary = str(summary_block)
+
+    return {
+        "email_copy":        email_copy,
+        "ad_headlines":      ad_headlines,
+        "landing_page_copy": landing_page_copy,
+        "campaign_summary":  campaign_summary
+    }
+
+
 @router.post("/generate")
 async def generate_campaign_endpoint(req: GenerateRequest):
     valid = ["seg_001", "seg_002", "seg_003"]
@@ -30,7 +102,16 @@ async def generate_campaign_endpoint(req: GenerateRequest):
         result = generate_campaign(req.segment_id, req.override_goals)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
-    record = {"campaign_id": str(uuid.uuid4()), "generated_at": datetime.now(timezone.utc).isoformat(), **result}
+
+    # Flatten nested GPT-4o response into top-level keys for the frontend
+    flat = flatten_campaign_copy(result.get("campaign_copy", {}))
+
+    record = {
+        "campaign_id":  str(uuid.uuid4()),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        **result,   # includes campaign_copy (nested), model, tokens_used, latency_ms, brief_snapshot
+        **flat      # adds/overwrites with email_copy, ad_headlines, landing_page_copy, campaign_summary
+    }
     _store.insert(0, record)
     return record
 
@@ -82,4 +163,3 @@ async def get_campaign(campaign_id: str):
         if c["campaign_id"] == campaign_id:
             return c
     raise HTTPException(status_code=404, detail="Campaign not found")
-
