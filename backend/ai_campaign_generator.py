@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import time
 from openai import OpenAI
@@ -40,30 +40,46 @@ SEGMENTS = {
 
 PRODUCTS = [
     {
-        "sku":          "AUD-PRO-001",
-        "name":         "ProSound Elite Headphones",
-        "price":        299.99,
-        "category":     "Premium Audio",
-        "key_features": ["40hr battery", "ANC", "Hi-Res Audio"],
+        "sku":          "TOP-001",
+        "name":         "Classic Crew Tee",
+        "price":        24.99,
+        "category":     "T-Shirts",
+        "key_features": ["100% ring-spun cotton", "Pre-shrunk", "XS to 3XL sizing"],
         "stock_status": "in_stock",
-        "margin":       "high",
-        "dam_hero_url": "https://res.cloudinary.com/demo/image/upload/headphones-hero.jpg"
+        "margin":       "medium"
+    },
+    {
+        "sku":          "HOD-001",
+        "name":         "Pullover Fleece Hoodie",
+        "price":        64.99,
+        "category":     "Hoodies",
+        "key_features": ["380gsm fleece", "Kangaroo pocket", "Brushed interior"],
+        "stock_status": "in_stock",
+        "margin":       "high"
+    },
+    {
+        "sku":          "DNM-001",
+        "name":         "Slim Fit Jeans",
+        "price":        89.99,
+        "category":     "Denim",
+        "key_features": ["12oz selvedge denim", "Mid-rise tapered leg", "Broken-in feel"],
+        "stock_status": "in_stock",
+        "margin":       "high"
     }
 ]
-
-BRAND_ASSETS = {
-    "logo_url":             "https://res.cloudinary.com/demo/image/upload/logo-primary.svg",
-    "color_palette":        ["#1A1A2E", "#16213E", "#0F3460", "#E94560"],
-    "tone_of_voice":        "Premium, technical, aspirational",
-    "brand_guidelines_url": "https://res.cloudinary.com/demo/image/upload/brand-v3.pdf"
+SEGMENT_PRODUCT_MAP = {
+    "seg_001": "TOP-001",
+    "seg_002": "HOD-001",
+    "seg_003": "DNM-001",
 }
-
 
 def build_unified_payload(segment_id: str, override_goals: dict = None) -> dict:
     segment = SEGMENTS.get(segment_id, SEGMENTS["seg_001"])
+    target_sku = SEGMENT_PRODUCT_MAP.get(segment_id, "TOP-001")
+    product = next((p for p in PRODUCTS if p["sku"] == target_sku), PRODUCTS[0])
     return {
         "customer_segment": segment,
-        "products":         PRODUCTS,
+        "products":         [product],
         "brand_assets":     BRAND_ASSETS,
         "campaign_goals": {
             "objective":      "retention",
