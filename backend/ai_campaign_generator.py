@@ -73,6 +73,13 @@ SEGMENT_PRODUCT_MAP = {
     "seg_003": "DNM-001",
 }
 
+BRAND_ASSETS = {
+    "logo_url":             "https://res.cloudinary.com/dp0cdq8bj/image/upload/urbanthread/logo.svg",
+    "color_palette":        ["#1A1A2E", "#16213E", "#0F3460", "#E94560"],
+    "tone_of_voice":        "Premium, authentic, urban",
+    "brand_guidelines_url": "https://res.cloudinary.com/dp0cdq8bj/image/upload/urbanthread/brand-guidelines.pdf"
+}
+
 def build_unified_payload(segment_id: str, override_goals: dict = None) -> dict:
     segment = SEGMENTS.get(segment_id, SEGMENTS["seg_001"])
     target_sku = SEGMENT_PRODUCT_MAP.get(segment_id, "TOP-001")
