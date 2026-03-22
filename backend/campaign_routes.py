@@ -4,13 +4,36 @@ from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
 
+import json
+import os
+
+# Persist campaigns to JSON file
+CAMPAIGNS_FILE = os.path.join(os.path.dirname(__file__), "campaigns_data.json")
+
+def load_campaigns():
+    if os.path.exists(CAMPAIGNS_FILE):
+        try:
+            with open(CAMPAIGNS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_campaigns(campaigns):
+    try:
+        with open(CAMPAIGNS_FILE, "w", encoding="utf-8") as f:
+            json.dump(campaigns, f, indent=2, default=str)
+    except Exception as e:
+        print(f"Failed to save campaigns: {e}")
+
+# Initialize store from disk
+_campaign_store: List[dict] = load_campaigns()
+
 from ai_campaign_generator import generate_campaign
 from shopify_simulator import ShopifySimulator
 
 router   = APIRouter(prefix="/ai-campaigns", tags=["Campaigns"])
-_store:  List[dict] = []
 _shopify = ShopifySimulator()
-
 
 class GenerateRequest(BaseModel):
     segment_id:     str
@@ -112,13 +135,24 @@ async def generate_campaign_endpoint(req: GenerateRequest):
         **result,   # includes campaign_copy (nested), model, tokens_used, latency_ms, brief_snapshot
         **flat      # adds/overwrites with email_copy, ad_headlines, landing_page_copy, campaign_summary
     }
-    _store.insert(0, record)
+    
+    # Persist to disk
+    _campaign_store.insert(0, record)
+    save_campaigns(_campaign_store)
+    
     return record
 
+@router.get("/history")
+async def get_campaign_history(limit: int = 50):
+    """Return list of previously generated campaigns."""
+    return {
+        "total": len(_campaign_store),
+        "campaigns": _campaign_store[:limit]
+    }
 
 @router.get("/")
 async def list_campaigns(limit: int = 20, offset: int = 0):
-    return {"total": len(_store), "campaigns": _store[offset: offset + limit]}
+    return {"total": len(_campaign_store), "campaigns": _campaign_store[offset: offset + limit]}
 
 
 @router.get("/shopify/status")
@@ -159,7 +193,7 @@ async def shopify_reset():
 
 @router.get("/{campaign_id}")
 async def get_campaign(campaign_id: str):
-    for c in _store:
+    for c in _campaign_store:
         if c["campaign_id"] == campaign_id:
             return c
     raise HTTPException(status_code=404, detail="Campaign not found")
