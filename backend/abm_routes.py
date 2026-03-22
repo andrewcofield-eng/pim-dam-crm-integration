@@ -22,11 +22,32 @@ def get_orchestrator(directus_url: str):
 
 @router.get("/warm-prospects")
 async def get_warm_prospects(directus_url: str, directus_token: str):
-    "Get warm ABM prospects"
+    """Get warm ABM prospects with HubSpot contact IDs"""
     try:
         orchestrator = get_orchestrator(directus_url)
         orchestrator.directus_token = directus_token
+        
+        # Ensure accounts and contacts are set up
+        if not orchestrator.accounts_map or not orchestrator.contacts_map:
+            await orchestrator.setup_accounts_in_hubspot()
+        
         warm_prospects = await orchestrator.get_warm_prospects()
+        
+        # Enrich prospects with contact_ids from contacts_map
+        for prospect in warm_prospects:
+            account_id = prospect.get("account_id")
+            if account_id and account_id in orchestrator.contacts_map:
+                prospect["contact_id"] = orchestrator.contacts_map[account_id]
+            else:
+                # Try to find contact by company lookup as fallback
+                company_id = orchestrator.accounts_map.get(account_id) if account_id else None
+                if company_id:
+                    try:
+                        contacts = orchestrator.hubspot.get_contacts_for_company(company_id)
+                        if contacts and len(contacts) > 0:
+                            prospect["contact_id"] = contacts[0]
+                    except:
+                        prospect["contact_id"] = None
         
         total_pipeline = sum(
             float(p["account_value"].replace("potential $", "").replace("K annual", "").strip()) * 1000
