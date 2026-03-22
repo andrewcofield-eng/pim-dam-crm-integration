@@ -60,7 +60,14 @@
         <div class="ai-block"><h4>Ad Headlines</h4><ul id="aiHeadlines"></ul></div>
         <div class="ai-block"><h4>Landing Page Copy</h4><p id="aiLanding"></p></div>
       </div>
-      <div class="ai-block" style="margin-top:1rem"><h4>Campaign Summary</h4><p id="aiSummary"></p></div>
+      <div class="ai-block" style="margin-top:1rem">
+        <h4>Campaign Summary</h4>
+        <p id="aiSummary"></p>
+        <div style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center;">
+          <button class="btn-refresh" onclick="markCampaignUsed()" id="useBtn" style="font-size:0.8rem;">Mark as Used</button>
+          <span id="useStatus" style="font-size:0.75rem;color:var(--text-secondary);"></span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -103,6 +110,7 @@
 var API = 'https://pim-dam-crm-integration-production.up.railway.app';
 var token = null;
 var shopifyChart = null;
+var currentCampaignId = null;
 
 function setStatus(online) {
   document.getElementById('statusDot').className = 'status-dot ' + (online ? 'online' : 'offline');
@@ -153,13 +161,9 @@ function selectProspect(p) {
   document.getElementById('campaignText').innerHTML = '<div class=generating>Generating...</div>';
   fetch(API + '/abm/campaign/generate?account_id=' + p.account_id + '&directus_url=https://directus-production-9f53.up.railway.app&directus_token=' + token, {method:'POST'})
     .then(function(r) { return r.json(); })
-    .then(function(d) { 
-      document.getElementById('campaignText').textContent = d.campaign || JSON.stringify(d); 
-    })
+    .then(function(d) { document.getElementById('campaignText').textContent = d.campaign || JSON.stringify(d); })
     .catch(function(e) { document.getElementById('campaignText').textContent = 'Error: ' + e; });
 }
-
-var currentCampaignId = null;
 
 function generateAICampaign() {
   var seg = document.getElementById('segmentSelect').value;
@@ -184,8 +188,6 @@ function generateAICampaign() {
       document.getElementById('aiLanding').textContent = d.landing_page_copy || '';
       document.getElementById('aiSummary').textContent = d.campaign_summary || '';
       output.style.display = 'block';
-      
-      // Track view
       if (d.campaign_id) {
         fetch(API + '/ai-campaigns/' + d.campaign_id + '/view', {method: 'POST'})
           .catch(function(e) { console.log('View tracking failed:', e); });
@@ -200,19 +202,16 @@ function markCampaignUsed(cid) {
   fetch(API + '/ai-campaigns/' + cid + '/use', {method: 'POST'})
     .then(function() {
       var status = document.getElementById('useStatus');
-      if (status) {
-        status.textContent = '✓ Marked as used';
-        status.style.color = 'var(--primary-light)';
-      }
+      if (status) { status.textContent = '✓ Marked as used'; status.style.color = 'var(--primary-light)'; }
       var btn = document.getElementById('useBtn');
       if (btn) btn.disabled = true;
     })
     .catch(function(e) { console.log('Use tracking failed:', e); });
 }
+
 function loadCampaignHistory() {
   var list = document.getElementById('campaignHistoryList');
   list.innerHTML = '<p style="color:var(--text-secondary);">Loading...</p>';
-  
   fetch(API + '/ai-campaigns/history')
     .then(function(r) { return r.json(); })
     .then(function(d) {
@@ -238,58 +237,6 @@ function loadCampaignHistory() {
     })
     .catch(function(e) {
       list.innerHTML = '<p style="color:var(--accent-warm);">Failed to load: ' + e.message + '</p>';
-    });
-}
-
-<section class="products-section" style="margin-top:0">
-  <div class="panel-header">
-    <h2>Campaign Analytics</h2>
-    <button class="btn-refresh" onclick="loadAnalytics()">Refresh</button>
-  </div>
-  <div class="panel" style="max-width:100%">
-    <div id="analyticsContent">
-      <p style="color:var(--text-secondary);">Click Refresh to view performance metrics</p>
-    </div>
-  </div>
-</section>
-
-function loadAnalytics() {
-  var content = document.getElementById('analyticsContent');
-  content.innerHTML = '<p style="color:var(--text-secondary);">Loading...</p>';
-  
-  fetch(API + '/ai-campaigns/analytics/summary')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      content.innerHTML = 
-        '<div class="ai-campaign-grid">' +
-          '<div class="ai-block">' +
-            '<h4>Total Campaigns</h4>' +
-            '<p style="font-size:1.5rem;font-weight:700;color:var(--primary-light);">' + (d.total_campaigns_generated || 0) + '</p>' +
-          '</div>' +
-          '<div class="ai-block">' +
-            '<h4>Total Views</h4>' +
-            '<p style="font-size:1.5rem;font-weight:700;color:var(--primary-light);">' + (d.total_views || 0) + '</p>' +
-          '</div>' +
-          '<div class="ai-block">' +
-            '<h4>Used/Sent</h4>' +
-            '<p style="font-size:1.5rem;font-weight:700;color:var(--primary-light);">' + (d.total_used || 0) + '</p>' +
-          '</div>' +
-          '<div class="ai-block">' +
-            '<h4>Conversion Rate</h4>' +
-            '<p style="font-size:1.5rem;font-weight:700;color:var(--primary-light);">' + (d.conversion_rate || 0) + '%</p>' +
-          '</div>' +
-        '</div>' +
-        '<div style="margin-top:1rem;">' +
-          '<h4 style="color:var(--text-secondary);font-size:0.9rem;">Recent Activity</h4>' +
-          (d.recent_activity || []).map(function(a) {
-            return '<div style="font-size:0.8rem;color:var(--text-secondary);padding:0.25rem 0;">' +
-              a.type + ' - ' + new Date(a.viewed_at || a.used_at).toLocaleString() +
-            '</div>';
-          }).join('') +
-        '</div>';
-    })
-    .catch(function(e) {
-      content.innerHTML = '<p style="color:var(--accent-warm);">Failed to load: ' + e.message + '</p>';
     });
 }
 
@@ -350,7 +297,6 @@ getToken().then(function() {
   loadProducts(); 
   loadShopifyChart();
   loadCampaignHistory();
-  loadAnalytics();
 });
 </script>
 </body>
