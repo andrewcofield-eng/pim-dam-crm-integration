@@ -7,6 +7,31 @@ import uuid
 import json
 import os
 
+from datetime import datetime, timezone
+import json
+import os
+
+# Analytics tracking
+ANALYTICS_FILE = os.path.join(os.path.dirname(__file__), "campaign_analytics.json")
+
+def load_analytics():
+    if os.path.exists(ANALYTICS_FILE):
+        try:
+            with open(ANALYTICS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return {"views": [], "generations": 0, "exports": 0}
+    return {"views": [], "generations": 0, "exports": 0}
+
+def save_analytics(data):
+    try:
+        with open(ANALYTICS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, default=str)
+    except Exception as e:
+        print(f"Failed to save analytics: {e}")
+
+_analytics = load_analytics()
+
 # Persist campaigns to JSON file
 CAMPAIGNS_FILE = os.path.join(os.path.dirname(__file__), "campaigns_data.json")
 
@@ -197,3 +222,53 @@ async def get_campaign(campaign_id: str):
         if c["campaign_id"] == campaign_id:
             return c
     raise HTTPException(status_code=404, detail="Campaign not found")
+
+@router.post("/{campaign_id}/view")
+async def track_campaign_view(campaign_id: str):
+    """Track when a campaign is viewed."""
+    _analytics["views"].append({
+        "campaign_id": campaign_id,
+        "viewed_at": datetime.now(timezone.utc).isoformat(),
+        "type": "view"
+    })
+    _analytics["generations"] = len(_campaign_store)
+    save_analytics(_analytics)
+    return {"status": "tracked", "campaign_id": campaign_id}
+
+@router.post("/{campaign_id}/use")
+async def track_campaign_use(campaign_id: str):
+    """Track when a campaign is used/sent."""
+    _analytics["views"].append({
+        "campaign_id": campaign_id,
+        "used_at": datetime.now(timezone.utc).isoformat(),
+        "type": "use"
+    })
+    _analytics["exports"] += 1
+    save_analytics(_analytics)
+    return {"status": "marked_used", "campaign_id": campaign_id}
+
+@router.get("/analytics/summary")
+async def get_campaign_analytics():
+    """Get campaign performance summary."""
+    total_views = len([v for v in _analytics["views"] if v.get("type") == "view"])
+    total_used = len([v for v in _analytics["views"] if v.get("type") == "use"])
+    
+    # Calculate per-campaign stats
+    campaign_stats = {}
+    for view in _analytics["views"]:
+        cid = view.get("campaign_id")
+        if cid not in campaign_stats:
+            campaign_stats[cid] = {"views": 0, "used": 0}
+        if view.get("type") == "view":
+            campaign_stats[cid]["views"] += 1
+        elif view.get("type") == "use":
+            campaign_stats[cid]["used"] += 1
+    
+    return {
+        "total_campaigns_generated": len(_campaign_store),
+        "total_views": total_views,
+        "total_used": total_used,
+        "conversion_rate": round(total_used / total_views * 100, 1) if total_views > 0 else 0,
+        "per_campaign_stats": campaign_stats,
+        "recent_activity": _analytics["views"][-10:]  # Last 10 events
+    }
