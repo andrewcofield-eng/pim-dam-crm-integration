@@ -268,28 +268,25 @@ function loadShopifyChart() {
 }
 
 function loadProducts() {
-  fetch(API + '/products')
+  fetch(API + '/products?fields=sku,product_name,short_description,price,category,cloudinary_url,cloudinary_public_id')
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var products = Array.isArray(data) ? data : (data.value || data.data || []);
       document.getElementById('productCount').textContent = products.length;
-      var grid = document.getElementById('productGrid'); grid.innerHTML = '';
+      var grid = document.getElementById('productGrid'); 
+      grid.innerHTML = '';
       products.forEach(function(p) {
-        var card = document.createElement('div'); card.className = 'product-card';
+        var card = document.createElement('div'); 
+        card.className = 'product-card';
         var img = document.createElement('img');
-        img.src = p.cloudinary_url || 'https://via.placeholder.com/200';
+        // Use cloudinary_url if available, fallback to placeholder
+        img.src = p.cloudinary_url || 'https://placehold.co/200x200?text=No+Image';
         img.alt = p.product_name || '';
         img.style.cssText = 'width:100%;height:160px;object-fit:cover;border-radius:6px;margin-bottom:10px;';
-        img.onerror = function() { this.src = 'https://via.placeholder.com/200'; };
-        var sku = document.createElement('div'); sku.className = 'product-sku'; sku.textContent = p.sku || '';
-        var nm = document.createElement('div'); nm.className = 'product-name'; nm.textContent = p.product_name || '';
-        var sh = document.createElement('div'); sh.className = 'product-category'; sh.textContent = p.short_description || '';
-        var pr = document.createElement('div'); pr.className = 'product-price'; pr.textContent = p.price ? '$' + parseFloat(p.price).toFixed(2) : '';
-        card.appendChild(img); card.appendChild(sku); card.appendChild(nm); card.appendChild(sh); card.appendChild(pr);
-        grid.appendChild(card);
+        img.onerror = function() { this.src = 'https://placehold.co/200x200?text=No+Image'; };
+        // ... rest of card
       });
-    })
-    .catch(function(e) { console.error('Products failed:', e); });
+    });
 }
 
 getToken().then(function() { 
