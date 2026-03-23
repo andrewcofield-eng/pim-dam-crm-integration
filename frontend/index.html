@@ -209,16 +209,17 @@ function loadShopifyChart() {
     .then(function(d) {
       var m = d.metrics || {};
       document.getElementById("shopifyStatus").textContent = "Last updated: " + new Date().toLocaleTimeString();
-      var keys   = ["total_orders", "total_revenue", "new_customers", "returning_customers", "vip_customers"];
+      var labels = ["total orders", "total revenue", "new customers", "returning customers", "vip customers"];
+      var values = [m.total_orders || 0, m.total_revenue || 0, m.new_customers || 0, m.returning_customers || 0, m.vip_customers || 0];
       var colors = ["rgba(77,159,204,0.85)", "rgba(0,230,118,0.85)", "rgba(221,0,0,0.85)", "rgba(163,98,20,0.85)", "rgba(255,200,0,0.85)"];
-      var labels = keys.map(function(k) { return k.replace(/_/g, " "); });
-      var values = keys.map(function(k) { return m[k] || 0; });
       var ctx = document.getElementById("shopifyChart").getContext("2d");
       if (shopifyChartInstance) shopifyChartInstance.destroy();
       shopifyChartInstance = new Chart(ctx, {
-        type: "bar",labels: labels,
+        type: "bar",
+        data: {
+          labels: labels,
           datasets: [{
-            label: "Metrics
+            label: "Metrics",
             backgroundColor: colors,
             borderRadius: 6
           }]
