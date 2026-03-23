@@ -50,7 +50,47 @@
 
 <footer><p>Agenic Flow Marketing</p></footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js">
+function generateAICampaign() {
+  var seg         = document.getElementById('segmentSelect').value;
+  var status      = document.getElementById('aiCampaignStatus');
+  var output      = document.getElementById('aiCampaignOutput');
+  var placeholder = document.getElementById('aiCampaignPlaceholder');
+  var btn         = document.getElementById('generateBtn');
+  btn.textContent = 'Generating...';
+  btn.disabled    = true;
+  status.textContent        = 'Calling GPT-4o...';
+  output.style.display      = 'none';
+  placeholder.style.display = 'none';
+  fetch(API + '/ai-campaigns/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ segment_id: seg })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    document.getElementById('aiEmail').textContent   = d.email_copy || '';
+    var ul = document.getElementById('aiHeadlines');
+    ul.innerHTML = '';
+    var headlines = d.ad_headlines || [];
+    if (typeof headlines === 'string') headlines = headlines.split('\n').filter(Boolean);
+    headlines.forEach(function(h) { var li = document.createElement('li'); li.textContent = h; ul.appendChild(li); });
+    document.getElementById('aiLanding').textContent = d.landing_page_copy || '';
+    document.getElementById('aiSummary').textContent = d.campaign_summary  || '';
+    output.style.display      = 'block';
+    placeholder.style.display = 'none';
+    status.textContent        = 'Campaign ready';
+    btn.textContent           = 'Generate Campaign';
+    btn.disabled              = false;
+  })
+  .catch(function(e) {
+    status.textContent        = 'Error: ' + e.message;
+    placeholder.style.display = 'block';
+    btn.textContent           = 'Generate Campaign';
+    btn.disabled              = false;
+  });
+}
+</script>
 <script>
 var API = "https://pim-dam-crm-integration-production.up.railway.app";
 var token = null;
