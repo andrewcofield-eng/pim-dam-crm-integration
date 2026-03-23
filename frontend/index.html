@@ -240,13 +240,13 @@ function loadShopifyChart() {
                   shopifyChartInstance = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: labels,
+        labels: labels,
           datasets: [{
-            label: "Shopify values,
+            label: "Shopify Metrics",
+            data: values,
             backgroundColor: colors,
             borderRadius: 6
           }]
-        },
         },
         options: {
           responsive: true,
