@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -19,87 +19,32 @@
 
 <main>
   <section class="panel">
-    <div class="panel-header">
-      <h2>Prospects</h2>
-      <button class="btn-refresh" onclick="loadProspects()">Refresh</button>
-    </div>
-    <div id="prospectsMeta" class="panel-meta"></div>
-    <div id="prospectsList" class="prospects-list"></div>
+    <div class="panel-header"><h2>Warm Prospects</h2><button class="btn-refresh" onclick="loadProspects()">Refresh</button></div>
+    <div id="prospectsMeta"></div>
+    <div id="prospectsList" class="prospect-list"></div>
   </section>
-  
+
   <section class="panel">
-    <div class="panel-header"><h2>ABM Campaign</h2></div>
-    <div id="campaignPlaceholder" class="campaign-placeholder"><p>Select a prospect</p></div>
-    <div id="campaignOutput" style="display:none">
-      <div id="campaignAccount" class="campaign-account"></div>
-      <div id="campaignText" class="campaign-text"></div>
+    <div class="panel-header"><h2>AI Campaign Generator</h2></div>
+    <div id="campaignPlaceholder" class="placeholder"><p>Select a prospect to generate personalized ABM campaign</p></div>
+    <div id="campaignOutput" style="display:none;">
+      <div id="campaignAccount" style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-tan);"></div>
+      <div id="campaignStatus" class="badge" style="margin-bottom:1rem;">Generating...</div>
+      <div id="campaignText" style="max-height:400px;overflow-y:auto;background:var(--bg-dark);padding:1rem;border-radius:8px;"></div>
     </div>
   </section>
 </main>
 
-<section class="products-section">
-  <div class="panel-header">
-    <h2>AI Campaign Generator</h2>
-    <span class="badge">Segment-Aware</span>
-  </div>
-  <div class="panel" style="max-width:100%">
-    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem;">
-      <label for="segmentSelect" style="font-size:0.9rem;color:var(--text-secondary);">Segment:</label>
-      <select id="segmentSelect" class="seg-select">
-        <option value="seg_001">seg_001 - High-Value Repeat Buyers</option>
-        <option value="seg_002">seg_002 - At-Risk Subscribers</option>
-        <option value="seg_003">seg_003 - New Customer Acquisition</option>
-      </select>
-      <button class="btn-refresh" id="generateBtn" onclick="generateAICampaign()">Generate Campaign</button>
-      <span id="aiCampaignStatus" style="font-size:0.82rem;color:var(--text-secondary);"></span>
-    </div>
-    <div id="aiCampaignPlaceholder" style="color:var(--text-secondary);font-size:0.9rem;padding:1rem 0;">Select a segment and click Generate.</div>
-    <div id="aiCampaignOutput" style="display:none">
-      <div class="ai-campaign-grid">
-        <div class="ai-block"><h4>Email Copy</h4><p id="aiEmail"></p></div>
-        <div class="ai-block"><h4>Ad Headlines</h4><ul id="aiHeadlines"></ul></div>
-        <div class="ai-block"><h4>Landing Page Copy</h4><p id="aiLanding"></p></div>
-      </div>
-      <div class="ai-block" style="margin-top:1rem">
-        <h4>Campaign Summary</h4>
-        <p id="aiSummary"></p>
-        <div style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center;">
-          <button class="btn-refresh" onclick="markCampaignUsed()" id="useBtn" style="font-size:0.8rem;">Mark as Used</button>
-          <span id="useStatus" style="font-size:0.75rem;color:var(--text-secondary);"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="products-section" style="margin-top:0">
-  <div class="panel-header">
-    <h2>Campaign History</h2>
-    <button class="btn-refresh" onclick="loadCampaignHistory()">Refresh</button>
-  </div>
-  <div class="panel" style="max-width:100%">
-    <div id="campaignHistoryList" style="max-height:300px; overflow-y:auto;">
-      <p style="color:var(--text-secondary);">Click Refresh to load past campaigns</p>
-    </div>
-  </div>
-</section>
-
-<section class="products-section" style="margin-top:0">
-  <div class="panel-header">
-    <h2>Shopify Metrics</h2>
-    <button class="btn-refresh" onclick="loadShopifyChart()">Refresh</button>
-  </div>
+<section class="products-section" style="margin-top:0;">
+  <div class="panel-header"><h2>Shopify Metrics</h2><button class="btn-refresh" onclick="loadShopifyChart()">Refresh</button></div>
   <div class="panel" style="max-width:100%">
     <canvas id="shopifyChart" height="80"></canvas>
     <div id="shopifyStatus" style="font-size:0.82rem;color:var(--text-secondary);margin-top:0.75rem;"></div>
   </div>
 </section>
 
-<section class="products-section" style="margin-top:0">
-  <div class="panel-header">
-    <h2>Products</h2>
-    <span id="productCount" class="badge"></span>
-  </div>
+<section class="products-section" style="margin-top:0;">
+  <div class="panel-header"><h2>Products</h2><span id="productCount" class="badge"></span></div>
   <div id="productGrid" class="product-grid"></div>
 </section>
 
@@ -107,193 +52,231 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script>
-var API = 'https://pim-dam-crm-integration-production.up.railway.app';
+var API = "https://pim-dam-crm-integration-production.up.railway.app";
 var token = null;
-var shopifyChart = null;
-var currentCampaignId = null;
+var shopifyChartInstance = null;
 
 function setStatus(online) {
-  document.getElementById('statusDot').className = 'status-dot ' + (online ? 'online' : 'offline');
-  document.getElementById('statusText').textContent = online ? 'Connected' : 'Offline';
+  var dot = document.getElementById("statusDot");
+  var txt = document.getElementById("statusText");
+  if (online) {
+    dot.className = "status-dot online";
+    txt.textContent = "Connected";
+  } else {
+    dot.className = "status-dot offline";
+    txt.textContent = "Disconnected";
+  }
 }
 
 function getToken() {
-  return fetch(API + '/auth/token')
+  return fetch(API + "/auth/token")
     .then(function(r) { return r.json(); })
-    .then(function(d) { token = d.token; setStatus(true); return token; })
-    .catch(function(e) { setStatus(false); });
+    .then(function(d) {
+      token = d.token;
+      setStatus(true);
+      return token;
+    })
+    .catch(function() {
+      setStatus(false);
+    });
 }
 
 function loadProspects() {
   if (!token) return;
-  fetch(API + '/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=' + token)
+  document.getElementById("prospectsMeta").textContent = "Loading...";
+  
+  var url = API + "/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
+  
+  fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      document.getElementById('prospectsMeta').textContent = (d.warm_prospects_count || 0) + ' warm prospects';
-      var list = document.getElementById('prospectsList');
-      list.innerHTML = '';
-      (d.prospects || []).forEach(function(p, i) {
-        var card = document.createElement('div');
-        card.className = 'prospect-card' + (i === 0 ? ' hottest' : '');
-        var rank = document.createElement('div'); rank.className = 'prospect-rank'; rank.textContent = '#' + (i+1);
-        var info = document.createElement('div'); info.className = 'prospect-info';
-        var nm = document.createElement('div'); nm.className = 'prospect-name'; nm.textContent = p.company_name || '';
-        var mt = document.createElement('div'); mt.className = 'prospect-meta'; mt.textContent = p.account_value || '';
-        var ct = document.createElement('div'); ct.className = 'prospect-contact';
-        ct.textContent = (p.contact_id && p.contact_id !== 'None') ? 'Contact: ' + p.contact_id : 'No contact linked';
-        info.appendChild(nm); info.appendChild(mt); info.appendChild(ct);
-        var sb = document.createElement('div'); sb.className = 'prospect-score';
-        var sn = document.createElement('div'); sn.className = 'score-number'; sn.textContent = p.engagement_score || '--';
-        var sl = document.createElement('div'); sl.className = 'score-label'; sl.textContent = 'Score';
-        sb.appendChild(sn); sb.appendChild(sl);
-        card.appendChild(rank); card.appendChild(info); card.appendChild(sb);
+      document.getElementById("prospectsMeta").textContent = d.warm_prospects_count + " warm prospects";
+      var list = document.getElementById("prospectsList");
+      list.innerHTML = "";
+      
+      if (!d.prospects || d.prospects.length === 0) {
+        list.innerHTML = "<p style='color:var(--text-secondary);'>No warm prospects found</p>";
+        return;
+      }
+      
+      d.prospects.forEach(function(p) {
+        var card = document.createElement("div");
+        card.className = "prospect-card";
+        card.innerHTML = "<div style='font-weight:600;'>" + p.company_name + "</div>" +
+                        "<div style='font-size:0.8rem;color:var(--text-secondary);'>Score: " + p.engagement_score + "</div>";
         card.onclick = function() { selectProspect(p); };
         list.appendChild(card);
       });
     })
-    .catch(function(e) { document.getElementById('prospectsMeta').textContent = 'Error: ' + e.message; });
+    .catch(function(e) {
+      document.getElementById("prospectsMeta").textContent = "Error loading prospects";
+    });
 }
 
 function selectProspect(p) {
-  document.getElementById('campaignPlaceholder').style.display = 'none';
-  document.getElementById('campaignOutput').style.display = 'block';
-  document.getElementById('campaignAccount').textContent = p.company_name;
-  document.getElementById('campaignText').innerHTML = '<div class=generating>Generating...</div>';
-  fetch(API + '/abm/campaign/generate?account_id=' + p.account_id + '&directus_url=https://directus-production-9f53.up.railway.app&directus_token=' + token, {method:'POST'})
-    .then(function(r) { return r.json(); })
-    .then(function(d) { document.getElementById('campaignText').textContent = d.campaign || JSON.stringify(d); })
-    .catch(function(e) { document.getElementById('campaignText').textContent = 'Error: ' + e; });
-}
-
-function generateAICampaign() {
-  var seg = document.getElementById('segmentSelect').value;
-  var btn = document.getElementById('generateBtn');
-  var status = document.getElementById('aiCampaignStatus');
-  var output = document.getElementById('aiCampaignOutput');
-  var ph = document.getElementById('aiCampaignPlaceholder');
-  btn.textContent = 'Generating...'; btn.disabled = true;
-  status.textContent = 'Calling GPT-4o...';
-  output.style.display = 'none'; ph.style.display = 'none';
-  fetch(API + '/ai-campaigns/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({segment_id:seg})})
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(d) {
-      currentCampaignId = d.campaign_id;
-      btn.textContent = 'Generate Campaign'; btn.disabled = false;
-      status.textContent = 'Done - ' + (d.latency_ms/1000).toFixed(1) + 's';
-      document.getElementById('aiEmail').textContent = d.email_copy || '';
-      var hl = document.getElementById('aiHeadlines'); hl.innerHTML = '';
-      (Array.isArray(d.ad_headlines) ? d.ad_headlines : []).forEach(function(h) {
-        if (!h) return; var li = document.createElement('li'); li.textContent = h; hl.appendChild(li);
-      });
-      document.getElementById('aiLanding').textContent = d.landing_page_copy || '';
-      document.getElementById('aiSummary').textContent = d.campaign_summary || '';
-      output.style.display = 'block';
-      if (d.campaign_id) {
-        fetch(API + '/ai-campaigns/' + d.campaign_id + '/view', {method: 'POST'})
-          .catch(function(e) { console.log('View tracking failed:', e); });
-      }
-    })
-    .catch(function(e) { btn.textContent = 'Generate Campaign'; btn.disabled = false; status.textContent = 'Error: ' + e.message; ph.style.display = 'block'; });
-}
-
-function markCampaignUsed(cid) {
-  if (!cid) cid = currentCampaignId;
-  if (!cid) return;
-  fetch(API + '/ai-campaigns/' + cid + '/use', {method: 'POST'})
-    .then(function() {
-      var status = document.getElementById('useStatus');
-      if (status) { status.textContent = '✓ Marked as used'; status.style.color = 'var(--primary-light)'; }
-      var btn = document.getElementById('useBtn');
-      if (btn) btn.disabled = true;
-    })
-    .catch(function(e) { console.log('Use tracking failed:', e); });
-}
-
-function loadCampaignHistory() {
-  var list = document.getElementById('campaignHistoryList');
-  list.innerHTML = '<p style="color:var(--text-secondary);">Loading...</p>';
-  fetch(API + '/ai-campaigns/history')
+  document.getElementById("campaignPlaceholder").style.display = "none";
+  document.getElementById("campaignOutput").style.display = "block";
+  document.getElementById("campaignAccount").textContent = p.company_name;
+  document.getElementById("campaignStatus").textContent = "Generating...";
+  document.getElementById("campaignText").textContent = "Loading...";
+  
+  var url = API + "/abm/campaign/generate?account_id=" + p.account_id + "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
+  
+  fetch(url, {method: "POST"})
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      var campaigns = d.campaigns || [];
-      if (campaigns.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-secondary);">No campaigns generated yet</p>';
-        return;
+      var html = "<p><strong>Subject:</strong> " + (d.subject || "N/A") + "</p>" +
+                 "<p><strong>Email Copy:</strong></p><p>" + (d.email_copy || "").replace(/\n/g, "<br>") + "</p>" +
+                 "<hr style='margin:1rem 0;border-color:var(--border);'>" +
+                 "<p><strong>Ad Headlines:</strong></p><ul>";
+      if (d.ad_headlines) {
+        d.ad_headlines.forEach(function(h) {
+          html += "<li>" + h + "</li>";
+        });
       }
-      list.innerHTML = '';
-      campaigns.forEach(function(c) {
-        var item = document.createElement('div');
-        item.className = 'ai-block';
-        item.style.marginBottom = '0.75rem';
-        var summary = c.campaign_summary || (c.email_copy ? c.email_copy.substring(0, 60) + '...' : 'No preview');
-        item.innerHTML = 
-          '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-            '<strong>' + (c.segment_id || 'Unknown') + '</strong>' +
-            '<span style="font-size:0.75rem;color:var(--text-secondary);">' + new Date(c.generated_at).toLocaleDateString() + '</span>' +
-          '</div>' +
-          '<div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.25rem;">' + summary + '</div>';
-        list.appendChild(item);
-      });
+      html += "</ul><p><strong>Landing Page Copy:</strong></p><p>" + (d.landing_page_copy || "").replace(/\n/g, "<br>") + "</p>";
+      
+      document.getElementById("campaignText").innerHTML = html;
+      document.getElementById("campaignStatus").textContent = "Ready";
     })
     .catch(function(e) {
-      list.innerHTML = '<p style="color:var(--accent-warm);">Failed to load: ' + e.message + '</p>';
+      document.getElementById("campaignText").innerHTML = "<p>Error generating campaign</p>";
+      document.getElementById("campaignStatus").textContent = "Error";
     });
 }
 
 function loadShopifyChart() {
-  document.getElementById('shopifyStatus').textContent = 'Loading...';
-  fetch(API + '/ai-campaigns/shopify/status')
+  document.getElementById("shopifyStatus").textContent = "Loading Shopify data...";
+  
+  fetch(API + "/ai-campaigns/shopify/status")
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      var m = d.metrics || {};
-      document.getElementById('shopifyStatus').textContent = (d.total_orders_logged || 0) + ' orders - ' + new Date().toLocaleTimeString();
-      var keys = ['total_orders','total_revenue','new_customers','returning_customers','vip_customers'];
-      var clrs = ['rgba(77,159,204,0.85)','rgba(0,230,118,0.85)','rgba(221,0,0,0.85)','rgba(163,98,20,0.85)','rgba(255,200,0,0.85)'];
-      var labels = []; var values = []; var bgColors = [];
-      keys.forEach(function(k, i) {
-        if (typeof m[k] === 'number') {
-          labels.push(k.replace(/_/g,' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }));
-          values.push(m[k]); bgColors.push(clrs[i]);
+      document.getElementById("shopifyStatus").textContent = "Last updated: " + (d.updated_at || new Date().toLocaleTimeString());
+      
+      var metrics = d.metrics || d;
+      var labels = [];
+      var values = [];
+      var colors = [];
+      
+      var colorMap = {
+        revenue: "#00e676",
+        orders: "#4d9fcc",
+        new_customers: "#dd0000",
+        returning_customers: "#a36214",
+        vip_customers: "#612e00"
+      };
+      
+      for (var key in metrics) {
+        if (typeof metrics[key] === "number" && key !== "total_revenue") {
+          labels.push(key.replace(/_/g, " "));
+          values.push(metrics[key]);
+          colors.push(colorMap[key] || "#4d9fcc");
+        }
+      }
+      
+      var ctx = document.getElementById("shopifyChart").getContext("2d");
+      
+      if (shopifyChartInstance) {
+        shopifyChartInstance.destroy();
+      }
+      
+      shopifyChartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Metrics",
+            data: values,
+            backgroundColor: colors,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "#cce4f0" } }
+          },
+          scales: {
+            x: { ticks: { color: "#cce4f0" }, grid: { color: "rgba(255,255,255,0.08)" } },
+            y: { ticks: { color: "#cce4f0" }, grid: { color: "rgba(255,255,255,0.08)" } }
+          }
         }
       });
-      var ctx = document.getElementById('shopifyChart').getContext('2d');
-      if (shopifyChart) shopifyChart.destroy();
-      shopifyChart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels: labels, datasets: [{ label: 'Shopify Metrics', data: values, backgroundColor: bgColors, borderRadius: 6 }] },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#cce4f0' } } }, scales: { x: { ticks: { color: '#cce4f0' }, grid: { color: 'rgba(255,255,255,0.08)' } }, y: { ticks: { color: '#cce4f0' }, grid: { color: 'rgba(255,255,255,0.08)' } } } }
-      });
     })
-    .catch(function(e) { document.getElementById('shopifyStatus').textContent = 'Failed: ' + e; });
-}
-
-function loadProducts() {
-  fetch(API + '/products?fields=sku,product_name,short_description,price,category,cloudinary_url,cloudinary_public_id')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var products = Array.isArray(data) ? data : (data.value || data.data || []);
-      document.getElementById('productCount').textContent = products.length;
-      var grid = document.getElementById('productGrid'); 
-      grid.innerHTML = '';
-      products.forEach(function(p) {
-        var card = document.createElement('div'); 
-        card.className = 'product-card';
-        var img = document.createElement('img');
-        // Use cloudinary_url if available, fallback to placeholder
-        img.src = p.cloudinary_url || 'https://placehold.co/200x200?text=No+Image';
-        img.alt = p.product_name || '';
-        img.style.cssText = 'width:100%;height:160px;object-fit:cover;border-radius:6px;margin-bottom:10px;';
-        img.onerror = function() { this.src = 'https://placehold.co/200x200?text=No+Image'; };
-        // ... rest of card
-      });
+    .catch(function(e) {
+      document.getElementById("shopifyStatus").textContent = "Failed: " + e;
     });
 }
 
-getToken().then(function() { 
-  loadProspects(); 
-  loadProducts(); 
+function loadProducts() {
+  fetch(API + "/products")
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var products = data.value || data.data || (Array.isArray(data) ? data : []);
+      document.getElementById("productCount").textContent = products.length + " products";
+      
+      var grid = document.getElementById("productGrid");
+      grid.innerHTML = "";
+      
+      if (products.length === 0) {
+        grid.innerHTML = "<p style='color:var(--text-secondary);'>No products found</p>";
+        return;
+      }
+      
+      products.forEach(function(p) {
+        var card = document.createElement("div");
+        card.className = "product-card";
+        
+        var img = document.createElement("img");
+        // CRITICAL FIX: Use full Cloudinary URL, not relative path
+        var imageUrl = p.cloudinary_url;
+        if (!imageUrl || imageUrl === "null" || imageUrl === "") {
+          // Fallback to placeholder if no cloudinary_url
+          imageUrl = "https://via.placeholder.com/200x200?text=" + encodeURIComponent(p.sku || "No+Image");
+        }
+        img.src = imageUrl;
+        img.alt = p.product_name || p.sku;
+        img.style.cssText = "width:100%;height:160px;object-fit:cover;border-radius:6px;margin-bottom:10px;";
+        img.onerror = function() {
+          this.src = "https://via.placeholder.com/200x200?text=" + encodeURIComponent(p.sku || "No+Image");
+        };
+        
+        var sku = document.createElement("div");
+        sku.className = "product-sku";
+        sku.textContent = p.sku || "";
+        
+        var name = document.createElement("div");
+        name.className = "product-name";
+        name.textContent = p.product_name || "";
+        
+        var short = document.createElement("div");
+        short.className = "product-short";
+        short.textContent = p.short_description || "";
+        short.style.cssText = "font-size:0.8rem;color:#666;margin-bottom:6px;";
+        
+        var price = document.createElement("div");
+        price.className = "product-price";
+        price.textContent = "$" + (parseFloat(p.price) || 0).toFixed(2);
+        
+        card.appendChild(img);
+        card.appendChild(sku);
+        card.appendChild(name);
+        card.appendChild(short);
+        card.appendChild(price);
+        grid.appendChild(card);
+      });
+    })
+    .catch(function(e) {
+      document.getElementById("productCount").textContent = "Error";
+      document.getElementById("productGrid").innerHTML = "<p style='color:var(--accent-warm);'>Failed to load products: " + e.message + "</p>";
+    });
+}
+
+// Initialize
+getToken().then(function() {
+  loadProspects();
+  loadProducts();
   loadShopifyChart();
-  loadCampaignHistory();
 });
 </script>
 </body>
