@@ -60,6 +60,22 @@ from shopify_simulator import ShopifySimulator
 router   = APIRouter(prefix="/ai-campaigns", tags=["Campaigns"])
 _shopify = ShopifySimulator()
 
+# Auto-seed Shopify simulator with 40 orders on startup
+import threading
+
+def _seed_shopify():
+    import time
+    time.sleep(3)
+    try:
+        for _ in range(40):
+            o = _shopify.generate_order()
+            _shopify.record_order(o)
+        print(f"✅ Shopify simulator seeded with 40 orders")
+    except Exception as e:
+        print(f"⚠️ Shopify seed failed: {e}")
+
+threading.Thread(target=_seed_shopify, daemon=True).start()
+
 class GenerateRequest(BaseModel):
     segment_id:     str
     override_goals: Optional[dict] = None
