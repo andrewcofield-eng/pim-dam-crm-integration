@@ -216,10 +216,9 @@ function loadShopifyChart() {
       var ctx = document.getElementById("shopifyChart").getContext("2d");
       if (shopifyChartInstance) shopifyChartInstance.destroy();
       shopifyChartInstance = new Chart(ctx, {
-        type: "bar
-          labels: labels,
+        type: "bar",labels: labels,
           datasets: [{
-            label: ",
+            label: "Metrics
             backgroundColor: colors,
             borderRadius: 6
           }]
