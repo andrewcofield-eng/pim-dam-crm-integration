@@ -56,6 +56,9 @@ var API = "https://pim-dam-crm-integration-production.up.railway.app";
 var token = null;
 var shopifyChartInstance = null;
 
+// CRITICAL FIX: Inline data URI placeholder - no external DNS requests
+var PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='%23888' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
+
 function setStatus(online) {
   var dot = document.getElementById("statusDot");
   var txt = document.getElementById("statusText");
@@ -69,46 +72,33 @@ function setStatus(online) {
 }
 
 function getToken() {
-  return fetch(API + "/auth/token")
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      token = d.token;
-      setStatus(true);
-      return token;
-    })
-    .catch(function() {
-      setStatus(false);
-    });
+  return fetch(API + "/auth/token").then(r => r.json()).then(d => {
+    token = d.token;
+    setStatus(true);
+    return token;
+  }).catch(() => setStatus(false));
 }
 
 function loadProspects() {
   if (!token) return;
   document.getElementById("prospectsMeta").textContent = "Loading...";
-  
-  var url = API + "/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
-  
-  fetch(url)
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      document.getElementById("prospectsMeta").textContent = d.warm_prospects_count + " warm prospects";
+  fetch(API + "/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token)
+    .then(r => r.json()).then(d => {
+      document.getElementById("prospectsMeta").textContent = (d.warm_prospects_count || 0) + " warm prospects";
       var list = document.getElementById("prospectsList");
       list.innerHTML = "";
-      
       if (!d.prospects || d.prospects.length === 0) {
         list.innerHTML = "<p style='color:var(--text-secondary);'>No warm prospects found</p>";
         return;
       }
-      
-      d.prospects.forEach(function(p) {
+      d.prospects.forEach(p => {
         var card = document.createElement("div");
         card.className = "prospect-card";
-        card.innerHTML = "<div style='font-weight:600;'>" + p.company_name + "</div>" +
-                        "<div style='font-size:0.8rem;color:var(--text-secondary);'>Score: " + p.engagement_score + "</div>";
-        card.onclick = function() { selectProspect(p); };
+        card.innerHTML = "<div style='font-weight:600;'>" + p.company_name + "</div><div style='font-size:0.8rem;color:var(--text-secondary);'>Score: " + p.engagement_score + "</div>";
+        card.onclick = () => selectProspect(p);
         list.appendChild(card);
       });
-    })
-    .catch(function(e) {
+    }).catch(() => {
       document.getElementById("prospectsMeta").textContent = "Error loading prospects";
     });
 }
@@ -119,165 +109,76 @@ function selectProspect(p) {
   document.getElementById("campaignAccount").textContent = p.company_name;
   document.getElementById("campaignStatus").textContent = "Generating...";
   document.getElementById("campaignText").textContent = "Loading...";
-  
-  var url = API + "/abm/campaign/generate?account_id=" + p.account_id + "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
-  
-  fetch(url, {method: "POST"})
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      var html = "<p><strong>Subject:</strong> " + (d.subject || "N/A") + "</p>" +
-                 "<p><strong>Email Copy:</strong></p><p>" + (d.email_copy || "").replace(/\n/g, "<br>") + "</p>" +
-                 "<hr style='margin:1rem 0;border-color:var(--border);'>" +
-                 "<p><strong>Ad Headlines:</strong></p><ul>";
-      if (d.ad_headlines) {
-        d.ad_headlines.forEach(function(h) {
-          html += "<li>" + h + "</li>";
-        });
-      }
+  fetch(API + "/abm/campaign/generate?account_id=" + p.account_id + "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token, {method: "POST"})
+    .then(r => r.json()).then(d => {
+      var html = "<p><strong>Subject:</strong> " + (d.subject || "N/A") + "</p><p><strong>Email Copy:</strong></p><p>" + (d.email_copy || "").replace(/\n/g, "<br>") + "</p><hr style='margin:1rem 0;border-color:var(--border);'><p><strong>Ad Headlines:</strong></p><ul>";
+      if (d.ad_headlines) d.ad_headlines.forEach(h => html += "<li>" + h + "</li>");
       html += "</ul><p><strong>Landing Page Copy:</strong></p><p>" + (d.landing_page_copy || "").replace(/\n/g, "<br>") + "</p>";
-      
       document.getElementById("campaignText").innerHTML = html;
       document.getElementById("campaignStatus").textContent = "Ready";
-    })
-    .catch(function(e) {
+    }).catch(() => {
       document.getElementById("campaignText").innerHTML = "<p>Error generating campaign</p>";
       document.getElementById("campaignStatus").textContent = "Error";
     });
 }
 
 function loadShopifyChart() {
-  document.getElementById("shopifyStatus").textContent = "Loading Shopify data...";
-  
-  fetch(API + "/ai-campaigns/shopify/status")
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      document.getElementById("shopifyStatus").textContent = "Last updated: " + (d.updated_at || new Date().toLocaleTimeString());
-      
-      var metrics = d.metrics || d;
-      var labels = [];
-      var values = [];
-      var colors = [];
-      
-      var colorMap = {
-        revenue: "#00e676",
-        orders: "#4d9fcc",
-        new_customers: "#dd0000",
-        returning_customers: "#a36214",
-        vip_customers: "#612e00"
-      };
-      
-      for (var key in metrics) {
-        if (typeof metrics[key] === "number" && key !== "total_revenue") {
-          labels.push(key.replace(/_/g, " "));
-          values.push(metrics[key]);
-          colors.push(colorMap[key] || "#4d9fcc");
-        }
+  document.getElementById("shopifyStatus").textContent = "Loading...";
+  fetch(API + "/ai-campaigns/shopify/status").then(r => r.json()).then(d => {
+    document.getElementById("shopifyStatus").textContent = "Last updated: " + (d.updated_at || new Date().toLocaleTimeString());
+    var metrics = d.metrics || d, labels = [], values = [], colors = [];
+    var colorMap = {revenue: "#00e676", orders: "#4d9fcc", new_customers: "#dd0000", returning_customers: "#a36214", vip_customers: "#612e00"};
+    for (var key in metrics) {
+      if (typeof metrics[key] === "number" && key !== "total_revenue") {
+        labels.push(key.replace(/_/g, " "));
+        values.push(metrics[key]);
+        colors.push(colorMap[key] || "#4d9fcc");
       }
-      
-      var ctx = document.getElementById("shopifyChart").getContext("2d");
-      
-      if (shopifyChartInstance) {
-        shopifyChartInstance.destroy();
-      }
-      
-      shopifyChartInstance = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: "Metrics",
-            data: values,
-            backgroundColor: colors,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { color: "#cce4f0" } }
-          },
-          scales: {
-            x: { ticks: { color: "#cce4f0" }, grid: { color: "rgba(255,255,255,0.08)" } },
-            y: { ticks: { color: "#cce4f0" }, grid: { color: "rgba(255,255,255,0.08)" } }
-          }
-        }
-      });
-    })
-    .catch(function(e) {
-      document.getElementById("shopifyStatus").textContent = "Failed: " + e;
-    });
+    }
+    var ctx = document.getElementById("shopifyChart").getContext("2d");
+    if (shopifyChartInstance) shopifyChartInstance.destroy();
+    shopifyChartInstance = new Chart(ctx, {type: "bar", data: {labels: labels, datasets: [{label: "Metrics", data: values, backgroundColor: colors, borderRadius: 6}]}, options: {responsive: true, plugins: {legend: {display: false}}, scales: {x: {ticks: {color: "#cce4f0"}, grid: {color: "rgba(255,255,255,0.08)"}}, y: {ticks: {color: "#cce4f0"}, grid: {color: "rgba(255,255,255,0.08)"}}}}});
+  }).catch(() => document.getElementById("shopifyStatus").textContent = "Shopify data unavailable");
 }
 
 function loadProducts() {
-  fetch(API + "/products")
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var products = data.value || data.data || (Array.isArray(data) ? data : []);
-      document.getElementById("productCount").textContent = products.length + " products";
-      
-      var grid = document.getElementById("productGrid");
-      grid.innerHTML = "";
-      
-      if (products.length === 0) {
-        grid.innerHTML = "<p style='color:var(--text-secondary);'>No products found</p>";
-        return;
-      }
-      
-      products.forEach(function(p) {
-        var card = document.createElement("div");
-        card.className = "product-card";
-        
-        var img = document.createElement("img");
-        // CRITICAL FIX: Use full Cloudinary URL, not relative path
-        var imageUrl = p.cloudinary_url;
-        if (!imageUrl || imageUrl === "null" || imageUrl === "") {
-          // Fallback to placeholder if no cloudinary_url
-          imageUrl = "https://via.placeholder.com/200x200?text=" + encodeURIComponent(p.sku || "No+Image");
+  var grid = document.getElementById("productGrid"), countBadge = document.getElementById("productCount");
+  grid.innerHTML = "<p style='color:var(--text-secondary);padding:1rem;'>Loading products...</p>";
+  fetch(API + "/products").then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(data => {
+    var products = data.value || data.data || (Array.isArray(data) ? data : []);
+    countBadge.textContent = products.length + " products";
+    grid.innerHTML = "";
+    if (products.length === 0) { grid.innerHTML = "<p style='color:var(--text-secondary);padding:1rem;'>No products found</p>"; return; }
+    // Stagger rendering to prevent UI blocking
+    products.forEach((p, i) => setTimeout(() => {
+      var card = document.createElement("div"); card.className = "product-card";
+      var imgWrapper = document.createElement("div"); imgWrapper.style.cssText = "width:100%;height:160px;background:#1a1a2e;border-radius:6px;margin-bottom:10px;overflow:hidden;position:relative;";
+      var img = document.createElement("img");
+      // CRITICAL FIX: Use inline placeholder, not external via.placeholder.com
+      var imageUrl = p.cloudinary_url;
+      if (!imageUrl || imageUrl === "null" || imageUrl === "" || imageUrl === undefined) imageUrl = PLACEHOLDER_SVG;
+      img.src = imageUrl;
+      img.alt = p.product_name || p.sku || "Product";
+      img.style.cssText = "width:100%;height:100%;object-fit:cover;";
+      img.loading = "lazy";
+      // CRITICAL FIX: Prevent infinite error loops
+      img.onerror = function() { 
+        if (this.src !== PLACEHOLDER_SVG) { 
+          this.src = PLACEHOLDER_SVG; 
         }
-        img.src = imageUrl;
-        img.alt = p.product_name || p.sku;
-        img.style.cssText = "width:100%;height:160px;object-fit:cover;border-radius:6px;margin-bottom:10px;";
-        img.onerror = function() {
-          this.src = "https://via.placeholder.com/200x200?text=" + encodeURIComponent(p.sku || "No+Image");
-        };
-        
-        var sku = document.createElement("div");
-        sku.className = "product-sku";
-        sku.textContent = p.sku || "";
-        
-        var name = document.createElement("div");
-        name.className = "product-name";
-        name.textContent = p.product_name || "";
-        
-        var short = document.createElement("div");
-        short.className = "product-short";
-        short.textContent = p.short_description || "";
-        short.style.cssText = "font-size:0.8rem;color:#666;margin-bottom:6px;";
-        
-        var price = document.createElement("div");
-        price.className = "product-price";
-        price.textContent = "$" + (parseFloat(p.price) || 0).toFixed(2);
-        
-        card.appendChild(img);
-        card.appendChild(sku);
-        card.appendChild(name);
-        card.appendChild(short);
-        card.appendChild(price);
-        grid.appendChild(card);
-      });
-    })
-    .catch(function(e) {
-      document.getElementById("productCount").textContent = "Error";
-      document.getElementById("productGrid").innerHTML = "<p style='color:var(--accent-warm);'>Failed to load products: " + e.message + "</p>";
-    });
+        this.onerror = null; // Remove handler after first failure
+      };
+      imgWrapper.appendChild(img);
+      var sku = document.createElement("div"); sku.className = "product-sku"; sku.textContent = p.sku || "";
+      var name = document.createElement("div"); name.className = "product-name"; name.textContent = p.product_name || "Unnamed Product";
+      var short = document.createElement("div"); short.className = "product-short"; short.textContent = p.short_description || ""; short.style.cssText = "font-size:0.8rem;color:#666;margin-bottom:6px;";
+      var price = document.createElement("div"); price.className = "product-price"; var priceVal = parseFloat(p.price); price.textContent = isNaN(priceVal) ? "$--" : "$" + priceVal.toFixed(2);
+      card.appendChild(imgWrapper); card.appendChild(sku); card.appendChild(name); card.appendChild(short); card.appendChild(price); grid.appendChild(card);
+    }, i * 10));
+  }).catch(e => { countBadge.textContent = "Error"; grid.innerHTML = "<p style='color:var(--accent-warm);padding:1rem;'>Failed to load products: " + e.message + "</p>"; });
 }
 
-// Initialize
-getToken().then(function() {
-  loadProspects();
-  loadProducts();
-  loadShopifyChart();
-});
+document.addEventListener("DOMContentLoaded", () => getToken().then(() => { loadProspects(); loadProducts(); loadShopifyChart(); }));
 </script>
 </body>
 </html>
