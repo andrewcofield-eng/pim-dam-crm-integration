@@ -7,220 +7,278 @@
 <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
+
 <header>
   <div class="header-inner">
-    <div class="logo"><span class="logo-main">Agenic Flow</span></div>
+    <div class="logo">
+      <span class="logo-main">Agenic Flow</span>
+      <span class="logo-sub">ABM Intelligence Dashboard</span>
+    </div>
     <div class="header-status">
-      <div class="status-dot" id="statusDot"></div>
-      <span id="statusText" style="font-size:0.82rem;color:var(--text-secondary);">Connecting...</span>
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText" style="font-size:0.82rem;">Connecting...</span>
     </div>
   </div>
 </header>
 
 <main>
-  <section class="panel">
-    <div class="panel-header"><h2>Warm Prospects</h2><button class="btn-refresh" onclick="loadProspects()">Refresh</button></div>
-    <div id="prospectsMeta"></div>
-    <div id="prospectsList" class="prospect-list"></div>
+  <!-- Warm Prospects -->
+  <section class="panel" id="prospectsPanel">
+    <div class="panel-header">
+      <h2>Warm Prospects</h2>
+      <button class="btn-refresh" onclick="loadProspects()">Refresh</button>
+    </div>
+    <div class="panel-meta" id="prospectsMeta">Loading...</div>
+    <div id="prospectsList" class="prospects-list"></div>
   </section>
 
+  <!-- ABM Campaign (prospect-click) -->
   <section class="panel">
-    <div class="panel-header"><h2>AI Campaign Generator</h2></div>
-    <div id="campaignPlaceholder" class="placeholder"><p>Select a prospect to generate personalized ABM campaign</p></div>
+    <div class="panel-header">
+      <h2>AI Campaign Generator</h2>
+    </div>
+    <div id="campaignPlaceholder" class="placeholder">
+      <p>Select a prospect to generate a personalized ABM campaign</p>
+    </div>
     <div id="campaignOutput" style="display:none;">
       <div id="campaignAccount" style="font-weight:700;margin-bottom:0.5rem;color:var(--accent-tan);"></div>
       <div id="campaignStatus" class="badge" style="margin-bottom:1rem;">Generating...</div>
-      <div id="campaignText" style="max-height:400px;overflow-y:auto;background:var(--bg-dark);padding:1rem;border-radius:8px;"></div>
+      <div id="campaignText" class="campaign-text" style="max-height:400px;overflow-y:auto;"></div>
     </div>
   </section>
 </main>
 
-<section class="products-section" style="margin-top:0;">
-  <div class="panel-header"><h2>Shopify Metrics</h2><button class="btn-refresh" onclick="loadShopifyChart()">Refresh</button></div>
+<!-- Segment-Aware AI Campaign Generator -->
+<section class="products-section">
+  <div class="panel-header">
+    <h2>AI Campaign Generator</h2>
+    <span class="badge">Segment-Aware</span>
+  </div>
   <div class="panel" style="max-width:100%">
-    <canvas id="shopifyChart" height="80"></canvas>
-    <div id="shopifyStatus" style="font-size:0.82rem;color:var(--text-secondary);margin-top:0.75rem;"></div>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem;">
+      <label for="segmentSelect" style="font-size:0.9rem;">Segment:</label>
+      <select id="segmentSelect" class="seg-select">
+        <option value="seg_001">seg_001 — High-Value Repeat Buyers</option>
+        <option value="seg_002">seg_002 — At-Risk Subscribers</option>
+        <option value="seg_003">seg_003 — New Customer Acquisition</option>
+      </select>
+      <button class="btn-refresh" id="generateBtn" onclick="generateAICampaign()">Generate Campaign</button>
+      <span id="aiCampaignStatus" style="font-size:0.82rem;"></span>
+    </div>
+    <div id="aiCampaignPlaceholder" style="font-size:0.9rem;padding:1rem 0;">
+      Select a segment and click Generate.
+    </div>
+    <div id="aiCampaignOutput" style="display:none;">
+      <div class="ai-campaign-grid">
+        <div class="ai-block"><h4>Email Copy</h4><p id="aiEmail"></p></div>
+        <div class="ai-block"><h4>Ad Headlines</h4><ul id="aiHeadlines"></ul></div>
+        <div class="ai-block"><h4>Landing Page Copy</h4><p id="aiLanding"></p></div>
+      </div>
+      <div class="ai-block" style="margin-top:1rem;">
+        <h4>Campaign Summary</h4>
+        <p id="aiSummary"></p>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="products-section" style="margin-top:0;">
-  <div class="panel-header"><h2>Products</h2><span id="productCount" class="badge"></span></div>
+<!-- Shopify Metrics -->
+<section class="products-section">
+  <div class="panel-header">
+    <h2>Shopify Metrics</h2>
+    <button class="btn-refresh" onclick="loadShopifyChart()">Refresh</button>
+  </div>
+  <div class="panel" style="max-width:100%">
+    <span id="shopifyStatus" style="font-size:0.82rem;"></span>
+    <canvas id="shopifyChart" style="max-height:260px;margin-top:1rem;"></canvas>
+  </div>
+</section>
+
+<!-- Product Catalog -->
+<section class="products-section">
+  <div class="panel-header">
+    <h2>Products</h2>
+    <span id="productCount" class="badge"></span>
+  </div>
   <div id="productGrid" class="product-grid"></div>
 </section>
 
 <footer><p>Agenic Flow Marketing</p></footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script>
 var API = "https://pim-dam-crm-integration-production.up.railway.app";
 var token = null;
 var shopifyChartInstance = null;
 
-// CRITICAL FIX: Inline data URI placeholder - no external DNS requests
-var PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='%23888' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
-
-function setStatus(online) {
-  var dot = document.getElementById("statusDot");
-  var txt = document.getElementById("statusText");
-  if (online) {
-    dot.className = "status-dot online";
-    txt.textContent = "Connected";
-  } else {
-    dot.className = "status-dot offline";
-    txt.textContent = "Disconnected";
-  }
-}
-
+// ── Auth ──────────────────────────────────────────────────────────
 function getToken() {
-  return fetch(API + "/auth/token").then(r => r.json()).then(d => {
-    token = d.token;
-    setStatus(true);
-    return token;
-  }).catch(() => setStatus(false));
+  return fetch(API + "/auth/token")
+    .then(function(r) { return r.json(); })
+    .then(function(d) { token = d.token; return token; });
 }
 
+// ── Warm Prospects ────────────────────────────────────────────────
 function loadProspects() {
   if (!token) return;
-  document.getElementById("prospectsMeta").textContent = "Loading...";
-  fetch(API + "/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token)
-    .then(r => r.json()).then(d => {
-      document.getElementById("prospectsMeta").textContent = (d.warm_prospects_count || 0) + " warm prospects";
+  var url = API + "/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById("prospectsMeta").textContent = d.warm_prospects_count + " warm prospects";
       var list = document.getElementById("prospectsList");
       list.innerHTML = "";
-      if (!d.prospects || d.prospects.length === 0) {
-        list.innerHTML = "<p style='color:var(--text-secondary);'>No warm prospects found</p>";
-        return;
-      }
-      d.prospects.forEach(p => {
-        var card = document.createElement("div");
-        card.className = "prospect-card";
-        card.innerHTML = "<div style='font-weight:600;'>" + p.company_name + "</div><div style='font-size:0.8rem;color:var(--text-secondary);'>Score: " + p.engagement_score + "</div>";
-        card.onclick = () => selectProspect(p);
-        list.appendChild(card);
+      (d.warm_prospects || []).forEach(function(p) {
+        var div = document.createElement("div");
+        div.className = "prospect-item";
+        div.innerHTML = "<strong>" + p.company_name + "</strong><span class='score-badge'>Score: " + p.engagement_score + "</span>";
+        div.onclick = function() { generateCampaign(p); };
+        list.appendChild(div);
       });
-    }).catch(() => {
-      document.getElementById("prospectsMeta").textContent = "Error loading prospects";
+      document.getElementById("statusDot").style.background = "#00e676";
+      document.getElementById("statusText").textContent = "Connected";
+    })
+    .catch(function() {
+      document.getElementById("statusDot").style.background = "#dd0000";
+      document.getElementById("statusText").textContent = "Error";
     });
 }
 
-function selectProspect(p) {
+// ── ABM Campaign (prospect-click) ─────────────────────────────────
+function generateCampaign(prospect) {
+  if (!token) return;
   document.getElementById("campaignPlaceholder").style.display = "none";
   document.getElementById("campaignOutput").style.display = "block";
-  document.getElementById("campaignAccount").textContent = p.company_name;
+  document.getElementById("campaignAccount").textContent = prospect.company_name;
   document.getElementById("campaignStatus").textContent = "Generating...";
-  document.getElementById("campaignText").textContent = "Loading...";
-  fetch(API + "/abm/campaign/generate?account_id=" + p.account_id + "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token, {method: "POST"})
-    .then(r => r.json()).then(d => {
-      var html = "<p><strong>Subject:</strong> " + (d.subject || "N/A") + "</p><p><strong>Email Copy:</strong></p><p>" + (d.email_copy || "").replace(/\n/g, "<br>") + "</p><hr style='margin:1rem 0;border-color:var(--border);'><p><strong>Ad Headlines:</strong></p><ul>";
-      if (d.ad_headlines) d.ad_headlines.forEach(h => html += "<li>" + h + "</li>");
-      html += "</ul><p><strong>Landing Page Copy:</strong></p><p>" + (d.landing_page_copy || "").replace(/\n/g, "<br>") + "</p>";
-      document.getElementById("campaignText").innerHTML = html;
+  document.getElementById("campaignText").textContent = "";
+  var url = API + "/abm/campaign/generate?account_id=" + prospect.account_id +
+    "&directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
+  fetch(url, { method: "POST" })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
       document.getElementById("campaignStatus").textContent = "Ready";
-    }).catch(() => {
-      document.getElementById("campaignText").innerHTML = "<p>Error generating campaign</p>";
+      document.getElementById("campaignText").textContent = d.campaign || JSON.stringify(d);
+    })
+    .catch(function(e) {
       document.getElementById("campaignStatus").textContent = "Error";
+      document.getElementById("campaignText").textContent = e.message;
     });
 }
 
-function loadShopifyChart() {
-  document.getElementById("shopifyStatus").textContent = "Loading...";
-  fetch(API + "/ai-campaigns/shopify/status").then(r => r.json()).then(d => {
-    document.getElementById("shopifyStatus").textContent = "Last updated: " + (d.updated_at || new Date().toLocaleTimeString());
-    var metrics = d.metrics || d, labels = [], values = [], colors = [];
-    var colorMap = {revenue: "#00e676", orders: "#4d9fcc", new_customers: "#dd0000", returning_customers: "#a36214", vip_customers: "#612e00"};
-    for (var key in metrics) {
-      if (typeof metrics[key] === "number" && key !== "total_revenue") {
-        labels.push(key.replace(/_/g, " "));
-        values.push(metrics[key]);
-        colors.push(colorMap[key] || "#4d9fcc");
-      }
-    }
-    var ctx = document.getElementById("shopifyChart").getContext("2d");
-    if (shopifyChartInstance) shopifyChartInstance.destroy();
-    shopifyChartInstance = new Chart(ctx, {type: "bar", data: {labels: labels, datasets: [{label: "Metrics", data: values, backgroundColor: colors, borderRadius: 6}]}, options: {responsive: true, plugins: {legend: {display: false}}, scales: {x: {ticks: {color: "#cce4f0"}, grid: {color: "rgba(255,255,255,0.08)"}}, y: {ticks: {color: "#cce4f0"}, grid: {color: "rgba(255,255,255,0.08)"}}}}});
-  }).catch(() => document.getElementById("shopifyStatus").textContent = "Shopify data unavailable");
-}
-
-function loadProducts() {
-  var grid = document.getElementById("productGrid"), countBadge = document.getElementById("productCount");
-  grid.innerHTML = "<p style='color:var(--text-secondary);padding:1rem;'>Loading products...</p>";
-  fetch(API + "/products").then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(data => {
-    var products = data.value || data.data || (Array.isArray(data) ? data : []);
-    countBadge.textContent = products.length + " products";
-    grid.innerHTML = "";
-    if (products.length === 0) { grid.innerHTML = "<p style='color:var(--text-secondary);padding:1rem;'>No products found</p>"; return; }
-    // Stagger rendering to prevent UI blocking
-    products.forEach((p, i) => setTimeout(() => {
-      var card = document.createElement("div"); card.className = "product-card";
-      var imgWrapper = document.createElement("div"); imgWrapper.style.cssText = "width:100%;height:160px;background:#1a1a2e;border-radius:6px;margin-bottom:10px;overflow:hidden;position:relative;";
-      var img = document.createElement("img");
-      // CRITICAL FIX: Use inline placeholder, not external via.placeholder.com
-      var imageUrl = p.cloudinary_url;
-      if (!imageUrl || imageUrl === "null" || imageUrl === "" || imageUrl === undefined) imageUrl = PLACEHOLDER_SVG;
-      img.src = imageUrl;
-      img.alt = p.product_name || p.sku || "Product";
-      img.style.cssText = "width:100%;height:100%;object-fit:cover;";
-      img.loading = "lazy";
-      // CRITICAL FIX: Prevent infinite error loops
-      img.onerror = function() { 
-        if (this.src !== PLACEHOLDER_SVG) { 
-          this.src = PLACEHOLDER_SVG; 
-        }
-        this.onerror = null; // Remove handler after first failure
-      };
-      imgWrapper.appendChild(img);
-      var sku = document.createElement("div"); sku.className = "product-sku"; sku.textContent = p.sku || "";
-      var name = document.createElement("div"); name.className = "product-name"; name.textContent = p.product_name || "Unnamed Product";
-      var short = document.createElement("div"); short.className = "product-short"; short.textContent = p.short_description || ""; short.style.cssText = "font-size:0.8rem;color:#666;margin-bottom:6px;";
-      var price = document.createElement("div"); price.className = "product-price"; var priceVal = parseFloat(p.price); price.textContent = isNaN(priceVal) ? "$--" : "$" + priceVal.toFixed(2);
-      card.appendChild(imgWrapper); card.appendChild(sku); card.appendChild(name); card.appendChild(short); card.appendChild(price); grid.appendChild(card);
-    }, i * 10));
-  }).catch(e => { countBadge.textContent = "Error"; grid.innerHTML = "<p style='color:var(--accent-warm);padding:1rem;'>Failed to load products: " + e.message + "</p>"; });
-}
-
-document.addEventListener("DOMContentLoaded", () => getToken().then(() => { loadProspects(); loadProducts(); loadShopifyChart(); }));
-
-
+// ── Segment-Aware AI Campaign Generator ──────────────────────────
 function generateAICampaign() {
-  var seg         = document.getElementById('segmentSelect').value;
-  var status      = document.getElementById('aiCampaignStatus');
-  var output      = document.getElementById('aiCampaignOutput');
-  var placeholder = document.getElementById('aiCampaignPlaceholder');
-  var btn         = document.getElementById('generateBtn');
-  btn.textContent = 'Generating...';
-  btn.disabled    = true;
-  status.textContent        = 'Calling GPT-4o...';
-  output.style.display      = 'none';
-  placeholder.style.display = 'none';
-  fetch(API + '/ai-campaigns/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  var seg         = document.getElementById("segmentSelect").value;
+  var status      = document.getElementById("aiCampaignStatus");
+  var output      = document.getElementById("aiCampaignOutput");
+  var placeholder = document.getElementById("aiCampaignPlaceholder");
+  var btn         = document.getElementById("generateBtn");
+
+  btn.textContent           = "Generating...";
+  btn.disabled              = true;
+  status.textContent        = "Calling GPT-4o...";
+  output.style.display      = "none";
+  placeholder.style.display = "none";
+
+  fetch(API + "/ai-campaigns/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ segment_id: seg })
   })
   .then(function(r) { return r.json(); })
   .then(function(d) {
-    document.getElementById('aiEmail').textContent   = d.email_copy || '';
-    var ul = document.getElementById('aiHeadlines');
-    ul.innerHTML = '';
+    document.getElementById("aiEmail").textContent   = d.email_copy || "";
+    var ul = document.getElementById("aiHeadlines");
+    ul.innerHTML = "";
     var headlines = d.ad_headlines || [];
-    if (typeof headlines === 'string') headlines = headlines.split('\n').filter(Boolean);
-    headlines.forEach(function(h) { var li = document.createElement('li'); li.textContent = h; ul.appendChild(li); });
-    document.getElementById('aiLanding').textContent = d.landing_page_copy || '';
-    document.getElementById('aiSummary').textContent = d.campaign_summary  || '';
-    output.style.display      = 'block';
-    placeholder.style.display = 'none';
-    status.textContent        = 'Campaign ready';
-    btn.textContent           = 'Generate Campaign';
+    if (typeof headlines === "string") headlines = headlines.split("\n").filter(Boolean);
+    headlines.forEach(function(h) {
+      var li = document.createElement("li");
+      li.textContent = h;
+      ul.appendChild(li);
+    });
+    document.getElementById("aiLanding").textContent = d.landing_page_copy || "";
+    document.getElementById("aiSummary").textContent = d.campaign_summary  || "";
+    output.style.display      = "block";
+    placeholder.style.display = "none";
+    status.textContent        = "Campaign ready";
+    btn.textContent           = "Generate Campaign";
     btn.disabled              = false;
   })
   .catch(function(e) {
-    status.textContent        = 'Error: ' + e.message;
-    placeholder.style.display = 'block';
-    btn.textContent           = 'Generate Campaign';
+    status.textContent        = "Error: " + e.message;
+    placeholder.style.display = "block";
+    btn.textContent           = "Generate Campaign";
     btn.disabled              = false;
   });
 }
+
+// ── Shopify Chart ─────────────────────────────────────────────────
+function loadShopifyChart() {
+  document.getElementById("shopifyStatus").textContent = "Loading...";
+  fetch(API + "/ai-campaigns/shopify/status")
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var m = d.metrics || {};
+      document.getElementById("shopifyStatus").textContent = "Last updated: " + new Date().toLocaleTimeString();
+      var keys   = ["total_orders", "total_revenue", "new_customers", "returning_customers", "vip_customers"];
+      var colors = ["rgba(77,159,204,0.85)", "rgba(0,230,118,0.85)", "rgba(221,0,0,0.85)", "rgba(163,98,20,0.85)", "rgba(255,200,0,0.85)"];
+      var labels = keys.map(function(k) { return k.replace(/_/g, " "); });
+      var values = keys.map(function(k) { return m[k] || 0; });
+      var ctx = document.getElementById("shopifyChart").getContext("2d");
+      if (shopifyChartInstance) shopifyChartInstance.destroy();
+      shopifyChartInstance = new Chart(ctx, {
+        type: "bar
+          labels: labels,
+          datasets: [{ label: "Metrics",, borderRadius: 6 }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#cce4f0" }, grid: { color: "rgba(255,255,255,0.08)" } },
+            y: { ticks: { color: "#cce4f0" }, grid: { color: "rgba(255,255,255,0.08)" } }
+          }
+        }
+      });
+    })
+    .catch(function() {
+      document.getElementById("shopifyStatus").textContent = "Shopify data unavailable";
+    });
+}
+
+// ── Products ──────────────────────────────────────────────────────
+function loadProducts() {
+  fetch(API + "/products")
+    .then(function(r) { return r.json(); })
+    .then(function(products) {
+      document.getElementById("productCount").textContent = products.length + " products";
+      var grid = document.getElementById("productGrid");
+      grid.innerHTML = "";
+      products.forEach(function(p) {
+        var card = document.createElement("div");
+        card.className = "product-card";
+        var img = p.cloudinary_url
+          ? '<img src="' + p.cloudinary_url + '" alt="' + (p.product_name || p.sku) + '" style="width:100%;height:160px;object-fit:cover;border-radius:6px;margin-bottom:0.5rem;">'
+          : "";
+        card.innerHTML = img +
+          "<div class='product-name'>"  + (p.product_name || p.sku) + "</div>" +
+          "<div class='product-sku'>"   + p.sku + "</div>" +
+          "<div class='product-desc'>"  + (p.short_description || "") + "</div>" +
+          "<div class='product-price'>$" + (p.price || "") + "</div>";
+        grid.appendChild(card);
+      });
+    })
+    .catch(function(e) { console.warn("Products error:", e); });
+}
+
+// ── Boot ──────────────────────────────────────────────────────────
+getToken().then(function() {
+  loadProspects();
+  loadProducts();
+  loadShopifyChart();
+});
 </script>
+
 </body>
 </html>
