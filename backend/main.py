@@ -44,16 +44,49 @@ async def health_check():
     return {"status": "healthy", "service": "UrbanThread Marketing API", "version": "2.0.0"}
 @app.get("/products")
 async def list_products():
+@app.get("/products")
+async def list_products():
     try:
         token = await get_directus_token()
         headers = {"Authorization": f"Bearer {token}"}
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{DIRECTUS_URL}/items/products", headers=headers)
-        return response.json()["data"]
+        
+        # Get products from Directus
+        products = response.json()["data"]
+        
+        # FIX: Override cloudinary_url for products 11-30 with correct JPG URLs
+        url_map = {
+            "TOP-003": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236179/TOP-003_fsomai.jpg",
+            "TOP-004": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774234835/TOP-004_pu7ydv.jpg",
+            "HOD-003": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236178/HOD-003_vm9yux.jpg",
+            "HOD-004": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774234835/HOD-004_t5dole.jpg",
+            "DNM-003": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774238034/DNM-003_addc2l.jpg",
+            "DNM-004": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236526/DNM-004_zfbmoo.jpg",
+            "OUT-003": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236179/OUT-003_mrv2b1.jpg",
+            "OUT-004": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236179/OUT-004_yhklka.jpg",
+            "ACC-003": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236169/ACC-003_ymymuu.jpg",
+            "ACC-004": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236168/ACC-004_kidq0y.jpg",
+            "ACC-005": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236169/ACC-005_tsrzyb.jpg",
+            "KNIT-001": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236168/KNIT-001_yjajnw.jpg",
+            "KNIT-002": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236168/KNIT-002_ulqvek.jpg",
+            "SHORT-001": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236168/SHORT-001_n5cklw.jpg",
+            "SHORT-002": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236526/SHORT-002_mjinid.jpg",
+            "SHIRT-001": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236170/SHIRT-001_ghcvts.jpg",
+            "SHIRT-002": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236170/SHIRT-002_suuyfo.jpg",
+            "SWIM-001": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236526/SWIM-001_hoqsjv.jpg",
+            "SOCK-001": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236170/SOCK-001_wghtxb.jpg",
+            "UNDER-001": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236170/UNDER-001_rx940w.jpg",
+        }
+        
+        for product in products:
+            sku = product.get("sku", "")
+            if sku in url_map:
+                product["cloudinary_url"] = url_map[sku]
+        
+        return products
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-@app.get("/products/{sku}")
-async def get_product_endpoint(sku: str):
     try:
         return await get_product(sku)
     except Exception as e:
