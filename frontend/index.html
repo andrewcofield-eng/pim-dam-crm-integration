@@ -22,7 +22,6 @@
 </header>
 
 <main>
-  <!-- Warm Prospects -->
   <section class="panel" id="prospectsPanel">
     <div class="panel-header">
       <h2>Warm Prospects</h2>
@@ -32,7 +31,6 @@
     <div id="prospectsList" class="prospects-list"></div>
   </section>
 
-  <!-- ABM Campaign (prospect-click) -->
   <section class="panel">
     <div class="panel-header">
       <h2>AI Campaign Generator</h2>
@@ -48,7 +46,6 @@
   </section>
 </main>
 
-<!-- Segment-Aware AI Campaign Generator -->
 <section class="products-section">
   <div class="panel-header">
     <h2>AI Campaign Generator</h2>
@@ -58,9 +55,9 @@
     <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem;">
       <label for="segmentSelect" style="font-size:0.9rem;">Segment:</label>
       <select id="segmentSelect" class="seg-select">
-        <option value="seg_001">seg_001 — High-Value Repeat Buyers</option>
-        <option value="seg_002">seg_002 — At-Risk Subscribers</option>
-        <option value="seg_003">seg_003 — New Customer Acquisition</option>
+        <option value="seg_001">seg_001 - High-Value Repeat Buyers</option>
+        <option value="seg_002">seg_002 - At-Risk Subscribers</option>
+        <option value="seg_003">seg_003 - New Customer Acquisition</option>
       </select>
       <button class="btn-refresh" id="generateBtn" onclick="generateAICampaign()">Generate Campaign</button>
       <span id="aiCampaignStatus" style="font-size:0.82rem;"></span>
@@ -82,7 +79,6 @@
   </div>
 </section>
 
-<!-- Shopify Metrics -->
 <section class="products-section">
   <div class="panel-header">
     <h2>Shopify Metrics</h2>
@@ -94,7 +90,6 @@
   </div>
 </section>
 
-<!-- Product Catalog -->
 <section class="products-section">
   <div class="panel-header">
     <h2>Products</h2>
@@ -111,14 +106,12 @@ var API = "https://pim-dam-crm-integration-production.up.railway.app";
 var token = null;
 var shopifyChartInstance = null;
 
-// ── Auth ──────────────────────────────────────────────────────────
 function getToken() {
   return fetch(API + "/auth/token")
     .then(function(r) { return r.json(); })
     .then(function(d) { token = d.token; return token; });
 }
 
-// ── Warm Prospects ────────────────────────────────────────────────
 function loadProspects() {
   if (!token) return;
   var url = API + "/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=" + token;
@@ -144,7 +137,6 @@ function loadProspects() {
     });
 }
 
-// ── ABM Campaign (prospect-click) ─────────────────────────────────
 function generateCampaign(prospect) {
   if (!token) return;
   document.getElementById("campaignPlaceholder").style.display = "none";
@@ -166,20 +158,17 @@ function generateCampaign(prospect) {
     });
 }
 
-// ── Segment-Aware AI Campaign Generator ──────────────────────────
 function generateAICampaign() {
   var seg         = document.getElementById("segmentSelect").value;
   var status      = document.getElementById("aiCampaignStatus");
   var output      = document.getElementById("aiCampaignOutput");
   var placeholder = document.getElementById("aiCampaignPlaceholder");
   var btn         = document.getElementById("generateBtn");
-
   btn.textContent           = "Generating...";
   btn.disabled              = true;
   status.textContent        = "Calling GPT-4o...";
   output.style.display      = "none";
   placeholder.style.display = "none";
-
   fetch(API + "/ai-campaigns/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -213,7 +202,6 @@ function generateAICampaign() {
   });
 }
 
-// ── Shopify Chart ─────────────────────────────────────────────────
 function loadShopifyChart() {
   document.getElementById("shopifyStatus").textContent = "Loading...";
   fetch(API + "/ai-campaigns/shopify/status")
@@ -230,7 +218,11 @@ function loadShopifyChart() {
       shopifyChartInstance = new Chart(ctx, {
         type: "bar
           labels: labels,
-          datasets: [{ label: "Metrics",, borderRadius: 6 }]
+          datasets: [{
+            label: ",
+            backgroundColor: colors,
+            borderRadius: 6
+          }]
         },
         options: {
           responsive: true,
@@ -247,7 +239,6 @@ function loadShopifyChart() {
     });
 }
 
-// ── Products ──────────────────────────────────────────────────────
 function loadProducts() {
   fetch(API + "/products")
     .then(function(r) { return r.json(); })
@@ -262,9 +253,9 @@ function loadProducts() {
           ? '<img src="' + p.cloudinary_url + '" alt="' + (p.product_name || p.sku) + '" style="width:100%;height:160px;object-fit:cover;border-radius:6px;margin-bottom:0.5rem;">'
           : "";
         card.innerHTML = img +
-          "<div class='product-name'>"  + (p.product_name || p.sku) + "</div>" +
-          "<div class='product-sku'>"   + p.sku + "</div>" +
-          "<div class='product-desc'>"  + (p.short_description || "") + "</div>" +
+          "<div class='product-name'>"   + (p.product_name || p.sku) + "</div>" +
+          "<div class='product-sku'>"    + p.sku + "</div>" +
+          "<div class='product-desc'>"   + (p.short_description || "") + "</div>" +
           "<div class='product-price'>$" + (p.price || "") + "</div>";
         grid.appendChild(card);
       });
@@ -272,7 +263,6 @@ function loadProducts() {
     .catch(function(e) { console.warn("Products error:", e); });
 }
 
-// ── Boot ──────────────────────────────────────────────────────────
 getToken().then(function() {
   loadProspects();
   loadProducts();
