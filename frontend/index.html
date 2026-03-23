@@ -237,14 +237,16 @@ function loadShopifyChart() {
       ];
       var ctx = document.getElementById("shopifyChart").getContext("2d");
       if (shopifyChartInstance) shopifyChartInstance.destroy();
-      shopifyChartInstance = new Chart(ctx, {
-        type: "bar
+                  shopifyChartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
           labels: labels,
           datasets: [{
-            label: "Shopify,
+            label: "Shopify values,
             backgroundColor: colors,
             borderRadius: 6
           }]
+        },
         },
         options: {
           responsive: true,
