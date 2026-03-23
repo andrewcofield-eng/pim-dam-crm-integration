@@ -27,7 +27,10 @@
       <h2>Warm Prospects</h2>
       <button class="btn-refresh" onclick="loadProspects()">Refresh</button>
     </div>
-    <div class="panel-meta" id="prospectsMeta">Loading...</div>
+        <div class="panel-meta" id="prospectsMeta">Loading...</div>
+    <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.75rem;font-style:italic;">
+      Click a prospect to generate a personalized ABM campaign
+    </div>
     <div id="prospectsList" class="prospects-list"></div>
   </section>
 
@@ -126,7 +129,11 @@ function loadProspects() {
         var name = p.company_name || p.account_name || p.name || JSON.stringify(p).substring(0, 40);
         var score = p.engagement_score || p.score || "";
         var div = document.createElement("div");
-        div.className = "prospect-item";
+                div.className = "prospect-item";
+        div.style.cursor = "pointer";
+        div.style.transition = "background 0.15s";
+        div.onmouseenter = function() { this.style.background = "rgba(255,255,255,0.06)"; };
+        div.onmouseleave = function() { this.style.background = ""; };
         div.innerHTML = "<strong>" + name + "</strong><span class='score-badge'>Score: " + score + "</span>";
         div.onclick = function() { generateCampaign(p); };
         list.appendChild(div);
