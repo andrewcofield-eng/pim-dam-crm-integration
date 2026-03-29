@@ -215,6 +215,49 @@ def build_product_cards_lp(products: List[dict]) -> str:
     return "\n".join(cards)
 
 
+async def generate_copy_with_ai(req: CampaignRequest, products: List[dict]) -> dict:
+    """Generate AI copy or return smart fallback copy."""
+    first = req.contact_name.split()[0] if req.contact_name else "there"
+    prod_names = ", ".join(
+        p.get("name") or p.get("product_name") or p.get("sku") or "item"
+        for p in products[:3]
+    )
+    try:
+        import openai, os
+        client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY",""))
+        if not client.api_key:
+            raise ValueError("No OpenAI key")
+        prompt = (
+            f"You are a copywriter for Urban Threads, a premium streetwear brand.\n"
+            f"Write campaign copy for {req.company} ({req.segment}), contact: {req.contact_name}.\n"
+            f"Featured products: {prod_names}.\n"
+            f"Tone: {req.tone}. Stage: {req.stage}. ABM score: {req.abm_score}.\n"
+            f"Return ONLY a JSON object with these keys:\n"
+            f"subject, preview_text, hero_headline, hero_subheadline, body_copy, cta_primary, lp_headline, lp_subheadline"
+        )
+        resp = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role":"user","content":prompt}],
+            response_format={"type":"json_object"},
+            temperature=0.7,
+            max_tokens=500
+        )
+        import json
+        return json.loads(resp.choices[0].message.content)
+    except Exception as e:
+        print(f"[copy] AI failed: {e} - using fallback", flush=True)
+        return {
+            "subject":           f"Exclusive Collection for {req.company}",
+            "preview_text":      f"Hi {first}, your curated Urban Threads drop is here.",
+            "hero_headline":     f"BUILT FOR {req.company.upper()}",
+            "hero_subheadline":  f"Premium streetwear curated for {req.segment} teams.",
+            "body_copy":         f"Hi {first}, we have handpicked our best pieces for {req.company}. Featuring {prod_names} and more.",
+            "cta_primary":       "Shop the Collection",
+            "lp_headline":       f"YOUR EXCLUSIVE DROP",
+            "lp_subheadline":    f"Curated for {req.company}. Built for the street.",
+        }
+
+
 def generate_email_html(req: CampaignRequest, copy: dict, products: List[dict], hero_url: str) -> str:
     product_grid = build_product_cards_email(products)
     lifestyle_url = cl_url("v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png", "c_fill,w_600,h_300,f_auto,q_auto")
