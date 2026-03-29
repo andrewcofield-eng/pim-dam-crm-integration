@@ -118,7 +118,19 @@ async def fetch_products(skus=None, token=None, url=None):
         async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.get("http://localhost:8000/products")
             print(f"[fetch_products] self-call status={r.status_code}", flush=True)
-            all_prods = r.json() if isinstance(r.json(), list) else r.json().get("data", [])
+            raw = r.json()
+            if isinstance(raw, list):
+                all_prods = raw
+            elif "value" in raw:
+                all_prods = raw["value"]
+            else:
+                all_prods = raw.get("data", [])
+            # Normalize field names: product_name -> name
+            for p in all_prods:
+                if "product_name" in p and "name" not in p:
+                    p["name"] = p["product_name"]
+                if "short_description" in p and "description" not in p:
+                    p["description"] = p["short_description"]
             print(f"[fetch_products] total={len(all_prods)} skus_filter={skus}", flush=True)
             if skus:
                 filtered = [p for p in all_prods if p.get("sku") in skus]
