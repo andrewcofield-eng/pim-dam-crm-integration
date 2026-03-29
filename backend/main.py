@@ -8,7 +8,7 @@ from orchestrator import ABMSimulationOrchestrator
 
 load_dotenv()
 
-app = FastAPI(title="UrbanThread Marketing API", version="1.0.0")
+app = FastAPI(title="UrbanThread Marketing API", version="1.0.0", debug=True)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
