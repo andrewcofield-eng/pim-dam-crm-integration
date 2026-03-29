@@ -112,14 +112,17 @@ def cl_url(path: str, transform: str = "f_auto,q_auto") -> str:
     return f"https://res.cloudinary.com/{CL_CLOUD}/image/upload/{transform}/{path}"
 
 
-async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None) -> List[dict]:
+async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None, url: Optional[str] = None) -> List[dict]:
     """Pull products from Directus, optionally filter by SKU list."""
     try:
         _tok = token or DIRECTUS_TOKEN or ""
+        _url = url or DIRECTUS_URL
         headers = {"Authorization": f"Bearer {_tok}"}
         params  = {"limit": 30, "fields": "sku,name,category,price,description,cloudinary_url,target_segment"}
+        print(f"[fetch_products] url={_url} token={bool(_tok)} skus={skus}", flush=True)
         async with httpx.AsyncClient(timeout=8.0) as client:
-            r = await client.get(f"{DIRECTUS_URL}/items/products", headers=headers, params=params)
+            r = await client.get(f"{_url}/items/products", headers=headers, params=params)
+            print(f"[fetch_products] status={r.status_code} count={len(r.json().get('data',[]))}", flush=True)
             products = r.json().get("data", [])
     except Exception:
         products = []
@@ -590,13 +593,13 @@ async def _generate_campaign_inner(req: CampaignRequest):
     print(f"[CAMPAIGN] Starting for {req.company}", flush=True)
     print(f"[CAMPAIGN] SKUs: {req.selected_skus}", flush=True)
     print(f"[CAMPAIGN] Token: {bool(req.directus_token)}", flush=True)
-    products = await fetch_products(req.selected_skus, token=req.directus_token)
+    products = await fetch_products(req.selected_skus, token=req.directus_token, url=req.directus_url)
     print(f"[CAMPAIGN] Products fetched: {len(products)}", flush=True)
 
     # Segment-aware product filtering fallback
     if not products:
         seg_cats = SEGMENT_CONFIG.get(req.segment, SEGMENT_CONFIG["default"])["categories"]
-        all_products = await fetch_products(token=req.directus_token)
+        all_products = await fetch_products(token=req.directus_token, url=req.directus_url)
         products = [p for p in all_products if p.get("category") in seg_cats][:4]
 
     hero_url = pick_hero(req.segment, req.hero_image_key)
@@ -622,7 +625,7 @@ async def _generate_campaign_inner(req: CampaignRequest):
 @router.post("/generate/email", response_class=HTMLResponse)
 async def download_email(req: CampaignRequest):
     """Returns raw HTML email --- downloadable directly from browser."""
-    products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
+    products = await fetch_products(req.selected_skus, token=req.directus_token, url=req.directus_url) or await fetch_products()
     hero_url = pick_hero(req.segment, req.hero_image_key)
     copy     = await generate_copy_with_ai(req, products)
     html     = generate_email_html(req, copy, products, hero_url)
@@ -636,7 +639,7 @@ async def download_email(req: CampaignRequest):
 @router.post("/generate/landing-page", response_class=HTMLResponse)
 async def download_landing_page(req: CampaignRequest):
     """Returns raw HTML landing page --- downloadable directly from browser."""
-    products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
+    products = await fetch_products(req.selected_skus, token=req.directus_token, url=req.directus_url) or await fetch_products()
     copy     = await generate_copy_with_ai(req, products)
     html     = generate_landing_page_html(req, copy, products)
     slug     = req.company.lower().replace(" ", "-")
@@ -659,7 +662,7 @@ async def generate_ab_test(req: CampaignRequest):
     req_b.tone    = alt_tone
     req_b.variant = "B"
 
-    products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
+    products = await fetch_products(req.selected_skus, token=req.directus_token, url=req.directus_url) or await fetch_products()
     hero_url = pick_hero(req.segment, req.hero_image_key)
 
     copy_a = await generate_copy_with_ai(req, products)
