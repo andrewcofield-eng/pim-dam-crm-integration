@@ -235,6 +235,51 @@ async def generate_copy_with_ai(req: CampaignRequest, products: list) -> dict:
     company = req.company or "Your Company"
     first = (req.contact_name or "there").split()[0]
     segment = req.segment or "Retail"
+    segment_hooks = {
+        "Fashion Retail":    "Own the season before it starts.",
+        "Sports":            "Gear up. Show up. Win.",
+        "Corporate Gifting": "Gifts they will actually use.",
+        "Event Management":  "Make your event unforgettable.",
+        "Tech / SaaS":       "For teams that ship fast and dress sharp.",
+        "Hospitality":       "First impressions, premium apparel.",
+    }
+    hook = segment_hooks.get(segment, "Premium streetwear built for every moment.")
+    return {
+        "subject":          "Urban Threads x " + company,
+        "subject_line":     "Urban Threads x " + company + " -- Exclusive SS2026 Drop",
+        "preview_text":     "Hi " + first + ", your collection is ready.",
+        "headline":         "BUILT FOR " + company[:20].upper(),
+        "hero_headline":    "BUILT FOR " + company[:20].upper(),
+        "subheadline":      hook,
+        "hero_subheadline": hook,
+        "body_copy":        "Hi " + first + ", we curated our best pieces for " + company + ". Premium quality, custom logos available, 48h turnaround.",
+        "cta_text":         "Shop the Collection",
+        "cta_primary":      "Shop the Collection",
+        "lp_headline":      "YOUR EXCLUSIVE DROP",
+        "lp_subheadline":   "Curated for " + company + ". Built for the street.",
+    }
+
+
+def pick_hero(segment: str = None, override_key: str = None) -> str:
+    try:
+        key = override_key if override_key and override_key in HERO_IMAGES else None
+        if not key and segment:
+            cfg = SEGMENT_CONFIG.get(segment, SEGMENT_CONFIG.get("default", {}))
+            hero_key = cfg.get("hero", "default") if isinstance(cfg, dict) else "default"
+            key = hero_key if hero_key in HERO_IMAGES else "default"
+        if not key:
+            key = "default"
+        path = HERO_IMAGES.get(key, HERO_IMAGES.get("default", "v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png"))
+        return cl_url(path, "c_fill,w_1400,h_900,f_auto,q_auto")
+    except Exception as e:
+        print(f"[pick_hero] error: {e}", flush=True)
+        return cl_url("v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png", "c_fill,w_1400,h_900,f_auto,q_auto")
+
+
+async def generate_copy_with_ai(req: CampaignRequest, products: list) -> dict:
+    company = req.company or "Your Company"
+    first = (req.contact_name or "there").split()[0]
+    segment = req.segment or "Retail"
     return {
         "subject": "Urban Threads x " + company,
         "preview_text": "Hi " + first + ", your collection is ready.",
