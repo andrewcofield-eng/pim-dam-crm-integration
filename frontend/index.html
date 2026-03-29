@@ -943,13 +943,18 @@
 
     try {
       var payload = {
-        company:      _currentProspect.company || "",
-        contact_name: _currentProspect.contact_name || "",
-        segment:      _currentProspect.segment || "General",
-        tone:         _selectedTone,
-        selected_skus: _selectedSkus,
+        company:        _currentProspect.company       || "",
+        contact_name:   _currentProspect.contact_name  || "",
+        contact_title:  _currentProspect.contact_title || "Decision Maker",
+        contact_email:  _currentProspect.email         || "",
+        segment:        _currentProspect.segment       || "General",
+        abm_score:      _currentProspect.score         || 50,
+        deal_value:     _currentProspect.deal_value    || "$0",
+        stage:          _currentProspect.buying_stage  || "consideration",
+        tone:           _selectedTone,
+        selected_skus:  _selectedSkus,
         hero_image_key: _selectedHero,
-        directus_url:  DU,
+        directus_url:   DU,
         directus_token: _token || ""
       };
       log("[AI] Calling " + endpoint, "log-info");
