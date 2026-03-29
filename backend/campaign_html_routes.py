@@ -113,10 +113,26 @@ def cl_url(path: str, transform: str = "f_auto,q_auto") -> str:
 
 
 async def get_fresh_directus_token(url: str) -> str:
-    """Return the static admin token - never expires."""
-    static = os.getenv("DIRECTUS_STATIC_TOKEN", "ut-admin-static-token-2026")
-    print(f"[auth] using static token: {bool(static)}", flush=True)
-    return static
+    """Get token via main.py get_directus_token which is known to work."""
+    try:
+        import main as _main
+        tok = await _main.get_directus_token()
+        print(f"[auth] imported token from main: {bool(tok)}", flush=True)
+        return tok
+    except Exception as e:
+        print(f"[auth] import failed: {e} - trying direct", flush=True)
+        try:
+            email    = os.getenv("DIRECTUS_EMAIL", "admin@portfolio.com")
+            password = os.getenv("DIRECTUS_PASSWORD", "admin123")
+            du = "https://directus-production-9f53.up.railway.app"
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                r = await client.post(f"{du}/auth/login",
+                    json={"email": email, "password": password})
+                print(f"[auth] direct login status={r.status_code}", flush=True)
+                return r.json()["data"]["access_token"]
+        except Exception as e2:
+            print(f"[auth] all methods failed: {e2}", flush=True)
+            return ""
 
 
 async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None, url: Optional[str] = None) -> List[dict]:
