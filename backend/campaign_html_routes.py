@@ -216,46 +216,37 @@ def build_product_cards_lp(products: List[dict]) -> str:
 
 
 async def generate_copy_with_ai(req: CampaignRequest, products: List[dict]) -> dict:
-    """Generate AI copy or return smart fallback copy."""
+    """Generate campaign copy - AI if available, fallback otherwise."""
     first = req.contact_name.split()[0] if req.contact_name else "there"
     prod_names = ", ".join(
-        p.get("name") or p.get("product_name") or p.get("sku") or "item"
+        str(p.get("name") or p.get("product_name") or p.get("sku") or "item")
         for p in products[:3]
     )
-    try:
-        import openai, os
-        client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY",""))
-        if not client.api_key:
-            raise ValueError("No OpenAI key")
-        prompt = (
-            f"You are a copywriter for Urban Threads, a premium streetwear brand.\n"
-            f"Write campaign copy for {req.company} ({req.segment}), contact: {req.contact_name}.\n"
-            f"Featured products: {prod_names}.\n"
-            f"Tone: {req.tone}. Stage: {req.stage}. ABM score: {req.abm_score}.\n"
-            f"Return ONLY a JSON object with these keys:\n"
-            f"subject, preview_text, hero_headline, hero_subheadline, body_copy, cta_primary, lp_headline, lp_subheadline"
-        )
-        resp = await client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role":"user","content":prompt}],
-            response_format={"type":"json_object"},
-            temperature=0.7,
-            max_tokens=500
-        )
-        import json
-        return json.loads(resp.choices[0].message.content)
-    except Exception as e:
-        print(f"[copy] AI failed: {e} - using fallback", flush=True)
-        return {
-            "subject":           f"Exclusive Collection for {req.company}",
-            "preview_text":      f"Hi {first}, your curated Urban Threads drop is here.",
-            "hero_headline":     f"BUILT FOR {req.company.upper()}",
-            "hero_subheadline":  f"Premium streetwear curated for {req.segment} teams.",
-            "body_copy":         f"Hi {first}, we have handpicked our best pieces for {req.company}. Featuring {prod_names} and more.",
-            "cta_primary":       "Shop the Collection",
-            "lp_headline":       f"YOUR EXCLUSIVE DROP",
-            "lp_subheadline":    f"Curated for {req.company}. Built for the street.",
-        }
+    # Always return fallback - safe and fast
+    segment_hooks = {
+        "Fashion Retail":    "Own the season before it starts.",
+        "Sports":            "Gear up. Show up. Win.",
+        "Corporate Gifting": "Gifts they will actually use.",
+        "Event Management":  "Make your event unforgettable.",
+        "Tech / SaaS":       "For teams that ship fast and dress sharp.",
+        "Hospitality":       "First impressions, premium apparel.",
+        "default":           "Premium streetwear built for every moment.",
+    }
+    hook = segment_hooks.get(req.segment, segment_hooks["default"])
+    return {
+        "subject":          f"Urban Threads x {req.company} -- Exclusive SS2026 Drop",
+        "preview_text":     f"Hi {first}, your curated collection is ready.",
+        "hero_headline":    f"BUILT FOR {req.company.upper()[:20]}",
+        "hero_subheadline": hook,
+        "body_copy":        (
+            f"Hi {first}, we curated our best pieces for {req.company}. "
+            f"Featuring {prod_names}. "
+            f"Premium quality, custom logos available, 48h turnaround."
+        ),
+        "cta_primary":      "Shop the Collection",
+        "lp_headline":      f"YOUR EXCLUSIVE DROP",
+        "lp_subheadline":   f"Curated for {req.company}. Built for the street.",
+    }
 
 
 def generate_email_html(req: CampaignRequest, copy: dict, products: List[dict], hero_url: str) -> str:
