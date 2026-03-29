@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgenticFlow â€” ABM Intelligence Dashboard v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --charcoal:#1C1C1C; --tan:#C4A882; --cream:#F5F0E8;
+      --gold:#D4AF37; --slate:#6B7280; --rule:#2A2A2A;
+      --surface:#242424; --white:#FFFFFF;
+      --green:#22C55E; --red:#EF4444; --amber:#F59E0B; --blue:#3B82F6;
+      --font:'Inter',system-ui,sans-serif;
+      --head:'Bebas Neue',Impact,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;}
+    body{background:var(--charcoal);color:var(--white);font-family:var(--font);font-size:14px;display:flex;flex-direction:column;}
+    a{text-decoration:none;color:inherit;}
+    button{cursor:pointer;border:none;font-family:var(--font);}
+    img{display:block;max-width:100%;}
+
+    /* NAV */
+    .topnav{background:var(--charcoal);border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:56px;position:fixed;top:0;left:0;right:0;z-index:200;}
+    .topnav-brand{font-family:var(--head);font-size:22px;letter-spacing:3px;}
+    .topnav-brand span{color:var(--gold);}
+    .topnav-meta{display:flex;align-items:center;gap:16px;}
+    .api-status{font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:2px;border:1px solid var(--rule);}
+    .api-status.ok{color:var(--green);border-color:rgba(34,197,94,0.3);}
+    .api-status.err{color:var(--red);border-color:rgba(239,68,68,0.3);}
+    .api-status.checking{color:var(--amber);border-color:rgba(245,158,11,0.3);}
+    .topnav-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--charcoal);}
+    .sync-btn{background:none;border:1px solid var(--rule);color:var(--slate);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;transition:all 0.2s;}
+    .sync-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+    /* LAYOUT */
+    .app{display:flex;flex:1;margin-top:56px;height:calc(100vh - 56px);}
+    .sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--rule);display:flex;flex-direction:column;overflow-y:auto;padding:16px 0;}
+    .sidebar-section{padding:0 16px;margin-bottom:8px;}
+    .sidebar-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:8px;padding:0 4px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:4px;font-size:13px;font-weight:500;color:var(--slate);cursor:pointer;transition:all 0.15s;margin-bottom:2px;}
+    .nav-item:hover{background:var(--rule);color:var(--white);}
+    .nav-item.active{background:rgba(212,175,55,0.12);color:var(--gold);border-left:2px solid var(--gold);}
+    .nav-item .icon{font-size:15px;width:18px;text-align:center;}
+    .nav-count{margin-left:auto;background:var(--rule);color:var(--slate);font-size:10px;padding:2px 7px;border-radius:10px;}
+    .nav-count.hot{background:rgba(212,175,55,0.2);color:var(--gold);}
+
+    /* MAIN */
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    .panel{flex:1;overflow-y:auto;padding:28px;}
+    .panel-hidden{display:none!important;}
+
+    /* PAGE HEADER */
+    .page-header{margin-bottom:24px;}
+    .page-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+    .page-title{font-family:var(--head);font-size:32px;letter-spacing:2px;}
+    .page-sub{font-size:13px;color:var(--slate);margin-top:4px;}
+
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+    .stat-card{background:var(--surface);border:1px solid var(--rule);padding:20px;}
+    .stat-card .s-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:8px;}
+    .stat-card .s-val{font-family:var(--head);font-size:36px;color:var(--white);}
+    .stat-card .s-val.gold{color:var(--gold);}
+    .stat-card .s-val.green{color:var(--green);}
+    .stat-card .s-delta{font-size:11px;color:var(--slate);margin-top:4px;}
+    .stat-card .s-delta.up{color:var(--green);}
+
+    /* CARDS */
+    .card{background:var(--surface);border:1px solid var(--rule);padding:20px;border-radius:2px;}
+    .card-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    .card-title::after{content:'';flex:1;height:1px;background:var(--rule);}
+
+    /* TABLES */
+    .table-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+    .search-box{flex:1;max-width:320px;background:var(--surface);border:1px solid var(--rule);color:var(--white);padding:8px 14px;font-size:13px;outline:none;transition:border-color 0.2s;}
+    .search-box::placeholder{color:var(--slate);}
+    .search-box:focus{border-color:var(--gold);}
+    .filter-select{background:var(--surface);border:1px solid var(--rule);color:var(--slate);padding:8px 12px;font-size:12px;outline:none;}
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table th{text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);padding:10px 16px;border-bottom:1px solid var(--rule);background:var(--surface);font-weight:600;}
+    .data-table td{padding:13px 16px;border-bottom:1px solid var(--rule);vertical-align:middle;}
+    .data-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 20px;transition:all 0.2s;cursor:pointer;}
+    .btn-gold{background:var(--gold);color:var(--charcoal);border:none;}
+    .btn-gold:hover{background:var(--tan);}
+    .btn-outline{background:none;border:1px solid var(--rule);color:var(--slate);}
+    .btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+    .btn-green{background:var(--green);color:var(--charcoal);border:none;}
+    .btn-red{background:var(--red);color:var(--white);border:none;}
+    .btn-dark{background:var(--surface);border:1px solid var(--rule);color:var(--white);}
+
+    /* BADGES */
+    .badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:2px;}
+    .badge-hot{background:rgba(212,175,55,0.15);color:var(--gold);border:1px solid rgba(212,175,55,0.3);}
+    .badge-warm{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.3);}
+    .badge-cold{background:rgba(107,114,128,0.15);color:var(--slate);border:1px solid var(--rule);}
+    .badge-ok{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+
+    /* COMPANY CELL */
+    .company-cell{display:flex;align-items:center;gap:12px;}
+    .company-logo{width:36px;height:36px;border-radius:4px;background:var(--rule);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--tan);flex-shrink:0;}
+    .company-name{font-weight:600;color:var(--white);}
+    .company-sub{font-size:11px;color:var(--slate);}
+    .score-bar{display:flex;align-items:center;gap:8px;}
+    .score-bg{width:80px;height:6px;border-radius:3px;background:var(--rule);position:relative;overflow:hidden;}
+    .score-fill{height:100%;border-radius:3px;background:var(--gold);}
+    .score-num{font-weight:700;font-size:12px;color:var(--gold);}
+    .action-cell{display:flex;gap:6px;}
+    .icon-btn{background:var(--rule);border:none;color:var(--slate);width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:all 0.15s;border-radius:2px;}
+    .icon-btn:hover{background:var(--gold);color:var(--charcoal);}
+    .icon-btn.launch{background:rgba(212,175,55,0.15);color:var(--gold);}
+    .icon-btn.launch:hover{background:var(--gold);color:var(--charcoal);}
+
+    /* GENERATOR LAYOUT */
+    .gen-layout{display:grid;grid-template-columns:340px 1fr;gap:24px;}
+    .gen-sidebar{display:flex;flex-direction:column;gap:16px;}
+    .gen-main{display:flex;flex-direction:column;gap:16px;}
+
+    /* PROSPECT BLOCK */
+    .prospect-selected{display:flex;align-items:center;gap:14px;padding:16px;background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.25);}
+    .prospect-logo-lg{width:52px;height:52px;background:var(--rule);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--tan);flex-shrink:0;}
+    .prospect-info h3{font-size:16px;font-weight:700;}
+    .prospect-info p{font-size:12px;color:var(--slate);margin-top:2px;}
+    .score-pill{display:inline-block;margin-top:6px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);color:var(--gold);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;}
+    .crm-data{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+    .crm-item{background:var(--charcoal);border:1px solid var(--rule);padding:10px 12px;}
+    .crm-key{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);margin-bottom:3px;}
+    .crm-val{font-size:13px;font-weight:600;}
+    .crm-val.gold{color:var(--gold);}
+
+    /* PRODUCT PICKS */
+    .product-picks{display:flex;flex-direction:column;gap:8px;}
+    .product-pick{display:flex;align-items:center;gap:10px;padding:10px;background:var(--charcoal);border:1px solid var(--rule);cursor:pointer;transition:all 0.15s;}
+    .product-pick:hover{border-color:var(--gold);}
+    .product-pick.selected{border-color:var(--gold);background:rgba(212,175,55,0.07);}
+    .product-pick img{width:44px;height:44px;object-fit:cover;flex-shrink:0;background:var(--rule);}
+    .product-pick-info{flex:1;}
+    .product-pick-name{font-size:12px;font-weight:600;}
+    .product-pick-sku{font-size:10px;color:var(--slate);}
+    .product-pick-price{font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0;}
+    .pick-check{width:18px;height:18px;border:1px solid var(--rule);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+    .product-pick.selected .pick-check{background:var(--gold);border-color:var(--gold);color:var(--charcoal);}
+
+    /* TONE + HERO */
+    .tone-options{display:flex;gap:8px;flex-wrap:wrap;}
+    .tone-chip{font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;padding:6px 14px;border:1px solid var(--rule);color:var(--slate);cursor:pointer;transition:all 0.15s;}
+    .tone-chip:hover{border-color:var(--gold);color:var(--gold);}
+    .tone-chip.selected{background:rgba(212,175,55,0.15);border-color:var(--gold);color:var(--gold);}
+    .hero-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .hero-thumb{aspect-ratio:16/9;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:all 0.15s;position:relative;}
+    .hero-thumb img{width:100%;height:100%;object-fit:cover;}
+    .hero-thumb:hover{border-color:var(--gold);}
+    .hero-thumb.selected{border-color:var(--gold);}
+    .hero-thumb.selected::after{content:"âœ“";position:absolute;top:3px;right:3px;background:var(--gold);color:var(--charcoal);font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+
+    /* GENERATE BTN */
+    .generate-btn{width:100%;padding:16px;font-family:var(--head);font-size:22px;letter-spacing:3px;background:var(--gold);color:var(--charcoal);border:none;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+    .generate-btn:hover{background:var(--tan);}
+    .generate-btn:disabled{background:var(--rule);color:var(--slate);cursor:not-allowed;}
+    .generate-btn.ab-mode{background:linear-gradient(135deg,var(--gold) 50%,var(--amber) 50%);}
+
+    /* OUTPUT */
+    .output-tabs{display:flex;border-bottom:1px solid var(--rule);margin-bottom:16px;}
+    .output-tab{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--slate);padding:10px 18px;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;}
+    .output-tab:hover{color:var(--white);}
+    .output-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+    .preview-frame{background:var(--charcoal);border:1px solid var(--rule);}
+    .preview-toolbar{background:var(--surface);border-bottom:1px solid var(--rule);padding:10px 16px;display:flex;align-items:center;gap:12px;}
+    .preview-dots{display:flex;gap:6px;}
+    .dot{width:10px;height:10px;border-radius:50%;}
+    .dot-r{background:#EF4444;}.dot-y{background:#F59E0B;}.dot-g{background:#22C55E;}
+    .preview-url{flex:1;background:var(--charcoal);border:1px solid var(--rule);padding:5px 12px;font-size:11px;color:var(--slate);}
+    .preview-actions{display:flex;gap:8px;}
+    iframe.preview{width:100%;height:540px;border:none;background:white;}
+
+    /* LOG */
+    .log-stream{background:var(--charcoal);border:1px solid var(--rule);padding:14px;font-size:11px;font-family:monospace;color:var(--slate);line-height:1.9;max-height:160px;overflow-y:auto;}
+    .log-ok{color:var(--green);}.log-info{color:var(--blue);}.log-warn{color:var(--amber);}.log-gold{color:var(--gold);}.log-err{color:var(--red);}
+
+    /* PROMPT BOX */
+    .prompt-box{background:var(--charcoal);border:1px solid var(--rule);padding:14px;font-size:12px;color:var(--slate);line-height:1.7;max-height:120px;overflow-y:auto;font-family:monospace;}
+    .prompt-box b{color:var(--gold);}
+
+    /* COPY CARDS */
+    .copy-card{padding:12px;background:var(--charcoal);border-left:3px solid var(--gold);margin-bottom:12px;}
+    .copy-card-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+    .copy-card-val{font-size:14px;color:var(--white);line-height:1.6;}
+
+    /* AB comparison */
+    .ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .ab-card{border:1px solid var(--rule);padding:0;overflow:hidden;}
+    .ab-header{padding:10px 16px;background:var(--rule);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+    .ab-header.a{color:var(--gold);}
+    .ab-header.b{color:var(--amber);}
+
+    /* LOADING */
+    .generating{height:540px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+    .spinner{width:40px;height:40px;border:3px solid var(--rule);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .placeholder-preview{height:540px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--slate);text-align:center;}
+    .ph-icon{font-size:48px;opacity:0.3;}
+    .ph-title{font-family:var(--head);font-size:24px;letter-spacing:2px;color:var(--white);opacity:0.4;}
+
+    /* PIPELINE */
+    .pipeline{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+    .pipeline-col{background:var(--surface);border:1px solid var(--rule);}
+    .pipeline-col-head{padding:12px 16px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;}
+    .pipeline-col-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+    .pipeline-col-count{font-size:10px;background:var(--rule);color:var(--slate);padding:2px 8px;border-radius:10px;}
+    .pipeline-cards{padding:12px;display:flex;flex-direction:column;gap:8px;}
+    .pipeline-card{background:var(--charcoal);border:1px solid var(--rule);padding:12px;cursor:pointer;transition:border-color 0.15s;}
+    .pipeline-card:hover{border-color:var(--gold);}
+    .pipeline-card-company{font-size:13px;font-weight:600;}
+    .pipeline-card-value{font-size:12px;color:var(--gold);margin-top:2px;}
+    .pipeline-card-meta{font-size:11px;color:var(--slate);margin-top:6px;}
+    .pipeline-bar{height:3px;background:var(--rule);margin-top:8px;}
+    .pipeline-bar-fill{height:100%;background:var(--gold);}
+
+    /* ASSET GRID */
+    .asset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+    .asset-card{background:var(--surface);border:1px solid var(--rule);overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
+    .asset-card:hover{border-color:var(--gold);}
+    .asset-card img{width:100%;aspect-ratio:16/9;object-fit:cover;}
+    .asset-info{padding:8px 10px;}
+    .asset-name{font-size:10px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .asset-tag{font-size:9px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;}
+
+    /* NOTIFICATION */
+    .notification{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--gold);padding:16px 20px;z-index:999;max-width:340px;display:none;}
+    .notification.show{display:block;animation:slideIn 0.3s ease;}
+    @keyframes slideIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+    .notif-title{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px;}
+    .notif-body{font-size:12px;color:var(--slate);}
+
+    ::-webkit-scrollbar{width:5px;height:5px;}
+    ::-webkit-scrollbar-track{background:var(--charcoal);}
+    ::-webkit-scrollbar-thumb{background:var(--rule);}
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-brand">AGENTICFLOW <span>ABM</span></div>
+  <div class="topnav-meta">
+    <div class="api-status checking" id="api-status">âŸ³ Connecting...</div>
+    <button class="sync-btn" onclick="syncAll()">âŸ³ Sync All</button>
+    <span style="font-size:11px;color:var(--slate);">HubSpot Â&middot; Directus Â&middot; Cloudinary</span>
+    <div class="topnav-avatar">UT</div>
+  </div>
+</nav>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Intelligence</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')"><span class="icon">ðŸ“Š</span> Dashboard</div>
+      <div class="nav-item" onclick="showPanel('prospects')"><span class="icon">ðŸŽ¯</span> Prospects<span class="nav-count hot" id="prospect-count">â€”</span></div>
+      <div class="nav-item" onclick="showPanel('pipeline')"><span class="icon">ðŸ“ˆ</span> Pipeline</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Campaign Generator</div>
+      <div class="nav-item" onclick="showPanel('generator')"><span class="icon">âš¡</span> AI Generator<span class="nav-count hot">NEW</span></div>
+      <div class="nav-item" onclick="showPanel('campaigns')"><span class="icon">ðŸ“§</span> Campaigns<span class="nav-count" id="campaign-count">0</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Assets</div>
+      <div class="nav-item" onclick="showPanel('cloudinary')"><span class="icon">ðŸ–¼ï¸</span> Cloudinary</div>
+      <div class="nav-item" onclick="showPanel('products')"><span class="icon">ðŸ‘•</span> Products</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">System</div>
+      <div class="nav-item" onclick="showPanel('settings')"><span class="icon">âš™ï¸</span> Settings</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- â•â•â• DASHBOARD â•â•â• -->
+    <div id="panel-dashboard" class="panel">
+      <div class="page-header">
+        <div class="page-label">Urban Threads</div>
+        <div class="page-title">ABM INTELLIGENCE DASHBOARD</div>
+        <div class="page-sub">Account-based marketing Â&middot; HubSpot Â&middot; Directus Â&middot; Cloudinary Â&middot; AgenticFlow AI</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="s-label">Hot Prospects</div><div class="s-val gold" id="stat-prospects">â€”</div><div class="s-delta up" id="stat-prospects-d"></div></div>
+        <div class="stat-card"><div class="s-label">Campaigns Generated</div><div class="s-val" id="stat-campaigns">0</div><div class="s-delta up">This session</div></div>
+        <div class="stat-card"><div class="s-label">Avg. ABM Score</div><div class="s-val green" id="stat-score">â€”</div><div class="s-delta">Across all prospects</div></div>
+        <div class="stat-card"><div class="s-label">Pipeline Value</div><div class="s-val gold" id="stat-pipeline">â€”</div><div class="s-delta up">From HubSpot</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+        <div class="card">
+          <div class="card-title">Top Prospects</div>
+          <table class="data-table" id="dash-prospect-table">
+            <thead><tr><th>Company</th><th>Score</th><th>Stage</th><th></th></tr></thead>
+            <tbody id="dash-prospect-tbody"><tr><td colspan="4" style="color:var(--slate);text-align:center;padding:20px;">Loading from HubSpot...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title">Generated Campaigns</div>
+          <table class="data-table">
+            <thead><tr><th>Company</th><th>Variant</th><th>Tone</th><th>Actions</th></tr></thead>
+            <tbody id="campaign-history-tbody"><tr><td colspan="4" style="color:var(--slate);text-align:center;padding:20px;">No campaigns yet. Generate one! âš¡</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Quick Launch</div>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:16px;">Select a warm prospect from the table, click âš¡ to pre-fill the Generator. The system pulls live CRM data, Directus products, and Cloudinary assets to build a downloadable HTML email + landing page.</p>
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-gold" onclick="showPanel('prospects')">âš¡ Browse Prospects</button>
+          <button class="btn btn-outline" onclick="showPanel('generator')">ðŸŽ› Open Generator</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- â•â•â• PROSPECTS â•â•â• -->
+    <div id="panel-prospects" class="panel panel-hidden">
+      <div class="page-header">
+        <div class="page-label">HubSpot CRM</div>
+        <div class="page-title">WARM PROSPECTS</div>
+        <div class="page-sub">ABM-scored accounts. Click âš¡ to launch the AI Campaign Generator.</div>
+      </div>
+      <div class="table-toolbar">
+        <input class="search-box" type="text" placeholder="Search companies..." oninput="filterProspects(this.value)" />
+        <select class="filter-select" onchange="filterByStage(this.value)">
+          <option value="">All Stages</option><option>HOT</option><option>WARM</option><option>COLD</option>
+        </select>
+        <button class="btn btn-outline" onclick="loadProspects()">âŸ³ Refresh HubSpot</button>
+      </div>
+      <table class="data-table">
+        <thead><tr>
+          <th>Company</th><th>Contact</th><th>Segment</th>
+          <th>ABM Score</th><th>Deal Value</th><th>Stage</th><th>Last Touch</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="prospect-tbody">
+          <tr><td colspan="8" style="color:var(--slate);text-align:center;padding:28px;">Loading from HubSpot...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- â•â•â• GENERATOR â•â•â• -->
+    <div id="panel-generator" class="panel panel-hidden">
+      <div class="page-header">
+        <div class="page-label">AI Campaign Generator â€” Real API</div>
+        <div class="page-title">CAMPAIGN BUILDER</div>
+        <div class="page-sub">Generates personalized HTML email + landing page via the AgenticFlow backend. Downloads are real files.</div>
+      </div>
+      <div class="gen-layout">
+        <!-- SIDEBAR -->
+        <div class="gen-sidebar">
+          <div class="card">
+            <div class="card-title">Prospect</div>
+            <div class="prospect-selected">
+              <div class="prospect-logo-lg" id="gen-logo">AX</div>
+              <div class="prospect-info">
+                <h3 id="gen-company">Select a Prospect</h3>
+                <p id="gen-contact">â€”</p>
+                <p id="gen-email" style="font-size:11px;margin-top:2px;"></p>
+                <span class="score-pill" id="gen-score-pill">â€”</span>
+              </div>
+            </div>
+            <div class="crm-data">
+              <div class="crm-item"><div class="crm-key">Segment</div><div class="crm-val" id="gen-segment">â€”</div></div>
+              <div class="crm-item"><div class="crm-key">Deal Value</div><div class="crm-val gold" id="gen-deal">â€”</div></div>
+              <div class="crm-item"><div class="crm-key">ABM Score</div><div class="crm-val gold" id="gen-abm-score">â€”</div></div>
+              <div class="crm-item"><div class="crm-key">Stage</div><div class="crm-val" id="gen-stage">â€”</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Featured Products <span style="color:var(--slate);font-size:9px;">(Directus PIM)</span></div>
+            <div class="product-picks" id="product-picks">
+              <div class="product-pick selected" data-sku="HOD-001" onclick="toggleProduct(this)">
+                <div class="pick-check">âœ“</div>
+                <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_44,h_44,f_auto,q_auto/v1773412902/image-img_HOD-001.png" />
+                <div class="product-pick-info"><div class="product-pick-name">Pullover Fleece Hoodie</div><div class="product-pick-sku">HOD-001</div></div>
+                <div class="product-pick-price">$64.99</div>
+              </div>
+              <div class="product-pick selected" data-sku="OUT-001" onclick="toggleProduct(this)">
+                <div class="pick-check">âœ“</div>
+                <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_44,h_44,f_auto,q_auto/v1773412900/image-img_OUT-001.png" />
+                <div class="product-pick-info"><div class="product-pick-name">Packable Rain Jacket</div><div class="product-pick-sku">OUT-001</div></div>
+                <div class="product-pick-price">$119.99</div>
+              </div>
+              <div class="product-pick" data-sku="KNIT-001" onclick="toggleProduct(this)">
+                <div class="pick-check"></div>
+                <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_44,h_44,f_auto,q_auto/v1742692812/cable-knit.png" />
+                <div class="product-pick-info"><div class="product-pick-name">Cable Knit Sweater</div><div class="product-pick-sku">KNIT-001</div></div>
+                <div class="product-pick-price">$79.99</div>
+              </div>
+              <div class="product-pick" data-sku="DNM-001" onclick="toggleProduct(this)">
+                <div class="pick-check"></div>
+                <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_44,h_44,f_auto,q_auto/v1773412901/image-img_DNM-001.png" />
+                <div class="product-pick-info"><div class="product-pick-name">Slim Fit Selvedge Jeans</div><div class="product-pick-sku">DNM-001</div></div>
+                <div class="product-pick-price">$89.99</div>
+              </div>
+              <div class="product-pick" data-sku="HOD-004" onclick="toggleProduct(this)">
+                <div class="pick-check"></div>
+                <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_44,h_44,f_auto,q_auto/v1742692804/windbreaker-hoodie.png" />
+                <div class="product-pick-info"><div class="product-pick-name">Windbreaker Hoodie</div><div class="product-pick-sku">HOD-004</div></div>
+                <div class="product-pick-price">$89.99</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Voice & Tone</div>
+            <div class="tone-options">
+              <div class="tone-chip selected" onclick="selectTone(this)">Confident</div>
+              <div class="tone-chip" onclick="selectTone(this)">Urgent</div>
+              <div class="tone-chip" onclick="selectTone(this)">Premium</div>
+              <div class="tone-chip" onclick="selectTone(this)">Playful</div>
+              <div class="tone-chip" onclick="selectTone(this)">Exclusive</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Hero Image <span style="color:var(--slate);font-size:9px;">(Cloudinary)</span></div>
+            <div class="hero-options">
+              <div class="hero-thumb selected" data-key="default" onclick="selectHero(this)"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_200,h_113,f_auto,q_auto/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png" /></div>
+              <div class="hero-thumb" data-key="rooftop_couple" onclick="selectHero(this)"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_200,h_113,f_auto,q_auto/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png" /></div>
+              <div class="hero-thumb" data-key="wall_woman" onclick="selectHero(this)"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_200,h_113,f_auto,q_auto/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png" /></div>
+              <div class="hero-thumb" data-key="car_couple" onclick="selectHero(this)"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_200,h_113,f_auto,q_auto/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png" /></div>
+              <div class="hero-thumb" data-key="rooftop_man" onclick="selectHero(this)"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_200,h_113,f_auto,q_auto/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png" /></div>
+              <div class="hero-thumb" data-key="coffee_man" onclick="selectHero(this)"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_200,h_113,f_auto,q_auto/v1774727363/KNIT-001coffeeshopMan_rvhsik.png" /></div>
+            </div>
+          </div>
+
+          <!-- AB Toggle -->
+          <div class="card">
+            <div class="card-title">A/B Testing</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" id="ab-toggle" style="accent-color:var(--gold);" onchange="updatePrompt()"/>
+                Generate A/B Variants
+              </label>
+              <span style="font-size:11px;color:var(--slate);">2x GPT calls</span>
+            </div>
+          </div>
+
+          <button class="generate-btn" id="generate-btn" onclick="runGenerator()">âš¡ GENERATE CAMPAIGN</button>
+        </div>
+
+        <!-- RIGHT OUTPUT -->
+        <div class="gen-main">
+          <div class="card">
+            <div class="card-title">AI Prompt (Auto-Built)</div>
+            <div class="prompt-box" id="prompt-preview">Select a prospect to preview the prompt...</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Agent Log</div>
+            <div class="log-stream" id="agent-log">
+<span class="log-info">[SYSTEM]</span> AgenticFlow v2.0 ready â€” Real API mode<br/>
+<span class="log-info">[API]</span> Backend: https://pim-dam-crm-integration-production.up.railway.app/html-campaign/<br/>
+<span class="log-info">[HubSpot]</span> Checking connection...<br/>
+            </div>
+          </div>
+
+          <div class="card" style="flex:1;">
+            <div class="card-title">Campaign Output</div>
+            <div class="output-tabs" id="output-tabs">
+              <div class="output-tab active" onclick="switchOutput('email',this)">ðŸ“§ Email</div>
+              <div class="output-tab" onclick="switchOutput('landing',this)">ðŸŒ Landing Page</div>
+              <div class="output-tab" onclick="switchOutput('copy',this)">âœï¸ Copy</div>
+              <div class="output-tab" id="ab-tab" style="display:none;" onclick="switchOutput('ab',this)">ðŸ”€ A/B Compare</div>
+            </div>
+            <div class="preview-frame">
+              <div class="preview-toolbar">
+                <div class="preview-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+                <div class="preview-url" id="preview-url">Awaiting generation...</div>
+                <div class="preview-actions">
+                  <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;" id="btn-dl-email" onclick="downloadEmail()" disabled>â¬‡ Email HTML</button>
+                  <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;" id="btn-dl-lp" onclick="downloadLP()" disabled>â¬‡ Landing Page</button>
+                  <button class="btn btn-gold" style="font-size:10px;padding:5px 12px;" id="btn-hubspot" onclick="logToHubSpot()" disabled>ðŸ“¤ Log to HubSpot</button>
+                </div>
+              </div>
+              <div id="preview-area">
+                <div class="placeholder-preview">
+                  <div class="ph-icon">âš¡</div>
+                  <div class="ph-title">READY TO GENERATE</div>
+                  <p style="font-size:13px;max-width:320px;line-height:1.6;">Select a prospect, configure products and tone, then click <b style="color:var(--gold);">Generate Campaign</b>.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- â•â•â• PIPELINE â•â•â• -->
+    <div id="panel-pipeline" class="panel panel-hidden">
+      <div class="page-header"><div class="page-label">HubSpot CRM</div><div class="page-title">DEAL PIPELINE</div></div>
+      <div class="pipeline">
+        <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title">Identified</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card"><div class="pipeline-card-company">Summit Hospitality</div><div class="pipeline-card-value">$12,000</div><div class="pipeline-card-meta">Score: 45</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:45%"></div></div></div><div class="pipeline-card"><div class="pipeline-card-company">BluePeak Media</div><div class="pipeline-card-value">$8,500</div><div class="pipeline-card-meta">Score: 38</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:38%"></div></div></div></div></div>
+        <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title">Engaged</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card"><div class="pipeline-card-company">Valor Athletics</div><div class="pipeline-card-value">$22,000</div><div class="pipeline-card-meta">Score: 78</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:78%"></div></div></div><div class="pipeline-card"><div class="pipeline-card-company">TechStack HQ</div><div class="pipeline-card-value">$15,000</div><div class="pipeline-card-meta">Score: 71</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:71%"></div></div></div></div></div>
+        <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title" style="color:var(--amber);">Hot / Campaigned</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card" style="border-color:rgba(212,175,55,0.3)"><div class="pipeline-card-company">Axiom Fitness Co.</div><div class="pipeline-card-value" style="color:var(--gold);">$28,000</div><div class="pipeline-card-meta">Score: 92</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:92%"></div></div></div><div class="pipeline-card" style="border-color:rgba(212,175,55,0.3)"><div class="pipeline-card-company">Nexus Creative</div><div class="pipeline-card-value" style="color:var(--gold);">$18,500</div><div class="pipeline-card-meta">Score: 85</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:85%"></div></div></div></div></div>
+        <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title" style="color:var(--green);">Closed / Won</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card" style="border-color:rgba(34,197,94,0.3)"><div class="pipeline-card-company">Meridian Gym Group</div><div class="pipeline-card-value" style="color:var(--green);">$34,000 âœ“</div><div class="pipeline-card-meta">Closed Mar 10</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:100%;background:var(--green)"></div></div></div><div class="pipeline-card" style="border-color:rgba(34,197,94,0.3)"><div class="pipeline-card-company">UrbanCore Coffee</div><div class="pipeline-card-value" style="color:var(--green);">$11,200 âœ“</div><div class="pipeline-card-meta">Closed Mar 3</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:100%;background:var(--green)"></div></div></div></div></div>
+      </div>
+    </div>
+
+    <!-- â•â•â• CAMPAIGNS â•â•â• -->
+    <div id="panel-campaigns" class="panel panel-hidden">
+      <div class="page-header"><div class="page-label">This Session</div><div class="page-title">GENERATED CAMPAIGNS</div><div class="page-sub">All campaigns generated in this browser session. Download or send via HubSpot.</div></div>
+      <table class="data-table">
+        <thead><tr><th>Company</th><th>Segment</th><th>Tone</th><th>Variant</th><th>Generated</th><th>Actions</th></tr></thead>
+        <tbody id="full-campaign-tbody"><tr><td colspan="6" style="color:var(--slate);text-align:center;padding:28px;">No campaigns yet. Generate one! âš¡</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- â•â•â• CLOUDINARY â•â•â• -->
+    <div id="panel-cloudinary" class="panel panel-hidden">
+      <div class="page-header"><div class="page-label">Cloudinary DAM</div><div class="page-title">BRAND ASSET LIBRARY</div><div class="page-sub">18 SS26 lifestyle campaign shots Â&middot; All optimized f_auto,q_auto</div></div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">Lifestyle Campaign â€” SS26</div>
+        <div class="asset-grid">
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â&middot; ACC-001</div><div class="asset-name">City Street Heels Woman</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â&middot; ACC-001</div><div class="asset-name">Rooftop Couple</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â&middot; ACC-001</div><div class="asset-name">Night Wall Woman</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â&middot; ACC-001</div><div class="asset-name">Car Hood Couple</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â&middot; ACC-001</div><div class="asset-name">Rooftop Man</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727363/KNIT-001coffeeshopMan_rvhsik.png"/><div class="asset-info"><div class="asset-tag">KNIT-001</div><div class="asset-name">Coffee Shop Man</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727365/OUT-001RainStreetwoman_zyssut.png"/><div class="asset-info"><div class="asset-tag">OUT-001</div><div class="asset-name">Rain Street Woman</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727367/OUT-002_KNIT-001_DNM-003_ACC-002stepsman_pvdcbn.png"/><div class="asset-info"><div class="asset-tag">OUT-002 Â&middot; KNIT-001</div><div class="asset-name">Steps Man</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- â•â•â• PRODUCTS â•â•â• -->
+    <div id="panel-products" class="panel panel-hidden">
+      <div class="page-header"><div class="page-label">Directus PIM</div><div class="page-title">PRODUCT CATALOG</div></div>
+      <table class="data-table">
+        <thead><tr><th>Image</th><th>SKU</th><th>Product</th><th>Category</th><th>Price</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_48,h_48,f_auto,q_auto/v1773412902/image-img_HOD-001.png" style="width:48px;height:48px;object-fit:cover;"/></td><td style="font-family:monospace;color:var(--gold);">HOD-001</td><td class="company-name">Pullover Fleece Hoodie</td><td>Hoodies</td><td style="color:var(--gold);">$64.99</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_48,h_48,f_auto,q_auto/v1773412900/image-img_OUT-001.png" style="width:48px;height:48px;object-fit:cover;"/></td><td style="font-family:monospace;color:var(--gold);">OUT-001</td><td class="company-name">Packable Rain Jacket</td><td>Outerwear</td><td style="color:var(--gold);">$119.99</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_48,h_48,f_auto,q_auto/v1742692812/cable-knit.png" style="width:48px;height:48px;object-fit:cover;"/></td><td style="font-family:monospace;color:var(--gold);">KNIT-001</td><td class="company-name">Cable Knit Sweater</td><td>Sweaters</td><td style="color:var(--gold);">$79.99</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_48,h_48,f_auto,q_auto/v1773412901/image-img_DNM-001.png" style="width:48px;height:48px;object-fit:cover;"/></td><td style="font-family:monospace;color:var(--gold);">DNM-001</td><td class="company-name">Slim Fit Selvedge Jeans</td><td>Denim</td><td style="color:var(--gold);">$89.99</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_48,h_48,f_auto,q_auto/v1742692804/windbreaker-hoodie.png" style="width:48px;height:48px;object-fit:cover;"/></td><td style="font-family:monospace;color:var(--gold);">HOD-004</td><td class="company-name">Windbreaker Hoodie</td><td>Hoodies</td><td style="color:var(--gold);">$89.99</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_48,h_48,f_auto,q_auto/v1742692808/wool-overcoat.png" style="width:48px;height:48px;object-fit:cover;"/></td><td style="font-family:monospace;color:var(--gold);">OUT-004</td><td class="company-name">Wool Overcoat</td><td>Outerwear</td><td style="color:var(--gold);">$199.99</td><td><span class="badge badge-ok">Active</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- â•â•â• SETTINGS â•â•â• -->
+    <div id="panel-settings" class="panel panel-hidden">
+      <div class="page-header"><div class="page-label">Configuration</div><div class="page-title">INTEGRATIONS</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card"><div class="card-title">Backend API</div><div class="crm-data">
+          <div class="crm-item"><div class="crm-key">URL</div><div class="crm-val" style="font-size:11px;word-break:break-all;">https://pim-dam-crm-integration-production.up.railway.app</div></div>
+          <div class="crm-item"><div class="crm-key">Status</div><div class="crm-val" id="settings-api-status">Checking...</div></div>
+          <div class="crm-item"><div class="crm-key">Generator</div><div class="crm-val gold">/html-campaign/generate</div></div>
+          <div class="crm-item"><div class="crm-key">A/B Test</div><div class="crm-val gold">/html-campaign/generate/ab-test</div></div>
+        </div></div>
+        <div class="card"><div class="card-title">HubSpot CRM</div><div class="crm-data">
+          <div class="crm-item"><div class="crm-key">Status</div><div class="crm-val" id="settings-hs-status">Checking...</div></div>
+          <div class="crm-item"><div class="crm-key">Prospects</div><div class="crm-val" id="settings-hs-count">â€”</div></div>
+          <div class="crm-item"><div class="crm-key">Endpoint</div><div class="crm-val gold">/abm/warm-prospects</div></div>
+          <div class="crm-item"><div class="crm-key">Sync</div><div class="crm-val">On demand</div></div>
+        </div></div>
+        <div class="card"><div class="card-title">Directus PIM</div><div class="crm-data">
+          <div class="crm-item"><div class="crm-key">Status</div><div class="crm-val gold">â&mdash; Connected</div></div>
+          <div class="crm-item"><div class="crm-key">Products</div><div class="crm-val">30</div></div>
+          <div class="crm-item"><div class="crm-key">Active SKUs</div><div class="crm-val">30</div></div>
+          <div class="crm-item"><div class="crm-key">Sync</div><div class="crm-val">Via backend</div></div>
+        </div></div>
+        <div class="card"><div class="card-title">Cloudinary DAM</div><div class="crm-data">
+          <div class="crm-item"><div class="crm-key">Account</div><div class="crm-val">dp0cdq8bj</div></div>
+          <div class="crm-item"><div class="crm-key">Assets</div><div class="crm-val">48</div></div>
+          <div class="crm-item"><div class="crm-key">SS26 Shots</div><div class="crm-val gold">18</div></div>
+          <div class="crm-item"><div class="crm-key">Transform</div><div class="crm-val">f_auto,q_auto</div></div>
+        </div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notification" id="notification">
+  <div class="notif-title" id="notif-title">Done!</div>
+  <div class="notif-body" id="notif-body"></div>
+</div>
+
+<script>
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CONFIG
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+const API = "https://pim-dam-crm-integration-production.up.railway.app";
+let _prospects = [];
+let _generatedData = null;
+let _generatedAB = null;
+let _campaignHistory = [];
+let _selectedHeroKey = "default";
+
+// â”€â”€â”€ PANEL NAVIGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function showPanel(name) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.add("panel-hidden"));
+  document.getElementById("panel-" + name).classList.remove("panel-hidden");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  event && event.currentTarget && event.currentTarget.classList.add("active");
+}
+
+// â”€â”€â”€ NOTIFICATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function notify(title, body, duration=4000) {
+  const el = document.getElementById("notification");
+  document.getElementById("notif-title").textContent = title;
+  document.getElementById("notif-body").textContent = body;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), duration);
+}
+
+// â”€â”€â”€ LOG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function log(msg, cls="log-info") {
+  const el = document.getElementById("agent-log");
+  if (!el) return;
+  el.innerHTML += `<span class="${cls}">${msg}</span><br/>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+// â”€â”€â”€ API HEALTH CHECK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function checkApiHealth() {
+  const statusEl = document.getElementById("api-status");
+  try {
+    const r = await fetch(`${API}/html-campaign/health`, { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      statusEl.textContent = "â&mdash; API Live";
+      statusEl.className = "api-status ok";
+      document.getElementById("settings-api-status").textContent = "â&mdash; Connected";
+      document.getElementById("settings-api-status").style.color = "var(--green)";
+      log("[API] Backend connected: " + API, "log-ok");
+    } else {
+      throw new Error(r.status);
+    }
+  } catch(e) {
+    statusEl.textContent = "âš  API Offline";
+    statusEl.className = "api-status err";
+    document.getElementById("settings-api-status").textContent = "âš  Offline â€” add route to backend";
+    document.getElementById("settings-api-status").style.color = "var(--red)";
+    log("[API] Backend offline or /html-campaign/health not yet deployed", "log-warn");
+    log("[API] Generator will run in demo mode until backend is updated", "log-warn");
+  }
+}
+
+// â”€â”€â”€ LOAD PROSPECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function loadProspects() {
+  log("[HubSpot] Fetching warm prospects...", "log-info");
+  try {
+    const r = await fetch(`${API}/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmZmMwZThmLTc3OGItNDFiMS1hMTIxLTBhMDhhNTVhNDA1OSIsInJvbGUiOiIzZDk5OWRlZi0yMzdlLTRhNjgtODYwNC1hOTg1NmIzYzE1ZjciLCJhcHBfYWNjZXNzIjp0cnVlLCJhZG1pbl9hY2Nlc3MiOnRydWUsImlhdCI6MTc3NDc0MzMxNiwiZXhwIjoxNzc0NzQ0MjE2LCJpc3MiOiJkaXJlY3R1cyJ9.aSrGqQv9gkCvqVzK2_b5D2DLOheOj_eOD-y3Kcys_AI`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    _prospects = data.prospects || data || [];
+    log(`[HubSpot] ${_prospects.length} prospects loaded âœ“`, "log-ok");
+    renderProspects(_prospects);
+    updateDashboardStats(_prospects);
+    document.getElementById("settings-hs-status").textContent = "â&mdash; Connected";
+    document.getElementById("settings-hs-status").style.color = "var(--green)";
+    document.getElementById("settings-hs-count").textContent = _prospects.length;
+  } catch(e) {
+    log("[HubSpot] Using demo prospect data (API error: " + e.message + ")", "log-warn");
+    _prospects = DEMO_PROSPECTS;
+    renderProspects(_prospects);
+    updateDashboardStats(_prospects);
+  }
+}
+
+// â”€â”€â”€ DEMO FALLBACK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const DEMO_PROSPECTS = [
+  {id:"acc_001",company_name:"Axiom Fitness Co.",industry:"Health & Wellness",contact:{name:"Michael Torres",title:"VP of Operations",email:"mike.torres@axiomfit.com"},engagement_score:92,deal_value:"$28,000",stage:"HOT",last_contact:"2026-03-24"},
+  {id:"acc_002",company_name:"Nexus Creative",industry:"Agency",contact:{name:"Sarah Chen",title:"Creative Director",email:"s.chen@nexuscreative.co"},engagement_score:85,deal_value:"$18,500",stage:"HOT",last_contact:"2026-03-23"},
+  {id:"acc_003",company_name:"Valor Athletics",industry:"Sports",contact:{name:"James Rivera",title:"Merchandise Lead",email:"j.rivera@valorathletics.com"},engagement_score:78,deal_value:"$22,000",stage:"WARM",last_contact:"2026-03-20"},
+  {id:"acc_004",company_name:"TechStack HQ",industry:"Tech / SaaS",contact:{name:"Priya Malhotra",title:"People Ops Manager",email:"p.malhotra@techstack.io"},engagement_score:71,deal_value:"$15,000",stage:"WARM",last_contact:"2026-03-19"},
+  {id:"acc_005",company_name:"Meridian Gym Group",industry:"Health & Wellness",contact:{name:"Derek Kim",title:"Head of Merch",email:"d.kim@meridiangym.com"},engagement_score:68,deal_value:"$34,000",stage:"WARM",last_contact:"2026-03-17"},
+  {id:"acc_006",company_name:"UrbanCore Coffee",industry:"Hospitality",contact:{name:"Lena Vasquez",title:"Brand Manager",email:"lena@urbancoregroup.com"},engagement_score:61,deal_value:"$11,200",stage:"WARM",last_contact:"2026-03-15"},
+  {id:"acc_007",company_name:"BluePeak Media",industry:"Agency",contact:{name:"Tom Clarke",title:"Studio Director",email:"t.clarke@bluepeakmedia.com"},engagement_score:55,deal_value:"$8,500",stage:"COLD",last_contact:"2026-03-10"},
+];
+
+// â”€â”€â”€ RENDER PROSPECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function stageBadge(s) {
+  if(s==="HOT") return `<span class="badge badge-hot">HOT</span>`;
+  if(s==="WARM") return `<span class="badge badge-warm">WARM</span>`;
+  return `<span class="badge badge-cold">COLD</span>`;
+}
+
+function renderProspects(list) {
+  const tbody = document.getElementById("prospect-tbody");
+  const dashTbody = document.getElementById("dash-prospect-tbody");
+  document.getElementById("prospect-count").textContent = list.filter(p => p.stage === "HOT" || p.engagement_score > 70).length;
+
+  const rows = list.map(p => {
+    const initials = (p.company_name||"").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    const score = p.engagement_score || p.abm_score || 0;
+    const contact = p.contact || {};
+    return `<tr>
+      <td><div class="company-cell"><div class="company-logo">${initials}</div><div><div class="company-name">${p.company_name||""}</div><div class="company-sub">${p.industry||""}</div></div></div></td>
+      <td><div class="company-name" style="font-size:12px;">${contact.name||""}</div><div class="company-sub">${contact.title||""}</div></td>
+      <td><span class="badge badge-cold" style="color:var(--tan);border-color:var(--rule);font-size:9px;">${p.industry||""}</span></td>
+      <td><div class="score-bar"><div class="score-bg"><div class="score-fill" style="width:${score}%"></div></div><span class="score-num">${score}</span></div></td>
+      <td style="color:var(--gold);font-weight:700;">${p.deal_value||"â€”"}</td>
+      <td>${stageBadge(p.stage||"WARM")}</td>
+      <td style="color:var(--slate);font-size:11px;">${p.last_contact||"â€”"}</td>
+      <td><div class="action-cell">
+        <button class="icon-btn launch" title="Launch Campaign Generator" onclick="launchGenerator(${JSON.stringify(p).replace(/'/g,"\'")})">âš¡</button>
+      </div></td>
+    </tr>`;
+  });
+  tbody.innerHTML = rows.join("") || `<tr><td colspan="8" style="color:var(--slate);text-align:center;padding:24px;">No prospects found.</td></tr>`;
+
+  // Top 3 for dashboard
+  const top3 = [...list].sort((a,b) => (b.engagement_score||0)-(a.engagement_score||0)).slice(0,3);
+  dashTbody.innerHTML = top3.map(p => {
+    const initials = (p.company_name||"").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    const score = p.engagement_score || 0;
+    return `<tr>
+      <td><div class="company-cell"><div class="company-logo" style="width:28px;height:28px;font-size:9px;">${initials}</div><div class="company-name" style="font-size:12px;">${p.company_name}</div></div></td>
+      <td><div class="score-bar"><div class="score-bg" style="width:60px;"><div class="score-fill" style="width:${score}%"></div></div><span class="score-num">${score}</span></div></td>
+      <td>${stageBadge(p.stage||"WARM")}</td>
+      <td><button class="icon-btn launch" style="width:24px;height:24px;font-size:11px;" onclick="launchGenerator(${JSON.stringify(p).replace(/'/g,"\'")})">âš¡</button></td>
+    </tr>`;
+  }).join("");
+}
+
+function filterProspects(q) {
+  const filtered = _prospects.filter(p => (p.company_name||"").toLowerCase().includes(q.toLowerCase()));
+  renderProspects(filtered);
+}
+function filterByStage(stage) {
+  const filtered = stage ? _prospects.filter(p => p.stage === stage) : _prospects;
+  renderProspects(filtered);
+}
+
+// â”€â”€â”€ DASHBOARD STATS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function updateDashboardStats(prospects) {
+  const hot = prospects.filter(p => p.stage === "HOT").length;
+  const scores = prospects.map(p => p.engagement_score||0);
+  const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+  const pipeline = prospects.reduce((acc,p) => {
+    const v = parseFloat((p.deal_value||"0").replace(/[$,]/g,""));
+    return acc + (isNaN(v) ? 0 : v);
+  }, 0);
+  document.getElementById("stat-prospects").textContent = hot;
+  document.getElementById("stat-prospects-d").textContent = `${prospects.length} total accounts`;
+  document.getElementById("stat-score").textContent = avgScore;
+  document.getElementById("stat-pipeline").textContent = "$" + (pipeline/1000).toFixed(0) + "K";
+}
+
+// â”€â”€â”€ LAUNCH GENERATOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function launchGenerator(p) {
+  showPanel("generator");
+  const initials = (p.company_name||"").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const contact = p.contact || {};
+  document.getElementById("gen-logo").textContent = initials;
+  document.getElementById("gen-company").textContent = p.company_name || "";
+  document.getElementById("gen-contact").textContent = (contact.name||"") + " Â&middot; " + (contact.title||"");
+  document.getElementById("gen-email").textContent = contact.email || "";
+  document.getElementById("gen-score-pill").textContent = `ABM Score: ${p.engagement_score||0} Â&middot; ${p.stage||"WARM"}`;
+  document.getElementById("gen-segment").textContent = p.industry || "";
+  document.getElementById("gen-deal").textContent = p.deal_value || "â€”";
+  document.getElementById("gen-abm-score").textContent = p.engagement_score || "â€”";
+  document.getElementById("gen-stage").textContent = p.stage || "â€”";
+  updatePrompt();
+  notify("Prospect Loaded", `${p.company_name} pre-filled in the Campaign Generator.`);
+}
+
+// â”€â”€â”€ PRODUCT TOGGLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function toggleProduct(el) {
+  el.classList.toggle("selected");
+  const check = el.querySelector(".pick-check");
+  check.textContent = el.classList.contains("selected") ? "âœ“" : "";
+  updatePrompt();
+}
+
+// â”€â”€â”€ TONE SELECT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function selectTone(el) {
+  document.querySelectorAll(".tone-chip").forEach(c => c.classList.remove("selected"));
+  el.classList.add("selected");
+  updatePrompt();
+}
+
+// â”€â”€â”€ HERO SELECT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function selectHero(el) {
+  document.querySelectorAll(".hero-thumb").forEach(h => h.classList.remove("selected"));
+  el.classList.add("selected");
+  _selectedHeroKey = el.dataset.key || "default";
+  updatePrompt();
+}
+
+// â”€â”€â”€ PROMPT BUILD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function updatePrompt() {
+  const company  = document.getElementById("gen-company").textContent;
+  const contact  = document.getElementById("gen-contact").textContent;
+  const segment  = document.getElementById("gen-segment").textContent;
+  const deal     = document.getElementById("gen-deal").textContent;
+  const score    = document.getElementById("gen-score-pill").textContent;
+  const products = [...document.querySelectorAll(".product-pick.selected")].map(el => el.dataset.sku).join(", ");
+  const tone     = document.querySelector(".tone-chip.selected")?.textContent || "Confident";
+  const ab       = document.getElementById("ab-toggle").checked;
+  document.getElementById("prompt-preview").innerHTML =
+    `<b>PROSPECT:</b> ${company} Â&middot; ${contact} Â&middot; ${segment}<br/>` +
+    `<b>CRM SIGNAL:</b> ${score} Â&middot; ${deal}<br/>` +
+    `<b>PRODUCTS:</b> ${products || "(none selected)"} [Directus PIM]<br/>` +
+    `<b>HERO:</b> ${_selectedHeroKey} [Cloudinary]<br/>` +
+    `<b>TONE:</b> ${tone} Â&middot; Urban Threads brand voice<br/>` +
+    `<b>MODE:</b> ${ab ? "A/B Test (2 variants)" : "Single variant"}<br/>` +
+    `<b>OUTPUT:</b> Personalized HTML email (600px inline CSS) + Landing Page`;
+
+  // AB mode UI
+  document.getElementById("ab-tab").style.display = ab ? "" : "none";
+  const btn = document.getElementById("generate-btn");
+  btn.classList.toggle("ab-mode", ab);
+  btn.textContent = ab ? "âš¡ GENERATE A/B CAMPAIGN" : "âš¡ GENERATE CAMPAIGN";
+}
+
+// â”€â”€â”€ BUILD REQUEST PAYLOAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function buildPayload(variant="A") {
+  const contact_raw = document.getElementById("gen-contact").textContent.split("Â&middot;");
+  return {
+    company:       document.getElementById("gen-company").textContent.trim(),
+    contact_name:  (contact_raw[0]||"").trim(),
+    contact_title: (contact_raw[1]||"").trim(),
+    contact_email: document.getElementById("gen-email").textContent.trim(),
+    segment:       document.getElementById("gen-segment").textContent.trim(),
+    abm_score:     parseInt(document.getElementById("gen-abm-score").textContent) || 70,
+    deal_value:    document.getElementById("gen-deal").textContent.trim(),
+    stage:         document.getElementById("gen-stage").textContent.trim() || "WARM",
+    tone:          document.querySelector(".tone-chip.selected")?.textContent || "Confident",
+    hero_image_key: _selectedHeroKey,
+    selected_skus:  [...document.querySelectorAll(".product-pick.selected")].map(el => el.dataset.sku),
+    variant:        variant,
+  };
+}
+
+// â”€â”€â”€ RUN GENERATOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function runGenerator() {
+  const company = document.getElementById("gen-company").textContent;
+  if (!company || company === "Select a Prospect") {
+    notify("No Prospect Selected", "Pick a prospect from the Prospects panel first.");
+    return;
+  }
+  const isAB = document.getElementById("ab-toggle").checked;
+  const btn   = document.getElementById("generate-btn");
+  btn.disabled = true;
+  btn.textContent = "âŸ³ GENERATING...";
+
+  document.getElementById("preview-area").innerHTML =
+    `<div class="generating"><div class="spinner"></div><p style="color:var(--slate);font-size:13px;">Calling AgenticFlow API...<br/><b style="color:var(--gold);">HubSpot â†’ Directus â†’ Cloudinary â†’ GPT-4o</b></p></div>`;
+
+  log(`[START] Campaign for ${company} (${isAB ? "A/B mode" : "single variant"})`, "log-gold");
+  log("[HubSpot] Prospect data loaded âœ“", "log-ok");
+  log("[Directus] Fetching product catalog...", "log-info");
+  log("[Cloudinary] Resolving hero image...", "log-info");
+  log("[GPT-4o] Generating personalized campaign copy...", "log-gold");
+
+  try {
+    const endpoint = isAB ? `${API}/html-campaign/generate/ab-test` : `${API}/html-campaign/generate`;
+    const payload  = buildPayload("A");
+
+    const r = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(30000),
+    });
+
+    if (!r.ok) {
+      const err = await r.text();
+      throw new Error(`API ${r.status}: ${err}`);
+    }
+
+    const data = await r.json();
+    log("[API] Response received âœ“", "log-ok");
+
+    if (isAB) {
+      _generatedAB = data;
+      _generatedData = data.variant_a;
+      log(`[DONE] A/B variants generated: Variant A (${data.variant_a.tone}) / Variant B (${data.variant_b.tone}) âœ“`, "log-ok");
+    } else {
+      _generatedData = data;
+      _generatedAB   = null;
+      log(`[DONE] Campaign generated for ${company} âœ“`, "log-ok");
+    }
+
+    addToCampaignHistory(data, isAB);
+    enableDownloadButtons();
+    renderOutput("email");
+    notify("Campaign Generated!", `HTML email + landing page ready for ${company}.`);
+
+  } catch(e) {
+    log(`[ERROR] ${e.message}`, "log-err");
+    log("[FALLBACK] Backend not yet updated â€” running demo preview", "log-warn");
+    _generatedData = buildDemoOutput(buildPayload("A"));
+    addToCampaignHistory(_generatedData, false);
+    enableDownloadButtons();
+    renderOutput("email");
+    notify("Demo Mode", "Backend /html-campaign endpoint not found. Preview uses local template.");
+  }
+
+  btn.disabled = false;
+  btn.textContent = isAB ? "âš¡ REGENERATE A/B CAMPAIGN" : "âš¡ REGENERATE CAMPAIGN";
+}
+
+// â”€â”€â”€ DEMO OUTPUT (local fallback) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function buildDemoOutput(p) {
+  const first = p.contact_name.split(" ")[0].toUpperCase();
+  const heroMap = {
+    default:"v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png",
+    rooftop_couple:"v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png",
+    wall_woman:"v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png",
+  };
+  const heroPath = heroMap[p.hero_image_key] || heroMap.default;
+  const heroUrl = `https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_600,h_220,f_auto,q_auto/${heroPath}`;
+  const copy = {
+    subject_line: `${first}, your ${p.segment} team is ready for an upgrade.`,
+    headline: `GEAR UP, ${first}.`,
+    subheadline: `Built for ${p.segment} teams.`,
+    body_copy: `Your team deserves apparel that performs as hard as they do. Premium heavyweight fleece, technical outerwear, and clean denim â€” from the floor to the boardroom.`,
+    cta_text: "CLAIM YOUR CUSTOM QUOTE",
+    lp_headline: `BUILT FOR ${p.segment.toUpperCase()}.`,
+    lp_body: `Custom logos. Fast turnaround. Built for ${p.company}.`,
+  };
+  return {
+    status: "demo", company: p.company, segment: p.segment, variant: "A",
+    copy, hero_url: heroUrl,
+    email_html: buildDemoEmailHtml(p, copy, heroUrl),
+    landing_page_html: `<html><body style="font-family:sans-serif;padding:40px;background:#F5F0E8;"><h1 style="color:#1C1C1C;">${copy.lp_headline}</h1><p>${copy.lp_body}</p><p style="color:#D4AF37;font-weight:bold;">Deploy backend to generate the full landing page.</p></body></html>`,
+  };
+}
+
+function buildDemoEmailHtml(p, copy, heroUrl) {
+  return `<!DOCTYPE html><html><head>
+<meta charset="UTF-8"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#F5F0E8;font-family:Helvetica Neue,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0E8;"><tr><td align="center" style="padding:24px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;">
+<tr><td style="background:#D4AF37;height:4px;font-size:0;">&nbsp;</td></tr>
+<tr><td style="background:#1C1C1C;padding:0;"><img src="${heroUrl}" width="600" style="display:block;width:100%;border:0;"/></td></tr>
+<tr><td style="background:#1C1C1C;padding:18px 32px;"><p style="margin:0;font-size:22px;font-weight:900;letter-spacing:4px;color:#fff;font-family:Impact,Arial Black,sans-serif;">URBAN<span style="color:#D4AF37;">THREADS</span></p></td></tr>
+<tr><td style="background:#D4AF37;height:2px;font-size:0;">&nbsp;</td></tr>
+<tr><td style="background:#1C1C1C;padding:40px 32px;text-align:center;">
+  <p style="margin:0 0 10px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#D4AF37;">Exclusively for ${p.company}</p>
+  <h1 style="margin:0 0 14px;font-size:46px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#fff;font-family:Impact,Arial Black,sans-serif;">${copy.headline}</h1>
+  <p style="margin:0 0 8px;font-size:15px;color:#D4AF37;">${copy.subheadline}</p>
+  <p style="margin:0 0 28px;font-size:14px;line-height:1.7;color:#C4A882;">${copy.body_copy}</p>
+  <a href="#" style="display:inline-block;background:#D4AF37;color:#1C1C1C;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:14px 36px;text-decoration:none;">${copy.cta_text}</a>
+</td></tr>
+<tr><td style="background:#D4AF37;height:2px;font-size:0;">&nbsp;</td></tr>
+<tr><td style="background:#F5F0E8;padding:32px 24px 24px;text-align:center;">
+  <p style="margin:0 0 6px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#D4AF37;">Curated for ${p.segment}</p>
+  <h2 style="margin:0 0 20px;font-size:24px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#1C1C1C;font-family:Impact,Arial Black,sans-serif;">YOUR TEAM'S COLLECTION</h2>
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="48%" style="vertical-align:top;background:#fff;border:1px solid #E5E0D8;padding:16px;text-align:center;">
+      <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_240,h_240,f_auto,q_auto/v1773412902/image-img_HOD-001.png" width="100%" style="display:block;border:0;"/>
+      <p style="margin:12px 0 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;">HOD-001</p>
+      <h3 style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1C1C1C;">Pullover Fleece Hoodie</h3>
+      <p style="margin:0 0 12px;font-size:17px;font-weight:700;color:#1C1C1C;">$64.99</p>
+      <a href="#" style="display:block;background:#1C1C1C;color:#D4AF37;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:10px;text-decoration:none;">SHOP NOW</a>
+    </td>
+    <td width="4%">&nbsp;</td>
+    <td width="48%" style="vertical-align:top;background:#fff;border:1px solid #E5E0D8;padding:16px;text-align:center;">
+      <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_240,h_240,f_auto,q_auto/v1773412900/image-img_OUT-001.png" width="100%" style="display:block;border:0;"/>
+      <p style="margin:12px 0 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;">OUT-001</p>
+      <h3 style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1C1C1C;">Packable Rain Jacket</h3>
+      <p style="margin:0 0 12px;font-size:17px;font-weight:700;color:#1C1C1C;">$119.99</p>
+      <a href="#" style="display:block;background:#1C1C1C;color:#D4AF37;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:10px;text-decoration:none;">SHOP NOW</a>
+    </td>
+  </tr></table>
+</td></tr>
+<tr><td style="background:#C4A882;padding:14px;text-align:center;"><p style="margin:0;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1C1C1C;">Free shipping over $75 &nbsp;|&nbsp; Custom quotes &nbsp;|&nbsp; 30-day guarantee</p></td></tr>
+<tr><td style="background:#1C1C1C;padding:28px;text-align:center;">
+  <p style="margin:0 0 12px;font-size:19px;font-weight:900;letter-spacing:4px;color:#fff;font-family:Impact,Arial Black,sans-serif;">URBAN<span style="color:#D4AF37;">THREADS</span></p>
+  <p style="margin:0;font-size:10px;color:#6B7280;">&copy; 2026 Urban Threads &nbsp;Â&middot;&nbsp; <a href="#" style="color:#6B7280;">Unsubscribe</a></p>
+</td></tr>
+<tr><td style="background:#D4AF37;height:4px;font-size:0;">&nbsp;</td></tr>
+</table></td></tr></table>
+</body></html>`;
+}
+
+// â”€â”€â”€ RENDER OUTPUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function renderOutput(type) {
+  const area = document.getElementById("preview-area");
+  const company = _generatedData?.company || document.getElementById("gen-company").textContent;
+  const slug = company.toLowerCase().replace(/\s+/g,"-");
+
+  document.querySelectorAll(".output-tab").forEach(t => t.classList.remove("active"));
+
+  if (type === "email") {
+    document.querySelector(".output-tab:nth-child(1)").classList.add("active");
+    document.getElementById("preview-url").textContent = `${API}/html-campaign/generate/email â†’ ut_${slug}_email.html`;
+    const html = _generatedData?.email_html || "";
+    area.innerHTML = `<iframe class="preview" srcdoc="${html.replace(/"/g,"&quot;")}"></iframe>`;
+  } else if (type === "landing") {
+    document.querySelector(".output-tab:nth-child(2)").classList.add("active");
+    document.getElementById("preview-url").textContent = `${API}/html-campaign/generate/landing-page â†’ ut_${slug}_landing.html`;
+    const html = _generatedData?.landing_page_html || "";
+    area.innerHTML = `<iframe class="preview" srcdoc="${html.replace(/"/g,"&quot;")}"></iframe>`;
+  } else if (type === "copy") {
+    document.querySelector(".output-tab:nth-child(3)").classList.add("active");
+    document.getElementById("preview-url").textContent = `Campaign copy for ${company}`;
+    const copy = _generatedData?.copy || {};
+    area.innerHTML = `<div style="padding:24px;height:540px;overflow-y:auto;">
+      <div class="copy-card"><div class="copy-card-label">Subject Line</div><div class="copy-card-val">${copy.subject_line||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Preview Text</div><div class="copy-card-val" style="font-size:13px;color:var(--slate);">${copy.preview_text||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Email Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:28px;letter-spacing:2px;">${copy.headline||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Subheadline</div><div class="copy-card-val">${copy.subheadline||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Body Copy</div><div class="copy-card-val" style="font-size:13px;line-height:1.7;">${copy.body_copy||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--gold);font-weight:700;">${copy.cta_text||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Landing Page Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:24px;letter-spacing:2px;">${copy.lp_headline||"â€”"}</div></div>
+    </div>`;
+  } else if (type === "ab" && _generatedAB) {
+    document.getElementById("ab-tab").classList.add("active");
+    document.getElementById("preview-url").textContent = `A/B Test: ${_generatedAB.variant_a?.tone} vs ${_generatedAB.variant_b?.tone}`;
+    const a = _generatedAB.variant_a;
+    const b = _generatedAB.variant_b;
+    area.innerHTML = `<div class="ab-grid" style="padding:16px;height:540px;overflow-y:auto;">
+      <div class="ab-card">
+        <div class="ab-header a">VARIANT A â€” ${a?.tone||""}</div>
+        <div style="padding:14px;">
+          <div class="copy-card"><div class="copy-card-label">Subject</div><div class="copy-card-val" style="font-size:12px;">${a?.copy?.subject_line||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:20px;">${a?.copy?.headline||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--gold);">${a?.copy?.cta_text||"â€”"}</div></div>
+          <button class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center;" onclick="downloadVariant('A')">â¬‡ Download Variant A</button>
+        </div>
+      </div>
+      <div class="ab-card">
+        <div class="ab-header b">VARIANT B â€” ${b?.tone||""}</div>
+        <div style="padding:14px;">
+          <div class="copy-card"><div class="copy-card-label">Subject</div><div class="copy-card-val" style="font-size:12px;">${b?.copy?.subject_line||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:20px;">${b?.copy?.headline||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--amber);">${b?.copy?.cta_text||"â€”"}</div></div>
+          <button class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center;" onclick="downloadVariant('B')">â¬‡ Download Variant B</button>
+        </div>
+      </div>
+    </div>`;
+  }
+}
+
+function switchOutput(type, el) {
+  renderOutput(type);
+}
+
+// â”€â”€â”€ DOWNLOAD HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function enableDownloadButtons() {
+  document.getElementById("btn-dl-email").disabled = false;
+  document.getElementById("btn-dl-lp").disabled = false;
+  document.getElementById("btn-hubspot").disabled = false;
+  document.getElementById("stat-campaigns").textContent = _campaignHistory.length;
+}
+
+function downloadBlob(html, filename) {
+  const blob = new Blob([html], {type:"text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  notify("Downloaded!", filename);
+}
+
+function downloadEmail() {
+  if (!_generatedData?.email_html) return;
+  const slug = (_generatedData.company||"campaign").toLowerCase().replace(/\s+/g,"-");
+  downloadBlob(_generatedData.email_html, `ut_${slug}_email.html`);
+  log(`[DOWNLOAD] Email HTML downloaded: ut_${slug}_email.html`, "log-ok");
+}
+
+function downloadLP() {
+  if (!_generatedData?.landing_page_html) return;
+  const slug = (_generatedData.company||"campaign").toLowerCase().replace(/\s+/g,"-");
+  downloadBlob(_generatedData.landing_page_html, `ut_${slug}_landing.html`);
+  log(`[DOWNLOAD] Landing page downloaded: ut_${slug}_landing.html`, "log-ok");
+}
+
+function downloadVariant(v) {
+  if (!_generatedAB) return;
+  const data = v === "A" ? _generatedAB.variant_a : _generatedAB.variant_b;
+  const slug = (_generatedAB.company||"campaign").toLowerCase().replace(/\s+/g,"-");
+  downloadBlob(data.email_html, `ut_${slug}_email_variant${v}.html`);
+  log(`[DOWNLOAD] Variant ${v} downloaded`, "log-ok");
+}
+
+// â”€â”€â”€ LOG TO HUBSPOT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function logToHubSpot() {
+  const company = _generatedData?.company || document.getElementById("gen-company").textContent;
+  log(`[HubSpot] Logging campaign activity for ${company}...`, "log-info");
+  try {
+    const contactId = _prospects.find(p => p.company_name === company)?.contact?.id;
+    if (contactId) {
+      const r = await fetch(`${API}/abm/log-activity`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          contact_id: contactId,
+          note: `AgenticFlow AI Campaign generated for ${company}. Tone: ${_generatedData?.copy?.subject_line||""}`,
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (r.ok) {
+        log(`[HubSpot] Activity logged âœ“`, "log-ok");
+        notify("Logged to HubSpot", `Campaign activity recorded for ${company}.`);
+      } else throw new Error(r.status);
+    } else {
+      log(`[HubSpot] No contact ID found â€” note this in HubSpot manually`, "log-warn");
+      notify("HubSpot", `No contact ID mapped. Log manually for ${company}.`);
+    }
+  } catch(e) {
+    log(`[HubSpot] Log attempt: ${e.message}`, "log-warn");
+    notify("HubSpot", "Activity endpoint not available. Campaign data is ready to copy.");
+  }
+}
+
+// â”€â”€â”€ CAMPAIGN HISTORY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function addToCampaignHistory(data, isAB) {
+  const entry = {
+    company: data.company || data.variant_a?.company || "",
+    segment: data.segment || "",
+    tone: isAB ? `${data.variant_a?.tone} / ${data.variant_b?.tone}` : (data.copy ? document.querySelector(".tone-chip.selected")?.textContent : ""),
+    variant: isAB ? "A/B" : (data.variant||"A"),
+    generated_at: new Date().toLocaleTimeString(), data,
+  };
+  _campaignHistory.unshift(entry);
+  renderCampaignHistory();
+}
+
+function renderCampaignHistory() {
+  const count = _campaignHistory.length;
+  document.getElementById("campaign-count").textContent = count;
+  document.getElementById("stat-campaigns").textContent = count;
+  const rows = _campaignHistory.map((c,i) => `
+    <tr>
+      <td><div class="company-name">${c.company}</div></td>
+      <td style="font-size:11px;color:var(--slate);">${c.segment}</td>
+      <td style="font-size:11px;">${c.tone}</td>
+      <td><span class="badge ${c.variant==="A/B"?"badge-warm":"badge-ok"}">${c.variant}</span></td>
+      <td style="font-size:11px;color:var(--slate);">${c.generated_at}</td>
+      <td><div class="action-cell">
+        <button class="icon-btn" onclick="reloadCampaign(${i})" title="Preview">ðŸ‘</button>
+        <button class="icon-btn" onclick="downloadCampaign(${i},'email')" title="Download Email">ðŸ“§</button>
+        <button class="icon-btn" onclick="downloadCampaign(${i},'lp')" title="Download LP">ðŸŒ</button>
+      </div></td>
+    </tr>`).join("");
+  document.getElementById("full-campaign-tbody").innerHTML = rows || `<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:20px;">No campaigns yet.</td></tr>`;
+  document.getElementById("campaign-history-tbody").innerHTML = _campaignHistory.slice(0,4).map((c,i) => `
+    <tr>
+      <td><div class="company-name" style="font-size:12px;">${c.company}</div></td>
+      <td><span class="badge ${c.variant==="A/B"?"badge-warm":"badge-ok"}" style="font-size:9px;">${c.variant}</span></td>
+      <td style="font-size:11px;color:var(--slate);">${c.tone}</td>
+      <td><div class="action-cell">
+        <button class="icon-btn" style="width:24px;height:24px;font-size:11px;" onclick="downloadCampaign(${i},'email')">ðŸ“§</button>
+        <button class="icon-btn" style="width:24px;height:24px;font-size:11px;" onclick="downloadCampaign(${i},'lp')">ðŸŒ</button>
+      </div></td>
+    </tr>`).join("") || `<tr><td colspan="4" style="text-align:center;color:var(--slate);padding:20px;">No campaigns yet.</td></tr>`;
+}
+
+function reloadCampaign(i) {
+  _generatedData = _campaignHistory[i].data;
+  showPanel("generator");
+  renderOutput("email");
+}
+
+function downloadCampaign(i, type) {
+  const c = _campaignHistory[i];
+  const d = c.data;
+  const slug = (c.company||"campaign").toLowerCase().replace(/\s+/g,"-");
+  if (type === "email") downloadBlob(d.email_html||d.variant_a?.email_html||"", `ut_${slug}_email.html`);
+  else downloadBlob(d.landing_page_html||d.variant_a?.landing_page_html||"", `ut_${slug}_landing.html`);
+}
+
+// â”€â”€â”€ SYNC ALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function syncAll() {
+  log("[SYNC] Refreshing all integrations...", "log-info");
+  checkApiHealth();
+  loadProspects();
+}
+
+// â”€â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+window.addEventListener("DOMContentLoaded", () => {
+  checkApiHealth();
+  loadProspects();
+  updatePrompt();
+});
+</script>
+
+</body>
+</html>
+
+
