@@ -737,7 +737,7 @@
     if (tbody) tbody.innerHTML = rows || "<tr><td colspan='7' style='color:var(--slate);text-align:center;padding:28px;'>No prospects found.</td></tr>";
 
     var dashRows = "";
-    prospects.slice(0,5).forEach(function(p) {
+    prospects.slice(0,5).forEach(function(p, i) {
       var score = p.score || p.engagement_score || 0;
       var stage = score >= 80 ? "HOT" : score >= 60 ? "WARM" : "COLD";
       var badgeCls = stage === "HOT" ? "badge-hot" : stage === "WARM" ? "badge-warm" : "badge-cold";
