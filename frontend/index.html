@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgenticFlow — ABM Intelligence Dashboard v2</title>
+  <title>AgenticFlow â€” ABM Intelligence Dashboard v2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -156,7 +156,7 @@
     .hero-thumb img{width:100%;height:100%;object-fit:cover;}
     .hero-thumb:hover{border-color:var(--gold);}
     .hero-thumb.selected{border-color:var(--gold);}
-    .hero-thumb.selected::after{content:"✓";position:absolute;top:3px;right:3px;background:var(--gold);color:var(--charcoal);font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+    .hero-thumb.selected::after{content:"âœ“";position:absolute;top:3px;right:3px;background:var(--gold);color:var(--charcoal);font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
 
     /* GENERATE BTN */
     .generate-btn{width:100%;padding:16px;font-family:var(--head);font-size:22px;letter-spacing:3px;background:var(--gold);color:var(--charcoal);border:none;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
@@ -248,9 +248,9 @@
 <nav class="topnav">
   <div class="topnav-brand">AGENTICFLOW <span>ABM</span></div>
   <div class="topnav-meta">
-    <div class="api-status checking" id="api-status">⟳ Connecting...</div>
-    <button class="sync-btn" onclick="syncAll()">⟳ Sync All</button>
-    <span style="font-size:11px;color:var(--slate);">HubSpot · Directus · Cloudinary</span>
+    <div class="api-status checking" id="api-status">âŸ³ Connecting...</div>
+    <button class="sync-btn" onclick="syncAll()">âŸ³ Sync All</button>
+    <span style="font-size:11px;color:var(--slate);">HubSpot Â· Directus Â· Cloudinary</span>
     <div class="topnav-avatar">UT</div>
   </div>
 </nav>
@@ -260,41 +260,41 @@
   <aside class="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label">Intelligence</div>
-      <div class="nav-item active" onclick="showPanel('dashboard')"><span class="icon">📊</span> Dashboard</div>
-      <div class="nav-item" onclick="showPanel('prospects')"><span class="icon">🎯</span> Prospects<span class="nav-count hot" id="prospect-count">—</span></div>
-      <div class="nav-item" onclick="showPanel('pipeline')"><span class="icon">📈</span> Pipeline</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')"><span class="icon">ðŸ“Š</span> Dashboard</div>
+      <div class="nav-item" onclick="showPanel('prospects')"><span class="icon">ðŸŽ¯</span> Prospects<span class="nav-count hot" id="prospect-count">â€”</span></div>
+      <div class="nav-item" onclick="showPanel('pipeline')"><span class="icon">ðŸ“ˆ</span> Pipeline</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Campaign Generator</div>
-      <div class="nav-item" onclick="showPanel('generator')"><span class="icon">⚡</span> AI Generator<span class="nav-count hot">NEW</span></div>
-      <div class="nav-item" onclick="showPanel('campaigns')"><span class="icon">📧</span> Campaigns<span class="nav-count" id="campaign-count">0</span></div>
+      <div class="nav-item" onclick="showPanel('generator')"><span class="icon">âš¡</span> AI Generator<span class="nav-count hot">NEW</span></div>
+      <div class="nav-item" onclick="showPanel('campaigns')"><span class="icon">ðŸ“§</span> Campaigns<span class="nav-count" id="campaign-count">0</span></div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Assets</div>
-      <div class="nav-item" onclick="showPanel('cloudinary')"><span class="icon">🖼️</span> Cloudinary</div>
-      <div class="nav-item" onclick="showPanel('products')"><span class="icon">👕</span> Products</div>
+      <div class="nav-item" onclick="showPanel('cloudinary')"><span class="icon">ðŸ–¼ï¸</span> Cloudinary</div>
+      <div class="nav-item" onclick="showPanel('products')"><span class="icon">ðŸ‘•</span> Products</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">System</div>
-      <div class="nav-item" onclick="showPanel('settings')"><span class="icon">⚙️</span> Settings</div>
+      <div class="nav-item" onclick="showPanel('settings')"><span class="icon">âš™ï¸</span> Settings</div>
     </div>
   </aside>
 
   <!-- MAIN -->
   <main class="main">
 
-    <!-- ═══ DASHBOARD ═══ -->
+    <!-- â•â•â• DASHBOARD â•â•â• -->
     <div id="panel-dashboard" class="panel">
       <div class="page-header">
         <div class="page-label">Urban Threads</div>
         <div class="page-title">ABM INTELLIGENCE DASHBOARD</div>
-        <div class="page-sub">Account-based marketing · HubSpot · Directus · Cloudinary · AgenticFlow AI</div>
+        <div class="page-sub">Account-based marketing Â· HubSpot Â· Directus Â· Cloudinary Â· AgenticFlow AI</div>
       </div>
       <div class="stats-row">
-        <div class="stat-card"><div class="s-label">Hot Prospects</div><div class="s-val gold" id="stat-prospects">—</div><div class="s-delta up" id="stat-prospects-d"></div></div>
+        <div class="stat-card"><div class="s-label">Hot Prospects</div><div class="s-val gold" id="stat-prospects">â€”</div><div class="s-delta up" id="stat-prospects-d"></div></div>
         <div class="stat-card"><div class="s-label">Campaigns Generated</div><div class="s-val" id="stat-campaigns">0</div><div class="s-delta up">This session</div></div>
-        <div class="stat-card"><div class="s-label">Avg. ABM Score</div><div class="s-val green" id="stat-score">—</div><div class="s-delta">Across all prospects</div></div>
-        <div class="stat-card"><div class="s-label">Pipeline Value</div><div class="s-val gold" id="stat-pipeline">—</div><div class="s-delta up">From HubSpot</div></div>
+        <div class="stat-card"><div class="s-label">Avg. ABM Score</div><div class="s-val green" id="stat-score">â€”</div><div class="s-delta">Across all prospects</div></div>
+        <div class="stat-card"><div class="s-label">Pipeline Value</div><div class="s-val gold" id="stat-pipeline">â€”</div><div class="s-delta up">From HubSpot</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
         <div class="card">
@@ -308,33 +308,33 @@
           <div class="card-title">Generated Campaigns</div>
           <table class="data-table">
             <thead><tr><th>Company</th><th>Variant</th><th>Tone</th><th>Actions</th></tr></thead>
-            <tbody id="campaign-history-tbody"><tr><td colspan="4" style="color:var(--slate);text-align:center;padding:20px;">No campaigns yet. Generate one! ⚡</td></tr></tbody>
+            <tbody id="campaign-history-tbody"><tr><td colspan="4" style="color:var(--slate);text-align:center;padding:20px;">No campaigns yet. Generate one! âš¡</td></tr></tbody>
           </table>
         </div>
       </div>
       <div class="card">
         <div class="card-title">Quick Launch</div>
-        <p style="font-size:13px;color:var(--slate);margin-bottom:16px;">Select a warm prospect from the table, click ⚡ to pre-fill the Generator. The system pulls live CRM data, Directus products, and Cloudinary assets to build a downloadable HTML email + landing page.</p>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:16px;">Select a warm prospect from the table, click âš¡ to pre-fill the Generator. The system pulls live CRM data, Directus products, and Cloudinary assets to build a downloadable HTML email + landing page.</p>
         <div style="display:flex;gap:12px;">
-          <button class="btn btn-gold" onclick="showPanel('prospects')">⚡ Browse Prospects</button>
-          <button class="btn btn-outline" onclick="showPanel('generator')">🎛 Open Generator</button>
+          <button class="btn btn-gold" onclick="showPanel('prospects')">âš¡ Browse Prospects</button>
+          <button class="btn btn-outline" onclick="showPanel('generator')">ðŸŽ› Open Generator</button>
         </div>
       </div>
     </div>
 
-    <!-- ═══ PROSPECTS ═══ -->
+    <!-- â•â•â• PROSPECTS â•â•â• -->
     <div id="panel-prospects" class="panel panel-hidden">
       <div class="page-header">
         <div class="page-label">HubSpot CRM</div>
         <div class="page-title">WARM PROSPECTS</div>
-        <div class="page-sub">ABM-scored accounts. Click ⚡ to launch the AI Campaign Generator.</div>
+        <div class="page-sub">ABM-scored accounts. Click âš¡ to launch the AI Campaign Generator.</div>
       </div>
       <div class="table-toolbar">
         <input class="search-box" type="text" placeholder="Search companies..." oninput="filterProspects(this.value)" />
         <select class="filter-select" onchange="filterByStage(this.value)">
           <option value="">All Stages</option><option>HOT</option><option>WARM</option><option>COLD</option>
         </select>
-        <button class="btn btn-outline" onclick="loadProspects()">⟳ Refresh HubSpot</button>
+        <button class="btn btn-outline" onclick="loadProspects()">âŸ³ Refresh HubSpot</button>
       </div>
       <table class="data-table">
         <thead><tr>
@@ -347,10 +347,10 @@
       </table>
     </div>
 
-    <!-- ═══ GENERATOR ═══ -->
+    <!-- â•â•â• GENERATOR â•â•â• -->
     <div id="panel-generator" class="panel panel-hidden">
       <div class="page-header">
-        <div class="page-label">AI Campaign Generator — Real API</div>
+        <div class="page-label">AI Campaign Generator â€” Real API</div>
         <div class="page-title">CAMPAIGN BUILDER</div>
         <div class="page-sub">Generates personalized HTML email + landing page via the AgenticFlow backend. Downloads are real files.</div>
       </div>
@@ -363,16 +363,16 @@
               <div class="prospect-logo-lg" id="gen-logo">AX</div>
               <div class="prospect-info">
                 <h3 id="gen-company">Select a Prospect</h3>
-                <p id="gen-contact">—</p>
+                <p id="gen-contact">â€”</p>
                 <p id="gen-email" style="font-size:11px;margin-top:2px;"></p>
-                <span class="score-pill" id="gen-score-pill">—</span>
+                <span class="score-pill" id="gen-score-pill">â€”</span>
               </div>
             </div>
             <div class="crm-data">
-              <div class="crm-item"><div class="crm-key">Segment</div><div class="crm-val" id="gen-segment">—</div></div>
-              <div class="crm-item"><div class="crm-key">Deal Value</div><div class="crm-val gold" id="gen-deal">—</div></div>
-              <div class="crm-item"><div class="crm-key">ABM Score</div><div class="crm-val gold" id="gen-abm-score">—</div></div>
-              <div class="crm-item"><div class="crm-key">Stage</div><div class="crm-val" id="gen-stage">—</div></div>
+              <div class="crm-item"><div class="crm-key">Segment</div><div class="crm-val" id="gen-segment">â€”</div></div>
+              <div class="crm-item"><div class="crm-key">Deal Value</div><div class="crm-val gold" id="gen-deal">â€”</div></div>
+              <div class="crm-item"><div class="crm-key">ABM Score</div><div class="crm-val gold" id="gen-abm-score">â€”</div></div>
+              <div class="crm-item"><div class="crm-key">Stage</div><div class="crm-val" id="gen-stage">â€”</div></div>
             </div>
           </div>
 
@@ -380,13 +380,13 @@
             <div class="card-title">Featured Products <span style="color:var(--slate);font-size:9px;">(Directus PIM)</span></div>
             <div class="product-picks" id="product-picks">
               <div class="product-pick selected" data-sku="HOD-001" onclick="toggleProduct(this)">
-                <div class="pick-check">✓</div>
+                <div class="pick-check">âœ“</div>
                 <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_44,h_44,f_auto,q_auto/v1773412902/image-img_HOD-001.png" />
                 <div class="product-pick-info"><div class="product-pick-name">Pullover Fleece Hoodie</div><div class="product-pick-sku">HOD-001</div></div>
                 <div class="product-pick-price">$64.99</div>
               </div>
               <div class="product-pick selected" data-sku="OUT-001" onclick="toggleProduct(this)">
-                <div class="pick-check">✓</div>
+                <div class="pick-check">âœ“</div>
                 <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_44,h_44,f_auto,q_auto/v1773412900/image-img_OUT-001.png" />
                 <div class="product-pick-info"><div class="product-pick-name">Packable Rain Jacket</div><div class="product-pick-sku">OUT-001</div></div>
                 <div class="product-pick-price">$119.99</div>
@@ -447,7 +447,7 @@
             </div>
           </div>
 
-          <button class="generate-btn" id="generate-btn" onclick="runGenerator()">⚡ GENERATE CAMPAIGN</button>
+          <button class="generate-btn" id="generate-btn" onclick="runGenerator()">âš¡ GENERATE CAMPAIGN</button>
         </div>
 
         <!-- RIGHT OUTPUT -->
@@ -460,8 +460,8 @@
           <div class="card">
             <div class="card-title">Agent Log</div>
             <div class="log-stream" id="agent-log">
-<span class="log-info">[SYSTEM]</span> AgenticFlow v2.0 ready — Real API mode<br/>
-<span class="log-info">[API]</span> Backend: https://pim-dam-crm-integration-production-62d7.up.railway.app/html-campaign/<br/>
+<span class="log-info">[SYSTEM]</span> AgenticFlow v2.0 ready â€” Real API mode<br/>
+<span class="log-info">[API]</span> Backend: https://pim-dam-crm-integration-production.up.railway.app/html-campaign/<br/>
 <span class="log-info">[HubSpot]</span> Checking connection...<br/>
             </div>
           </div>
@@ -469,24 +469,24 @@
           <div class="card" style="flex:1;">
             <div class="card-title">Campaign Output</div>
             <div class="output-tabs" id="output-tabs">
-              <div class="output-tab active" onclick="switchOutput('email',this)">📧 Email</div>
-              <div class="output-tab" onclick="switchOutput('landing',this)">🌐 Landing Page</div>
-              <div class="output-tab" onclick="switchOutput('copy',this)">✍️ Copy</div>
-              <div class="output-tab" id="ab-tab" style="display:none;" onclick="switchOutput('ab',this)">🔀 A/B Compare</div>
+              <div class="output-tab active" onclick="switchOutput('email',this)">ðŸ“§ Email</div>
+              <div class="output-tab" onclick="switchOutput('landing',this)">ðŸŒ Landing Page</div>
+              <div class="output-tab" onclick="switchOutput('copy',this)">âœï¸ Copy</div>
+              <div class="output-tab" id="ab-tab" style="display:none;" onclick="switchOutput('ab',this)">ðŸ”€ A/B Compare</div>
             </div>
             <div class="preview-frame">
               <div class="preview-toolbar">
                 <div class="preview-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
                 <div class="preview-url" id="preview-url">Awaiting generation...</div>
                 <div class="preview-actions">
-                  <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;" id="btn-dl-email" onclick="downloadEmail()" disabled>⬇ Email HTML</button>
-                  <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;" id="btn-dl-lp" onclick="downloadLP()" disabled>⬇ Landing Page</button>
-                  <button class="btn btn-gold" style="font-size:10px;padding:5px 12px;" id="btn-hubspot" onclick="logToHubSpot()" disabled>📤 Log to HubSpot</button>
+                  <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;" id="btn-dl-email" onclick="downloadEmail()" disabled>â¬‡ Email HTML</button>
+                  <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;" id="btn-dl-lp" onclick="downloadLP()" disabled>â¬‡ Landing Page</button>
+                  <button class="btn btn-gold" style="font-size:10px;padding:5px 12px;" id="btn-hubspot" onclick="logToHubSpot()" disabled>ðŸ“¤ Log to HubSpot</button>
                 </div>
               </div>
               <div id="preview-area">
                 <div class="placeholder-preview">
-                  <div class="ph-icon">⚡</div>
+                  <div class="ph-icon">âš¡</div>
                   <div class="ph-title">READY TO GENERATE</div>
                   <p style="font-size:13px;max-width:320px;line-height:1.6;">Select a prospect, configure products and tone, then click <b style="color:var(--gold);">Generate Campaign</b>.</p>
                 </div>
@@ -497,45 +497,45 @@
       </div>
     </div>
 
-    <!-- ═══ PIPELINE ═══ -->
+    <!-- â•â•â• PIPELINE â•â•â• -->
     <div id="panel-pipeline" class="panel panel-hidden">
       <div class="page-header"><div class="page-label">HubSpot CRM</div><div class="page-title">DEAL PIPELINE</div></div>
       <div class="pipeline">
         <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title">Identified</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card"><div class="pipeline-card-company">Summit Hospitality</div><div class="pipeline-card-value">$12,000</div><div class="pipeline-card-meta">Score: 45</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:45%"></div></div></div><div class="pipeline-card"><div class="pipeline-card-company">BluePeak Media</div><div class="pipeline-card-value">$8,500</div><div class="pipeline-card-meta">Score: 38</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:38%"></div></div></div></div></div>
         <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title">Engaged</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card"><div class="pipeline-card-company">Valor Athletics</div><div class="pipeline-card-value">$22,000</div><div class="pipeline-card-meta">Score: 78</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:78%"></div></div></div><div class="pipeline-card"><div class="pipeline-card-company">TechStack HQ</div><div class="pipeline-card-value">$15,000</div><div class="pipeline-card-meta">Score: 71</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:71%"></div></div></div></div></div>
         <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title" style="color:var(--amber);">Hot / Campaigned</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card" style="border-color:rgba(212,175,55,0.3)"><div class="pipeline-card-company">Axiom Fitness Co.</div><div class="pipeline-card-value" style="color:var(--gold);">$28,000</div><div class="pipeline-card-meta">Score: 92</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:92%"></div></div></div><div class="pipeline-card" style="border-color:rgba(212,175,55,0.3)"><div class="pipeline-card-company">Nexus Creative</div><div class="pipeline-card-value" style="color:var(--gold);">$18,500</div><div class="pipeline-card-meta">Score: 85</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:85%"></div></div></div></div></div>
-        <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title" style="color:var(--green);">Closed / Won</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card" style="border-color:rgba(34,197,94,0.3)"><div class="pipeline-card-company">Meridian Gym Group</div><div class="pipeline-card-value" style="color:var(--green);">$34,000 ✓</div><div class="pipeline-card-meta">Closed Mar 10</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:100%;background:var(--green)"></div></div></div><div class="pipeline-card" style="border-color:rgba(34,197,94,0.3)"><div class="pipeline-card-company">UrbanCore Coffee</div><div class="pipeline-card-value" style="color:var(--green);">$11,200 ✓</div><div class="pipeline-card-meta">Closed Mar 3</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:100%;background:var(--green)"></div></div></div></div></div>
+        <div class="pipeline-col"><div class="pipeline-col-head"><span class="pipeline-col-title" style="color:var(--green);">Closed / Won</span><span class="pipeline-col-count">2</span></div><div class="pipeline-cards"><div class="pipeline-card" style="border-color:rgba(34,197,94,0.3)"><div class="pipeline-card-company">Meridian Gym Group</div><div class="pipeline-card-value" style="color:var(--green);">$34,000 âœ“</div><div class="pipeline-card-meta">Closed Mar 10</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:100%;background:var(--green)"></div></div></div><div class="pipeline-card" style="border-color:rgba(34,197,94,0.3)"><div class="pipeline-card-company">UrbanCore Coffee</div><div class="pipeline-card-value" style="color:var(--green);">$11,200 âœ“</div><div class="pipeline-card-meta">Closed Mar 3</div><div class="pipeline-bar"><div class="pipeline-bar-fill" style="width:100%;background:var(--green)"></div></div></div></div></div>
       </div>
     </div>
 
-    <!-- ═══ CAMPAIGNS ═══ -->
+    <!-- â•â•â• CAMPAIGNS â•â•â• -->
     <div id="panel-campaigns" class="panel panel-hidden">
       <div class="page-header"><div class="page-label">This Session</div><div class="page-title">GENERATED CAMPAIGNS</div><div class="page-sub">All campaigns generated in this browser session. Download or send via HubSpot.</div></div>
       <table class="data-table">
         <thead><tr><th>Company</th><th>Segment</th><th>Tone</th><th>Variant</th><th>Generated</th><th>Actions</th></tr></thead>
-        <tbody id="full-campaign-tbody"><tr><td colspan="6" style="color:var(--slate);text-align:center;padding:28px;">No campaigns yet. Generate one! ⚡</td></tr></tbody>
+        <tbody id="full-campaign-tbody"><tr><td colspan="6" style="color:var(--slate);text-align:center;padding:28px;">No campaigns yet. Generate one! âš¡</td></tr></tbody>
       </table>
     </div>
 
-    <!-- ═══ CLOUDINARY ═══ -->
+    <!-- â•â•â• CLOUDINARY â•â•â• -->
     <div id="panel-cloudinary" class="panel panel-hidden">
-      <div class="page-header"><div class="page-label">Cloudinary DAM</div><div class="page-title">BRAND ASSET LIBRARY</div><div class="page-sub">18 SS26 lifestyle campaign shots · All optimized f_auto,q_auto</div></div>
+      <div class="page-header"><div class="page-label">Cloudinary DAM</div><div class="page-title">BRAND ASSET LIBRARY</div><div class="page-sub">18 SS26 lifestyle campaign shots Â· All optimized f_auto,q_auto</div></div>
       <div class="card" style="margin-bottom:20px;">
-        <div class="card-title">Lifestyle Campaign — SS26</div>
+        <div class="card-title">Lifestyle Campaign â€” SS26</div>
         <div class="asset-grid">
-          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png"/><div class="asset-info"><div class="asset-tag">HOD-001 · ACC-001</div><div class="asset-name">City Street Heels Woman</div></div></div>
-          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png"/><div class="asset-info"><div class="asset-tag">HOD-001 · ACC-001</div><div class="asset-name">Rooftop Couple</div></div></div>
-          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png"/><div class="asset-info"><div class="asset-tag">HOD-001 · ACC-001</div><div class="asset-name">Night Wall Woman</div></div></div>
-          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png"/><div class="asset-info"><div class="asset-tag">HOD-001 · ACC-001</div><div class="asset-name">Car Hood Couple</div></div></div>
-          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png"/><div class="asset-info"><div class="asset-tag">HOD-001 · ACC-001</div><div class="asset-name">Rooftop Man</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â· ACC-001</div><div class="asset-name">City Street Heels Woman</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â· ACC-001</div><div class="asset-name">Rooftop Couple</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â· ACC-001</div><div class="asset-name">Night Wall Woman</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â· ACC-001</div><div class="asset-name">Car Hood Couple</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png"/><div class="asset-info"><div class="asset-tag">HOD-001 Â· ACC-001</div><div class="asset-name">Rooftop Man</div></div></div>
           <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727363/KNIT-001coffeeshopMan_rvhsik.png"/><div class="asset-info"><div class="asset-tag">KNIT-001</div><div class="asset-name">Coffee Shop Man</div></div></div>
           <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727365/OUT-001RainStreetwoman_zyssut.png"/><div class="asset-info"><div class="asset-tag">OUT-001</div><div class="asset-name">Rain Street Woman</div></div></div>
-          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727367/OUT-002_KNIT-001_DNM-003_ACC-002stepsman_pvdcbn.png"/><div class="asset-info"><div class="asset-tag">OUT-002 · KNIT-001</div><div class="asset-name">Steps Man</div></div></div>
+          <div class="asset-card"><img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_300,h_169,f_auto,q_auto/v1774727367/OUT-002_KNIT-001_DNM-003_ACC-002stepsman_pvdcbn.png"/><div class="asset-info"><div class="asset-tag">OUT-002 Â· KNIT-001</div><div class="asset-name">Steps Man</div></div></div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ PRODUCTS ═══ -->
+    <!-- â•â•â• PRODUCTS â•â•â• -->
     <div id="panel-products" class="panel panel-hidden">
       <div class="page-header"><div class="page-label">Directus PIM</div><div class="page-title">PRODUCT CATALOG</div></div>
       <table class="data-table">
@@ -551,24 +551,24 @@
       </table>
     </div>
 
-    <!-- ═══ SETTINGS ═══ -->
+    <!-- â•â•â• SETTINGS â•â•â• -->
     <div id="panel-settings" class="panel panel-hidden">
       <div class="page-header"><div class="page-label">Configuration</div><div class="page-title">INTEGRATIONS</div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
         <div class="card"><div class="card-title">Backend API</div><div class="crm-data">
-          <div class="crm-item"><div class="crm-key">URL</div><div class="crm-val" style="font-size:11px;word-break:break-all;">https://pim-dam-crm-integration-production-62d7.up.railway.app</div></div>
+          <div class="crm-item"><div class="crm-key">URL</div><div class="crm-val" style="font-size:11px;word-break:break-all;">https://pim-dam-crm-integration-production.up.railway.app</div></div>
           <div class="crm-item"><div class="crm-key">Status</div><div class="crm-val" id="settings-api-status">Checking...</div></div>
           <div class="crm-item"><div class="crm-key">Generator</div><div class="crm-val gold">/html-campaign/generate</div></div>
           <div class="crm-item"><div class="crm-key">A/B Test</div><div class="crm-val gold">/html-campaign/generate/ab-test</div></div>
         </div></div>
         <div class="card"><div class="card-title">HubSpot CRM</div><div class="crm-data">
           <div class="crm-item"><div class="crm-key">Status</div><div class="crm-val" id="settings-hs-status">Checking...</div></div>
-          <div class="crm-item"><div class="crm-key">Prospects</div><div class="crm-val" id="settings-hs-count">—</div></div>
+          <div class="crm-item"><div class="crm-key">Prospects</div><div class="crm-val" id="settings-hs-count">â€”</div></div>
           <div class="crm-item"><div class="crm-key">Endpoint</div><div class="crm-val gold">/abm/warm-prospects</div></div>
           <div class="crm-item"><div class="crm-key">Sync</div><div class="crm-val">On demand</div></div>
         </div></div>
         <div class="card"><div class="card-title">Directus PIM</div><div class="crm-data">
-          <div class="crm-item"><div class="crm-key">Status</div><div class="crm-val gold">● Connected</div></div>
+          <div class="crm-item"><div class="crm-key">Status</div><div class="crm-val gold">â— Connected</div></div>
           <div class="crm-item"><div class="crm-key">Products</div><div class="crm-val">30</div></div>
           <div class="crm-item"><div class="crm-key">Active SKUs</div><div class="crm-val">30</div></div>
           <div class="crm-item"><div class="crm-key">Sync</div><div class="crm-val">Via backend</div></div>
@@ -592,17 +592,17 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // CONFIG
-// ═══════════════════════════════════════════════════════════════
-const API = "https://pim-dam-crm-integration-production-62d7.up.railway.app";
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+const API = "https://pim-dam-crm-integration-production.up.railway.app";
 let _prospects = [];
 let _generatedData = null;
 let _generatedAB = null;
 let _campaignHistory = [];
 let _selectedHeroKey = "default";
 
-// ─── PANEL NAVIGATION ───────────────────────────────────────
+// â”€â”€â”€ PANEL NAVIGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function showPanel(name) {
   document.querySelectorAll(".panel").forEach(p => p.classList.add("panel-hidden"));
   document.getElementById("panel-" + name).classList.remove("panel-hidden");
@@ -610,7 +610,7 @@ function showPanel(name) {
   event && event.currentTarget && event.currentTarget.classList.add("active");
 }
 
-// ─── NOTIFICATION ─────────────────────────────────────────
+// â”€â”€â”€ NOTIFICATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function notify(title, body, duration=4000) {
   const el = document.getElementById("notification");
   document.getElementById("notif-title").textContent = title;
@@ -619,7 +619,7 @@ function notify(title, body, duration=4000) {
   setTimeout(() => el.classList.remove("show"), duration);
 }
 
-// ─── LOG ──────────────────────────────────────────────────
+// â”€â”€â”€ LOG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function log(msg, cls="log-info") {
   const el = document.getElementById("agent-log");
   if (!el) return;
@@ -627,31 +627,31 @@ function log(msg, cls="log-info") {
   el.scrollTop = el.scrollHeight;
 }
 
-// ─── API HEALTH CHECK ─────────────────────────────────────
+// â”€â”€â”€ API HEALTH CHECK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function checkApiHealth() {
   const statusEl = document.getElementById("api-status");
   try {
     const r = await fetch(`${API}/html-campaign/health`, { signal: AbortSignal.timeout(5000) });
     if (r.ok) {
-      statusEl.textContent = "● API Live";
+      statusEl.textContent = "â— API Live";
       statusEl.className = "api-status ok";
-      document.getElementById("settings-api-status").textContent = "● Connected";
+      document.getElementById("settings-api-status").textContent = "â— Connected";
       document.getElementById("settings-api-status").style.color = "var(--green)";
       log("[API] Backend connected: " + API, "log-ok");
     } else {
       throw new Error(r.status);
     }
   } catch(e) {
-    statusEl.textContent = "⚠ API Offline";
+    statusEl.textContent = "âš  API Offline";
     statusEl.className = "api-status err";
-    document.getElementById("settings-api-status").textContent = "⚠ Offline — add route to backend";
+    document.getElementById("settings-api-status").textContent = "âš  Offline â€” add route to backend";
     document.getElementById("settings-api-status").style.color = "var(--red)";
     log("[API] Backend offline or /html-campaign/health not yet deployed", "log-warn");
     log("[API] Generator will run in demo mode until backend is updated", "log-warn");
   }
 }
 
-// ─── LOAD PROSPECTS ───────────────────────────────────────
+// â”€â”€â”€ LOAD PROSPECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadProspects() {
   log("[HubSpot] Fetching warm prospects...", "log-info");
   try {
@@ -659,10 +659,10 @@ async function loadProspects() {
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
     _prospects = data.prospects || data || [];
-    log(`[HubSpot] ${_prospects.length} prospects loaded ✓`, "log-ok");
+    log(`[HubSpot] ${_prospects.length} prospects loaded âœ“`, "log-ok");
     renderProspects(_prospects);
     updateDashboardStats(_prospects);
-    document.getElementById("settings-hs-status").textContent = "● Connected";
+    document.getElementById("settings-hs-status").textContent = "â— Connected";
     document.getElementById("settings-hs-status").style.color = "var(--green)";
     document.getElementById("settings-hs-count").textContent = _prospects.length;
   } catch(e) {
@@ -673,7 +673,7 @@ async function loadProspects() {
   }
 }
 
-// ─── DEMO FALLBACK ────────────────────────────────────────
+// â”€â”€â”€ DEMO FALLBACK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DEMO_PROSPECTS = [
   {id:"acc_001",company_name:"Axiom Fitness Co.",industry:"Health & Wellness",contact:{name:"Michael Torres",title:"VP of Operations",email:"mike.torres@axiomfit.com"},engagement_score:92,deal_value:"$28,000",stage:"HOT",last_contact:"2026-03-24"},
   {id:"acc_002",company_name:"Nexus Creative",industry:"Agency",contact:{name:"Sarah Chen",title:"Creative Director",email:"s.chen@nexuscreative.co"},engagement_score:85,deal_value:"$18,500",stage:"HOT",last_contact:"2026-03-23"},
@@ -684,7 +684,7 @@ const DEMO_PROSPECTS = [
   {id:"acc_007",company_name:"BluePeak Media",industry:"Agency",contact:{name:"Tom Clarke",title:"Studio Director",email:"t.clarke@bluepeakmedia.com"},engagement_score:55,deal_value:"$8,500",stage:"COLD",last_contact:"2026-03-10"},
 ];
 
-// ─── RENDER PROSPECTS ─────────────────────────────────────
+// â”€â”€â”€ RENDER PROSPECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function stageBadge(s) {
   if(s==="HOT") return `<span class="badge badge-hot">HOT</span>`;
   if(s==="WARM") return `<span class="badge badge-warm">WARM</span>`;
@@ -705,11 +705,11 @@ function renderProspects(list) {
       <td><div class="company-name" style="font-size:12px;">${contact.name||""}</div><div class="company-sub">${contact.title||""}</div></td>
       <td><span class="badge badge-cold" style="color:var(--tan);border-color:var(--rule);font-size:9px;">${p.industry||""}</span></td>
       <td><div class="score-bar"><div class="score-bg"><div class="score-fill" style="width:${score}%"></div></div><span class="score-num">${score}</span></div></td>
-      <td style="color:var(--gold);font-weight:700;">${p.deal_value||"—"}</td>
+      <td style="color:var(--gold);font-weight:700;">${p.deal_value||"â€”"}</td>
       <td>${stageBadge(p.stage||"WARM")}</td>
-      <td style="color:var(--slate);font-size:11px;">${p.last_contact||"—"}</td>
+      <td style="color:var(--slate);font-size:11px;">${p.last_contact||"â€”"}</td>
       <td><div class="action-cell">
-        <button class="icon-btn launch" title="Launch Campaign Generator" onclick="launchGenerator(${JSON.stringify(p).replace(/'/g,"\'")})">⚡</button>
+        <button class="icon-btn launch" title="Launch Campaign Generator" onclick="launchGenerator(${JSON.stringify(p).replace(/'/g,"\'")})">âš¡</button>
       </div></td>
     </tr>`;
   });
@@ -724,7 +724,7 @@ function renderProspects(list) {
       <td><div class="company-cell"><div class="company-logo" style="width:28px;height:28px;font-size:9px;">${initials}</div><div class="company-name" style="font-size:12px;">${p.company_name}</div></div></td>
       <td><div class="score-bar"><div class="score-bg" style="width:60px;"><div class="score-fill" style="width:${score}%"></div></div><span class="score-num">${score}</span></div></td>
       <td>${stageBadge(p.stage||"WARM")}</td>
-      <td><button class="icon-btn launch" style="width:24px;height:24px;font-size:11px;" onclick="launchGenerator(${JSON.stringify(p).replace(/'/g,"\'")})">⚡</button></td>
+      <td><button class="icon-btn launch" style="width:24px;height:24px;font-size:11px;" onclick="launchGenerator(${JSON.stringify(p).replace(/'/g,"\'")})">âš¡</button></td>
     </tr>`;
   }).join("");
 }
@@ -738,7 +738,7 @@ function filterByStage(stage) {
   renderProspects(filtered);
 }
 
-// ─── DASHBOARD STATS ──────────────────────────────────────
+// â”€â”€â”€ DASHBOARD STATS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function updateDashboardStats(prospects) {
   const hot = prospects.filter(p => p.stage === "HOT").length;
   const scores = prospects.map(p => p.engagement_score||0);
@@ -753,40 +753,40 @@ function updateDashboardStats(prospects) {
   document.getElementById("stat-pipeline").textContent = "$" + (pipeline/1000).toFixed(0) + "K";
 }
 
-// ─── LAUNCH GENERATOR ─────────────────────────────────────
+// â”€â”€â”€ LAUNCH GENERATOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function launchGenerator(p) {
   showPanel("generator");
   const initials = (p.company_name||"").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
   const contact = p.contact || {};
   document.getElementById("gen-logo").textContent = initials;
   document.getElementById("gen-company").textContent = p.company_name || "";
-  document.getElementById("gen-contact").textContent = (contact.name||"") + " · " + (contact.title||"");
+  document.getElementById("gen-contact").textContent = (contact.name||"") + " Â· " + (contact.title||"");
   document.getElementById("gen-email").textContent = contact.email || "";
-  document.getElementById("gen-score-pill").textContent = `ABM Score: ${p.engagement_score||0} · ${p.stage||"WARM"}`;
+  document.getElementById("gen-score-pill").textContent = `ABM Score: ${p.engagement_score||0} Â· ${p.stage||"WARM"}`;
   document.getElementById("gen-segment").textContent = p.industry || "";
-  document.getElementById("gen-deal").textContent = p.deal_value || "—";
-  document.getElementById("gen-abm-score").textContent = p.engagement_score || "—";
-  document.getElementById("gen-stage").textContent = p.stage || "—";
+  document.getElementById("gen-deal").textContent = p.deal_value || "â€”";
+  document.getElementById("gen-abm-score").textContent = p.engagement_score || "â€”";
+  document.getElementById("gen-stage").textContent = p.stage || "â€”";
   updatePrompt();
   notify("Prospect Loaded", `${p.company_name} pre-filled in the Campaign Generator.`);
 }
 
-// ─── PRODUCT TOGGLE ───────────────────────────────────────
+// â”€â”€â”€ PRODUCT TOGGLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function toggleProduct(el) {
   el.classList.toggle("selected");
   const check = el.querySelector(".pick-check");
-  check.textContent = el.classList.contains("selected") ? "✓" : "";
+  check.textContent = el.classList.contains("selected") ? "âœ“" : "";
   updatePrompt();
 }
 
-// ─── TONE SELECT ──────────────────────────────────────────
+// â”€â”€â”€ TONE SELECT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function selectTone(el) {
   document.querySelectorAll(".tone-chip").forEach(c => c.classList.remove("selected"));
   el.classList.add("selected");
   updatePrompt();
 }
 
-// ─── HERO SELECT ─────────────────────────────────────────
+// â”€â”€â”€ HERO SELECT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function selectHero(el) {
   document.querySelectorAll(".hero-thumb").forEach(h => h.classList.remove("selected"));
   el.classList.add("selected");
@@ -794,7 +794,7 @@ function selectHero(el) {
   updatePrompt();
 }
 
-// ─── PROMPT BUILD ─────────────────────────────────────────
+// â”€â”€â”€ PROMPT BUILD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function updatePrompt() {
   const company  = document.getElementById("gen-company").textContent;
   const contact  = document.getElementById("gen-contact").textContent;
@@ -805,11 +805,11 @@ function updatePrompt() {
   const tone     = document.querySelector(".tone-chip.selected")?.textContent || "Confident";
   const ab       = document.getElementById("ab-toggle").checked;
   document.getElementById("prompt-preview").innerHTML =
-    `<b>PROSPECT:</b> ${company} · ${contact} · ${segment}<br/>` +
-    `<b>CRM SIGNAL:</b> ${score} · ${deal}<br/>` +
+    `<b>PROSPECT:</b> ${company} Â· ${contact} Â· ${segment}<br/>` +
+    `<b>CRM SIGNAL:</b> ${score} Â· ${deal}<br/>` +
     `<b>PRODUCTS:</b> ${products || "(none selected)"} [Directus PIM]<br/>` +
     `<b>HERO:</b> ${_selectedHeroKey} [Cloudinary]<br/>` +
-    `<b>TONE:</b> ${tone} · Urban Threads brand voice<br/>` +
+    `<b>TONE:</b> ${tone} Â· Urban Threads brand voice<br/>` +
     `<b>MODE:</b> ${ab ? "A/B Test (2 variants)" : "Single variant"}<br/>` +
     `<b>OUTPUT:</b> Personalized HTML email (600px inline CSS) + Landing Page`;
 
@@ -817,12 +817,12 @@ function updatePrompt() {
   document.getElementById("ab-tab").style.display = ab ? "" : "none";
   const btn = document.getElementById("generate-btn");
   btn.classList.toggle("ab-mode", ab);
-  btn.textContent = ab ? "⚡ GENERATE A/B CAMPAIGN" : "⚡ GENERATE CAMPAIGN";
+  btn.textContent = ab ? "âš¡ GENERATE A/B CAMPAIGN" : "âš¡ GENERATE CAMPAIGN";
 }
 
-// ─── BUILD REQUEST PAYLOAD ────────────────────────────────
+// â”€â”€â”€ BUILD REQUEST PAYLOAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function buildPayload(variant="A") {
-  const contact_raw = document.getElementById("gen-contact").textContent.split("·");
+  const contact_raw = document.getElementById("gen-contact").textContent.split("Â·");
   return {
     company:       document.getElementById("gen-company").textContent.trim(),
     contact_name:  (contact_raw[0]||"").trim(),
@@ -839,7 +839,7 @@ function buildPayload(variant="A") {
   };
 }
 
-// ─── RUN GENERATOR ────────────────────────────────────────
+// â”€â”€â”€ RUN GENERATOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function runGenerator() {
   const company = document.getElementById("gen-company").textContent;
   if (!company || company === "Select a Prospect") {
@@ -849,13 +849,13 @@ async function runGenerator() {
   const isAB = document.getElementById("ab-toggle").checked;
   const btn   = document.getElementById("generate-btn");
   btn.disabled = true;
-  btn.textContent = "⟳ GENERATING...";
+  btn.textContent = "âŸ³ GENERATING...";
 
   document.getElementById("preview-area").innerHTML =
-    `<div class="generating"><div class="spinner"></div><p style="color:var(--slate);font-size:13px;">Calling AgenticFlow API...<br/><b style="color:var(--gold);">HubSpot → Directus → Cloudinary → GPT-4o</b></p></div>`;
+    `<div class="generating"><div class="spinner"></div><p style="color:var(--slate);font-size:13px;">Calling AgenticFlow API...<br/><b style="color:var(--gold);">HubSpot â†’ Directus â†’ Cloudinary â†’ GPT-4o</b></p></div>`;
 
   log(`[START] Campaign for ${company} (${isAB ? "A/B mode" : "single variant"})`, "log-gold");
-  log("[HubSpot] Prospect data loaded ✓", "log-ok");
+  log("[HubSpot] Prospect data loaded âœ“", "log-ok");
   log("[Directus] Fetching product catalog...", "log-info");
   log("[Cloudinary] Resolving hero image...", "log-info");
   log("[GPT-4o] Generating personalized campaign copy...", "log-gold");
@@ -877,16 +877,16 @@ async function runGenerator() {
     }
 
     const data = await r.json();
-    log("[API] Response received ✓", "log-ok");
+    log("[API] Response received âœ“", "log-ok");
 
     if (isAB) {
       _generatedAB = data;
       _generatedData = data.variant_a;
-      log(`[DONE] A/B variants generated: Variant A (${data.variant_a.tone}) / Variant B (${data.variant_b.tone}) ✓`, "log-ok");
+      log(`[DONE] A/B variants generated: Variant A (${data.variant_a.tone}) / Variant B (${data.variant_b.tone}) âœ“`, "log-ok");
     } else {
       _generatedData = data;
       _generatedAB   = null;
-      log(`[DONE] Campaign generated for ${company} ✓`, "log-ok");
+      log(`[DONE] Campaign generated for ${company} âœ“`, "log-ok");
     }
 
     addToCampaignHistory(data, isAB);
@@ -896,7 +896,7 @@ async function runGenerator() {
 
   } catch(e) {
     log(`[ERROR] ${e.message}`, "log-err");
-    log("[FALLBACK] Backend not yet updated — running demo preview", "log-warn");
+    log("[FALLBACK] Backend not yet updated â€” running demo preview", "log-warn");
     _generatedData = buildDemoOutput(buildPayload("A"));
     addToCampaignHistory(_generatedData, false);
     enableDownloadButtons();
@@ -905,10 +905,10 @@ async function runGenerator() {
   }
 
   btn.disabled = false;
-  btn.textContent = isAB ? "⚡ REGENERATE A/B CAMPAIGN" : "⚡ REGENERATE CAMPAIGN";
+  btn.textContent = isAB ? "âš¡ REGENERATE A/B CAMPAIGN" : "âš¡ REGENERATE CAMPAIGN";
 }
 
-// ─── DEMO OUTPUT (local fallback) ─────────────────────────
+// â”€â”€â”€ DEMO OUTPUT (local fallback) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function buildDemoOutput(p) {
   const first = p.contact_name.split(" ")[0].toUpperCase();
   const heroMap = {
@@ -922,7 +922,7 @@ function buildDemoOutput(p) {
     subject_line: `${first}, your ${p.segment} team is ready for an upgrade.`,
     headline: `GEAR UP, ${first}.`,
     subheadline: `Built for ${p.segment} teams.`,
-    body_copy: `Your team deserves apparel that performs as hard as they do. Premium heavyweight fleece, technical outerwear, and clean denim — from the floor to the boardroom.`,
+    body_copy: `Your team deserves apparel that performs as hard as they do. Premium heavyweight fleece, technical outerwear, and clean denim â€” from the floor to the boardroom.`,
     cta_text: "CLAIM YOUR CUSTOM QUOTE",
     lp_headline: `BUILT FOR ${p.segment.toUpperCase()}.`,
     lp_body: `Custom logos. Fast turnaround. Built for ${p.company}.`,
@@ -976,14 +976,14 @@ function buildDemoEmailHtml(p, copy, heroUrl) {
 <tr><td style="background:#C4A882;padding:14px;text-align:center;"><p style="margin:0;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1C1C1C;">Free shipping over $75 &nbsp;|&nbsp; Custom quotes &nbsp;|&nbsp; 30-day guarantee</p></td></tr>
 <tr><td style="background:#1C1C1C;padding:28px;text-align:center;">
   <p style="margin:0 0 12px;font-size:19px;font-weight:900;letter-spacing:4px;color:#fff;font-family:Impact,Arial Black,sans-serif;">URBAN<span style="color:#D4AF37;">THREADS</span></p>
-  <p style="margin:0;font-size:10px;color:#6B7280;">&copy; 2026 Urban Threads &nbsp;·&nbsp; <a href="#" style="color:#6B7280;">Unsubscribe</a></p>
+  <p style="margin:0;font-size:10px;color:#6B7280;">&copy; 2026 Urban Threads &nbsp;Â·&nbsp; <a href="#" style="color:#6B7280;">Unsubscribe</a></p>
 </td></tr>
 <tr><td style="background:#D4AF37;height:4px;font-size:0;">&nbsp;</td></tr>
 </table></td></tr></table>
 </body></html>`;
 }
 
-// ─── RENDER OUTPUT ────────────────────────────────────────
+// â”€â”€â”€ RENDER OUTPUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderOutput(type) {
   const area = document.getElementById("preview-area");
   const company = _generatedData?.company || document.getElementById("gen-company").textContent;
@@ -993,12 +993,12 @@ function renderOutput(type) {
 
   if (type === "email") {
     document.querySelector(".output-tab:nth-child(1)").classList.add("active");
-    document.getElementById("preview-url").textContent = `${API}/html-campaign/generate/email → ut_${slug}_email.html`;
+    document.getElementById("preview-url").textContent = `${API}/html-campaign/generate/email â†’ ut_${slug}_email.html`;
     const html = _generatedData?.email_html || "";
     area.innerHTML = `<iframe class="preview" srcdoc="${html.replace(/"/g,"&quot;")}"></iframe>`;
   } else if (type === "landing") {
     document.querySelector(".output-tab:nth-child(2)").classList.add("active");
-    document.getElementById("preview-url").textContent = `${API}/html-campaign/generate/landing-page → ut_${slug}_landing.html`;
+    document.getElementById("preview-url").textContent = `${API}/html-campaign/generate/landing-page â†’ ut_${slug}_landing.html`;
     const html = _generatedData?.landing_page_html || "";
     area.innerHTML = `<iframe class="preview" srcdoc="${html.replace(/"/g,"&quot;")}"></iframe>`;
   } else if (type === "copy") {
@@ -1006,13 +1006,13 @@ function renderOutput(type) {
     document.getElementById("preview-url").textContent = `Campaign copy for ${company}`;
     const copy = _generatedData?.copy || {};
     area.innerHTML = `<div style="padding:24px;height:540px;overflow-y:auto;">
-      <div class="copy-card"><div class="copy-card-label">Subject Line</div><div class="copy-card-val">${copy.subject_line||"—"}</div></div>
-      <div class="copy-card"><div class="copy-card-label">Preview Text</div><div class="copy-card-val" style="font-size:13px;color:var(--slate);">${copy.preview_text||"—"}</div></div>
-      <div class="copy-card"><div class="copy-card-label">Email Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:28px;letter-spacing:2px;">${copy.headline||"—"}</div></div>
-      <div class="copy-card"><div class="copy-card-label">Subheadline</div><div class="copy-card-val">${copy.subheadline||"—"}</div></div>
-      <div class="copy-card"><div class="copy-card-label">Body Copy</div><div class="copy-card-val" style="font-size:13px;line-height:1.7;">${copy.body_copy||"—"}</div></div>
-      <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--gold);font-weight:700;">${copy.cta_text||"—"}</div></div>
-      <div class="copy-card"><div class="copy-card-label">Landing Page Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:24px;letter-spacing:2px;">${copy.lp_headline||"—"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Subject Line</div><div class="copy-card-val">${copy.subject_line||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Preview Text</div><div class="copy-card-val" style="font-size:13px;color:var(--slate);">${copy.preview_text||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Email Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:28px;letter-spacing:2px;">${copy.headline||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Subheadline</div><div class="copy-card-val">${copy.subheadline||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Body Copy</div><div class="copy-card-val" style="font-size:13px;line-height:1.7;">${copy.body_copy||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--gold);font-weight:700;">${copy.cta_text||"â€”"}</div></div>
+      <div class="copy-card"><div class="copy-card-label">Landing Page Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:24px;letter-spacing:2px;">${copy.lp_headline||"â€”"}</div></div>
     </div>`;
   } else if (type === "ab" && _generatedAB) {
     document.getElementById("ab-tab").classList.add("active");
@@ -1021,21 +1021,21 @@ function renderOutput(type) {
     const b = _generatedAB.variant_b;
     area.innerHTML = `<div class="ab-grid" style="padding:16px;height:540px;overflow-y:auto;">
       <div class="ab-card">
-        <div class="ab-header a">VARIANT A — ${a?.tone||""}</div>
+        <div class="ab-header a">VARIANT A â€” ${a?.tone||""}</div>
         <div style="padding:14px;">
-          <div class="copy-card"><div class="copy-card-label">Subject</div><div class="copy-card-val" style="font-size:12px;">${a?.copy?.subject_line||"—"}</div></div>
-          <div class="copy-card"><div class="copy-card-label">Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:20px;">${a?.copy?.headline||"—"}</div></div>
-          <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--gold);">${a?.copy?.cta_text||"—"}</div></div>
-          <button class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center;" onclick="downloadVariant('A')">⬇ Download Variant A</button>
+          <div class="copy-card"><div class="copy-card-label">Subject</div><div class="copy-card-val" style="font-size:12px;">${a?.copy?.subject_line||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:20px;">${a?.copy?.headline||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--gold);">${a?.copy?.cta_text||"â€”"}</div></div>
+          <button class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center;" onclick="downloadVariant('A')">â¬‡ Download Variant A</button>
         </div>
       </div>
       <div class="ab-card">
-        <div class="ab-header b">VARIANT B — ${b?.tone||""}</div>
+        <div class="ab-header b">VARIANT B â€” ${b?.tone||""}</div>
         <div style="padding:14px;">
-          <div class="copy-card"><div class="copy-card-label">Subject</div><div class="copy-card-val" style="font-size:12px;">${b?.copy?.subject_line||"—"}</div></div>
-          <div class="copy-card"><div class="copy-card-label">Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:20px;">${b?.copy?.headline||"—"}</div></div>
-          <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--amber);">${b?.copy?.cta_text||"—"}</div></div>
-          <button class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center;" onclick="downloadVariant('B')">⬇ Download Variant B</button>
+          <div class="copy-card"><div class="copy-card-label">Subject</div><div class="copy-card-val" style="font-size:12px;">${b?.copy?.subject_line||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">Headline</div><div class="copy-card-val" style="font-family:var(--head);font-size:20px;">${b?.copy?.headline||"â€”"}</div></div>
+          <div class="copy-card"><div class="copy-card-label">CTA</div><div class="copy-card-val" style="color:var(--amber);">${b?.copy?.cta_text||"â€”"}</div></div>
+          <button class="btn btn-outline" style="width:100%;margin-top:8px;justify-content:center;" onclick="downloadVariant('B')">â¬‡ Download Variant B</button>
         </div>
       </div>
     </div>`;
@@ -1046,7 +1046,7 @@ function switchOutput(type, el) {
   renderOutput(type);
 }
 
-// ─── DOWNLOAD HELPERS ─────────────────────────────────────
+// â”€â”€â”€ DOWNLOAD HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function enableDownloadButtons() {
   document.getElementById("btn-dl-email").disabled = false;
   document.getElementById("btn-dl-lp").disabled = false;
@@ -1085,7 +1085,7 @@ function downloadVariant(v) {
   log(`[DOWNLOAD] Variant ${v} downloaded`, "log-ok");
 }
 
-// ─── LOG TO HUBSPOT ───────────────────────────────────────
+// â”€â”€â”€ LOG TO HUBSPOT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function logToHubSpot() {
   const company = _generatedData?.company || document.getElementById("gen-company").textContent;
   log(`[HubSpot] Logging campaign activity for ${company}...`, "log-info");
@@ -1102,11 +1102,11 @@ async function logToHubSpot() {
         signal: AbortSignal.timeout(8000),
       });
       if (r.ok) {
-        log(`[HubSpot] Activity logged ✓`, "log-ok");
+        log(`[HubSpot] Activity logged âœ“`, "log-ok");
         notify("Logged to HubSpot", `Campaign activity recorded for ${company}.`);
       } else throw new Error(r.status);
     } else {
-      log(`[HubSpot] No contact ID found — note this in HubSpot manually`, "log-warn");
+      log(`[HubSpot] No contact ID found â€” note this in HubSpot manually`, "log-warn");
       notify("HubSpot", `No contact ID mapped. Log manually for ${company}.`);
     }
   } catch(e) {
@@ -1115,7 +1115,7 @@ async function logToHubSpot() {
   }
 }
 
-// ─── CAMPAIGN HISTORY ─────────────────────────────────────
+// â”€â”€â”€ CAMPAIGN HISTORY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function addToCampaignHistory(data, isAB) {
   const entry = {
     company: data.company || data.variant_a?.company || "",
@@ -1140,9 +1140,9 @@ function renderCampaignHistory() {
       <td><span class="badge ${c.variant==="A/B"?"badge-warm":"badge-ok"}">${c.variant}</span></td>
       <td style="font-size:11px;color:var(--slate);">${c.generated_at}</td>
       <td><div class="action-cell">
-        <button class="icon-btn" onclick="reloadCampaign(${i})" title="Preview">👁</button>
-        <button class="icon-btn" onclick="downloadCampaign(${i},'email')" title="Download Email">📧</button>
-        <button class="icon-btn" onclick="downloadCampaign(${i},'lp')" title="Download LP">🌐</button>
+        <button class="icon-btn" onclick="reloadCampaign(${i})" title="Preview">ðŸ‘</button>
+        <button class="icon-btn" onclick="downloadCampaign(${i},'email')" title="Download Email">ðŸ“§</button>
+        <button class="icon-btn" onclick="downloadCampaign(${i},'lp')" title="Download LP">ðŸŒ</button>
       </div></td>
     </tr>`).join("");
   document.getElementById("full-campaign-tbody").innerHTML = rows || `<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:20px;">No campaigns yet.</td></tr>`;
@@ -1152,8 +1152,8 @@ function renderCampaignHistory() {
       <td><span class="badge ${c.variant==="A/B"?"badge-warm":"badge-ok"}" style="font-size:9px;">${c.variant}</span></td>
       <td style="font-size:11px;color:var(--slate);">${c.tone}</td>
       <td><div class="action-cell">
-        <button class="icon-btn" style="width:24px;height:24px;font-size:11px;" onclick="downloadCampaign(${i},'email')">📧</button>
-        <button class="icon-btn" style="width:24px;height:24px;font-size:11px;" onclick="downloadCampaign(${i},'lp')">🌐</button>
+        <button class="icon-btn" style="width:24px;height:24px;font-size:11px;" onclick="downloadCampaign(${i},'email')">ðŸ“§</button>
+        <button class="icon-btn" style="width:24px;height:24px;font-size:11px;" onclick="downloadCampaign(${i},'lp')">ðŸŒ</button>
       </div></td>
     </tr>`).join("") || `<tr><td colspan="4" style="text-align:center;color:var(--slate);padding:20px;">No campaigns yet.</td></tr>`;
 }
@@ -1172,14 +1172,14 @@ function downloadCampaign(i, type) {
   else downloadBlob(d.landing_page_html||d.variant_a?.landing_page_html||"", `ut_${slug}_landing.html`);
 }
 
-// ─── SYNC ALL ─────────────────────────────────────────────
+// â”€â”€â”€ SYNC ALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function syncAll() {
   log("[SYNC] Refreshing all integrations...", "log-info");
   checkApiHealth();
   loadProspects();
 }
 
-// ─── INIT ─────────────────────────────────────────────────
+// â”€â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.addEventListener("DOMContentLoaded", () => {
   checkApiHealth();
   loadProspects();
