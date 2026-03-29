@@ -543,10 +543,15 @@ async def _generate_campaign_inner(req: CampaignRequest):
         all_products = await fetch_products(token=req.directus_token, url=req.directus_url)
         products = [p for p in all_products if p.get("category") in seg_cats][:4]
 
+    print("[GEN] step 1: pick_hero", flush=True)
     hero_url = pick_hero(req.segment, req.hero_image_key)
+    print(f"[GEN] step 2: generate_copy products={len(products)}", flush=True)
     copy     = await generate_copy_with_ai(req, products)
+    print(f"[GEN] step 3: generate_email copy_keys={list(copy.keys()) if copy else None}", flush=True)
     email_html = generate_email_html(req, copy, products, hero_url)
+    print("[GEN] step 4: generate_lp", flush=True)
     lp_html    = generate_landing_page_html(req, copy, products)
+    print("[GEN] step 5: done", flush=True)
 
     return {
         "status":             "success",
