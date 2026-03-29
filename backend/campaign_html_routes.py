@@ -215,6 +215,22 @@ def build_product_cards_lp(products: List[dict]) -> str:
     return "\n".join(cards)
 
 
+def pick_hero(segment: str = None, override_key: str = None) -> str:
+    try:
+        key = override_key if override_key and override_key in HERO_IMAGES else None
+        if not key and segment:
+            cfg = SEGMENT_CONFIG.get(segment, SEGMENT_CONFIG.get("default", {}))
+            hero_key = cfg.get("hero", "default") if isinstance(cfg, dict) else "default"
+            key = hero_key if hero_key in HERO_IMAGES else "default"
+        if not key:
+            key = "default"
+        path = HERO_IMAGES.get(key, HERO_IMAGES.get("default", "v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png"))
+        return cl_url(path, "c_fill,w_1400,h_900,f_auto,q_auto")
+    except Exception as e:
+        print(f"[pick_hero] error: {e}", flush=True)
+        return cl_url("v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png", "c_fill,w_1400,h_900,f_auto,q_auto")
+
+
 async def generate_copy_with_ai(req: CampaignRequest, products: list) -> dict:
     company = req.company or "Your Company"
     first = (req.contact_name or "there").split()[0]
