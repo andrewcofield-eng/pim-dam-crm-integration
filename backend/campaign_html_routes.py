@@ -584,7 +584,12 @@ async def generate_campaign(req: CampaignRequest):
         raise HTTPException(status_code=500, detail={"error": str(e), "traceback": tb})
 
 async def _generate_campaign_inner(req: CampaignRequest):
+    import traceback, sys
+    print(f"[CAMPAIGN] Starting for {req.company}", flush=True)
+    print(f"[CAMPAIGN] SKUs: {req.selected_skus}", flush=True)
+    print(f"[CAMPAIGN] Token: {bool(req.directus_token)}", flush=True)
     products = await fetch_products(req.selected_skus, token=req.directus_token)
+    print(f"[CAMPAIGN] Products fetched: {len(products)}", flush=True)
 
     # Segment-aware product filtering fallback
     if not products:
