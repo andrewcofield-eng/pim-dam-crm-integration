@@ -576,6 +576,14 @@ async def generate_campaign(req: CampaignRequest):
     Returns JSON with email_html, landing_page_html, copy, and metadata.
     Called by the AgenticFlow Dashboard frontend.
     """
+    import traceback
+    try:
+        return await _generate_campaign_inner(req)
+    except Exception as e:
+        tb = traceback.format_exc()
+        raise HTTPException(status_code=500, detail={"error": str(e), "traceback": tb})
+
+async def _generate_campaign_inner(req: CampaignRequest):
     products = await fetch_products(req.selected_skus, token=req.directus_token)
 
     # Segment-aware product filtering fallback
