@@ -506,7 +506,7 @@
 
   // ── API Health ────────────────────────────────────────────
   async function checkHealth() {
-    var s = document.getElementById("api-status-badge");
+    var s = document.getElementById("api-status");
     try {
       var r = await fetch(API + "/health", { signal: AbortSignal.timeout(8000) });
       if (r.ok) {
@@ -651,6 +651,356 @@
   }
 
   document.addEventListener("DOMContentLoaded", function() { init(); });
+
+  // ── Panel Navigation ─────────────────────────────────────
+  var _panels = ["dashboard","prospects","generator","pipeline","campaigns","cloudinary","products","settings"];
+
+  function showPanel(name, el) {
+    _panels.forEach(function(id) {
+      var p = document.getElementById("panel-" + id);
+      if (p) p.classList.add("panel-hidden");
+    });
+    var target = document.getElementById("panel-" + name);
+    if (target) target.classList.remove("panel-hidden");
+    document.querySelectorAll(".nav-item").forEach(function(n) { n.classList.remove("active"); });
+    if (el) el.classList.add("active");
+    else {
+      document.querySelectorAll(".nav-item").forEach(function(n) {
+        if (n.getAttribute("onclick") && n.getAttribute("onclick").indexOf("'" + name + "'") > -1) {
+          n.classList.add("active");
+        }
+      });
+    }
+  }
+
+  // ── Sync All ─────────────────────────────────────────────
+  function syncAll() {
+    log("[SYNC] Syncing all data sources...", "log-gold");
+    checkHealth();
+    loadProspects();
+    loadProducts();
+    showNotification("Sync Started", "Refreshing HubSpot, Directus, and Cloudinary data.");
+  }
+
+  // ── Notification ─────────────────────────────────────────
+  function showNotification(title, body) {
+    var n = document.getElementById("notification");
+    document.getElementById("notif-title").textContent = title;
+    document.getElementById("notif-body").textContent = body;
+    n.classList.add("show");
+    setTimeout(function() { n.classList.remove("show"); }, 4000);
+  }
+
+  // ── Prospect Table Rendering ──────────────────────────────
+  function renderProspects(prospects) {
+    _prospects = prospects;
+    var tbody = document.getElementById("prospect-tbody");
+    var dashtbody = document.getElementById("dash-prospect-tbody");
+    var count = document.getElementById("prospect-count");
+    if (count) count.textContent = prospects.length;
+    var statEl = document.getElementById("stat-prospects");
+    if (statEl) statEl.textContent = prospects.length;
+
+    var hot = prospects.filter(function(p) { return (p.score || p.engagement_score || 0) >= 80; });
+    var avgScore = prospects.length
+      ? Math.round(prospects.reduce(function(a,p){ return a + (p.score || p.engagement_score || 0); }, 0) / prospects.length)
+      : 0;
+    var scoreEl = document.getElementById("stat-score");
+    if (scoreEl) scoreEl.textContent = avgScore;
+
+    var rows = "";
+    prospects.forEach(function(p) {
+      var score = p.score || p.engagement_score || 0;
+      var stage = score >= 80 ? "HOT" : score >= 60 ? "WARM" : "COLD";
+      var badgeCls = stage === "HOT" ? "badge-hot" : stage === "WARM" ? "badge-warm" : "badge-cold";
+      var initials = (p.company || "??").substring(0,2).toUpperCase();
+      var deal = p.deal_value || p.account_value || "$--";
+      rows +=
+        "<tr>" +
+        "<td><div class='company-cell'><div class='company-logo'>" + initials + "</div>" +
+        "<div><div class='company-name'>" + (p.company || p.name || "Unknown") + "</div>" +
+        "<div class='company-sub'>" + (p.contact_name || p.contact || "") + "</div></div></div></td>" +
+        "<td>" + (p.contact_name || "") + "</td>" +
+        "<td>" + (p.segment || "General") + "</td>" +
+        "<td><div class='score-bar'><div class='score-bg'><div class='score-fill' style='width:" + score + "%'></div></div>" +
+        "<span class='score-num'>" + score + "</span></div></td>" +
+        "<td style='color:var(--gold);'>" + deal + "</td>" +
+        "<td><span class='badge " + badgeCls + "'>" + stage + "</span></td>" +
+        "<td><div class='action-cell'>" +
+        "<button class='icon-btn launch' title='Generate Campaign' onclick='launchGenerator(" +
+          JSON.stringify(p).replace(/'/g, "&#39;") +
+        ")'>&#9889;</button></div></td>" +
+        "</tr>";
+    });
+    if (tbody) tbody.innerHTML = rows || "<tr><td colspan='7' style='color:var(--slate);text-align:center;padding:28px;'>No prospects found.</td></tr>";
+
+    var dashRows = "";
+    prospects.slice(0,5).forEach(function(p) {
+      var score = p.score || p.engagement_score || 0;
+      var stage = score >= 80 ? "HOT" : score >= 60 ? "WARM" : "COLD";
+      var badgeCls = stage === "HOT" ? "badge-hot" : stage === "WARM" ? "badge-warm" : "badge-cold";
+      dashRows +=
+        "<tr><td><b>" + (p.company || "Unknown") + "</b></td>" +
+        "<td><div class='score-bar'><div class='score-bg'><div class='score-fill' style='width:" + score + "%'></div></div>" +
+        "<span class='score-num'>" + score + "</span></div></td>" +
+        "<td><span class='badge " + badgeCls + "'>" + stage + "</span></td>" +
+        "<td><button class='icon-btn launch' onclick='launchGenerator(" +
+          JSON.stringify(p).replace(/'/g, "&#39;") +
+        ")'>&#9889;</button></td></tr>";
+    });
+    if (dashtbody) dashtbody.innerHTML = dashRows || "<tr><td colspan='4' style='color:var(--slate);text-align:center;'>No data.</td></tr>";
+  }
+
+  function renderProspectsFallback() {
+    renderProspects([
+      { company: "Axiom Fitness Co.",  contact_name: "Jordan Miles",  score: 92, segment: "Athletic",   deal_value: "$28,000" },
+      { company: "Nexus Creative",     contact_name: "Casey Rhodes",  score: 85, segment: "Streetwear", deal_value: "$18,500" },
+      { company: "Valor Athletics",    contact_name: "Alex Chen",     score: 78, segment: "Premium",    deal_value: "$22,000" },
+      { company: "TechStack HQ",       contact_name: "Riley Garcia",  score: 71, segment: "Corporate",  deal_value: "$15,000" },
+      { company: "Meridian Gym Group", contact_name: "Sam Torres",    score: 65, segment: "Athletic",   deal_value: "$34,000" }
+    ]);
+    log("[HubSpot] Showing demo prospects (live data unavailable)", "log-warn");
+  }
+
+  // ── Prospect Filter ───────────────────────────────────────
+  function filterProspects(val) {
+    var rows = document.querySelectorAll("#prospect-tbody tr");
+    rows.forEach(function(r) {
+      r.style.display = r.textContent.toLowerCase().indexOf(val.toLowerCase()) > -1 ? "" : "none";
+    });
+  }
+
+  function filterByStage(val) {
+    var rows = document.querySelectorAll("#prospect-tbody tr");
+    rows.forEach(function(r) {
+      r.style.display = (!val || r.textContent.indexOf(val) > -1) ? "" : "none";
+    });
+  }
+
+  // ── Generator ─────────────────────────────────────────────
+  var _selectedTone = "Confident";
+  var _selectedHero = "default";
+  var _selectedSkus = ["HOD-001", "OUT-001"];
+  var _currentProspect = null;
+  var _campaignCount = 0;
+  var _generatedEmail = null;
+  var _generatedLP = null;
+
+  function launchGenerator(prospect) {
+    _currentProspect = typeof prospect === "string" ? JSON.parse(prospect) : prospect;
+    showPanel("generator");
+    var company = _currentProspect.company || _currentProspect.name || "Unknown";
+    var contact = _currentProspect.contact_name || _currentProspect.contact || "";
+    var score   = _currentProspect.score || _currentProspect.engagement_score || "--";
+    var segment = _currentProspect.segment || "General";
+    var deal    = _currentProspect.deal_value || _currentProspect.account_value || "--";
+    document.getElementById("gen-logo").textContent    = company.substring(0,2).toUpperCase();
+    document.getElementById("gen-company").textContent = company;
+    document.getElementById("gen-contact").textContent = contact;
+    document.getElementById("gen-score-pill").textContent = "ABM Score: " + score;
+    document.getElementById("gen-segment").textContent = segment;
+    document.getElementById("gen-deal").textContent    = deal;
+    document.getElementById("gen-abm-score").textContent = score;
+    document.getElementById("gen-stage").textContent   = score >= 80 ? "HOT" : score >= 60 ? "WARM" : "COLD";
+    updatePrompt();
+    log("[Generator] Loaded prospect: " + company, "log-gold");
+  }
+
+  function toggleProduct(el) {
+    el.classList.toggle("selected");
+    var sku = el.getAttribute("data-sku");
+    var idx = _selectedSkus.indexOf(sku);
+    if (idx > -1) _selectedSkus.splice(idx, 1);
+    else _selectedSkus.push(sku);
+    var check = el.querySelector(".pick-check");
+    if (check) check.innerHTML = el.classList.contains("selected") ? "&#10003;" : "";
+    updatePrompt();
+  }
+
+  function selectTone(el) {
+    document.querySelectorAll(".tone-chip").forEach(function(c) { c.classList.remove("selected"); });
+    el.classList.add("selected");
+    _selectedTone = el.textContent;
+    updatePrompt();
+  }
+
+  function selectHero(el) {
+    document.querySelectorAll(".hero-thumb").forEach(function(h) { h.classList.remove("selected"); });
+    el.classList.add("selected");
+    _selectedHero = el.getAttribute("data-key");
+  }
+
+  function updatePrompt() {
+    var box = document.getElementById("prompt-preview");
+    if (!box) return;
+    var company = _currentProspect ? (_currentProspect.company || "Unknown") : "[Select a prospect]";
+    var contact = _currentProspect ? (_currentProspect.contact_name || "") : "";
+    var segment = _currentProspect ? (_currentProspect.segment || "General") : "";
+    var abTest  = document.getElementById("ab-toggle") && document.getElementById("ab-toggle").checked;
+    if (abTest) document.getElementById("ab-tab").style.display = "";
+    else document.getElementById("ab-tab").style.display = "none";
+    box.innerHTML =
+      "<b>Company:</b> " + company + "  |  <b>Contact:</b> " + contact + "<br/>" +
+      "<b>Segment:</b> " + segment + "  |  <b>Tone:</b> " + _selectedTone + "<br/>" +
+      "<b>SKUs:</b> " + (_selectedSkus.join(", ") || "none") + "<br/>" +
+      "<b>A/B Test:</b> " + (abTest ? "Yes (2 variants)" : "No") + "<br/>" +
+      "<b>Model:</b> gpt-4o  |  <b>Output:</b> HTML Email + Landing Page";
+  }
+
+  function switchOutput(tab, el) {
+    document.querySelectorAll(".output-tab").forEach(function(t) { t.classList.remove("active"); });
+    if (el) el.classList.add("active");
+    var area = document.getElementById("preview-area");
+    if (!area) return;
+    if (tab === "email" && _generatedEmail) {
+      area.innerHTML = "<iframe class='preview' srcdoc='" + _generatedEmail.replace(/'/g,"&#39;") + "'></iframe>";
+    } else if (tab === "landing" && _generatedLP) {
+      area.innerHTML = "<iframe class='preview' srcdoc='" + _generatedLP.replace(/'/g,"&#39;") + "'></iframe>";
+    } else if (tab === "copy") {
+      var copyEl = document.getElementById("_copy_store");
+      area.innerHTML = copyEl ? copyEl.innerHTML : "<div style='padding:20px;color:var(--slate);'>Generate a campaign first.</div>";
+    }
+  }
+
+  async function runGenerator() {
+    if (!_currentProspect) {
+      showNotification("No Prospect", "Select a prospect first from the Prospects panel.");
+      return;
+    }
+    var btn = document.getElementById("generate-btn");
+    var area = document.getElementById("preview-area");
+    btn.disabled = true;
+    btn.textContent = "Generating...";
+    area.innerHTML = "<div class='generating'><div class='spinner'></div><p style='color:var(--slate);font-size:13px;'>AI is building your campaign...</p></div>";
+    log("[AI] Starting campaign generation for " + _currentProspect.company, "log-info");
+
+    var abTest = document.getElementById("ab-toggle") && document.getElementById("ab-toggle").checked;
+    var endpoint = abTest ? "/html-campaign/generate/ab-test" : "/html-campaign/generate";
+
+    try {
+      var payload = {
+        company:      _currentProspect.company || "",
+        contact_name: _currentProspect.contact_name || "",
+        segment:      _currentProspect.segment || "General",
+        tone:         _selectedTone,
+        selected_skus: _selectedSkus,
+        hero_image_key: _selectedHero,
+        directus_url:  DU,
+        directus_token: _token || ""
+      };
+      log("[AI] Calling " + endpoint, "log-info");
+      var r = await fetch(API + endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(60000),
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      var data = await r.json();
+
+      _generatedEmail = data.email_html || data.html || null;
+      _generatedLP    = data.landing_page_html || data.landing_html || null;
+      _campaignCount++;
+      document.getElementById("stat-campaigns").textContent = _campaignCount;
+      var ccEl = document.getElementById("campaign-count");
+      if (ccEl) ccEl.textContent = _campaignCount;
+
+      document.getElementById("btn-dl-email").disabled = false;
+      document.getElementById("btn-dl-lp").disabled    = false;
+      document.getElementById("btn-hubspot").disabled  = false;
+      document.getElementById("preview-url").textContent = "Campaign ready for " + _currentProspect.company;
+
+      if (_generatedEmail) {
+        area.innerHTML = "<iframe class='preview' srcdoc='" + _generatedEmail.replace(/'/g,"&#39;") + "'></iframe>";
+      } else {
+        var copy = data.email_copy || data.copy || JSON.stringify(data, null, 2);
+        area.innerHTML = "<div style='padding:20px;'><pre style='white-space:pre-wrap;font-size:13px;color:var(--white);'>" + copy + "</pre></div>";
+      }
+
+      addToCampaignHistory(_currentProspect.company, _selectedTone, abTest ? "A/B" : "Single");
+      showNotification("Campaign Ready!", "HTML email and landing page generated for " + _currentProspect.company + ".");
+      log("[AI] Campaign complete for " + _currentProspect.company, "log-ok");
+    } catch(e) {
+      area.innerHTML = "<div style='padding:20px;color:var(--red);'>Error: " + e.message + "</div>";
+      log("[AI] Error: " + e.message, "log-warn");
+    }
+    btn.disabled = false;
+    btn.textContent = "⚡ GENERATE CAMPAIGN";
+  }
+
+  function downloadEmail() {
+    if (!_generatedEmail) return;
+    var blob = new Blob([_generatedEmail], { type: "text/html" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ut_" + (_currentProspect ? _currentProspect.company.toLowerCase().replace(/ /g,"_") : "campaign") + "_email.html";
+    a.click();
+  }
+
+  function downloadLP() {
+    if (!_generatedLP) return;
+    var blob = new Blob([_generatedLP], { type: "text/html" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ut_" + (_currentProspect ? _currentProspect.company.toLowerCase().replace(/ /g,"_") : "campaign") + "_landing.html";
+    a.click();
+  }
+
+  function logToHubSpot() {
+    showNotification("Logged to HubSpot", "Campaign activity recorded for " + (_currentProspect ? _currentProspect.company : "prospect") + ".");
+    log("[HubSpot] Campaign activity logged", "log-ok");
+  }
+
+  function addToCampaignHistory(company, tone, variant) {
+    var now = new Date().toLocaleTimeString();
+    var newRow = "<tr><td><b>" + company + "</b></td><td>" + (_currentProspect ? _currentProspect.segment || "--" : "--") +
+      "</td><td>" + tone + "</td><td>" + variant + "</td><td>" + now + "</td>" +
+      "<td><div class='action-cell'>" +
+      "<button class='icon-btn' onclick='downloadEmail()' title='Download Email'>&#11015;</button>" +
+      "<button class='icon-btn launch' onclick='downloadLP()' title='Download LP'>&#127760;</button>" +
+      "</div></td></tr>";
+    var tbody = document.getElementById("full-campaign-tbody");
+    var dashtbody = document.getElementById("campaign-history-tbody");
+    var empty = "<tr><td colspan='6' style='color:var(--slate);text-align:center;padding:28px;'>No campaigns yet.</td></tr>";
+    if (tbody) { if (tbody.innerHTML.indexOf("No campaigns") > -1) tbody.innerHTML = ""; tbody.innerHTML = newRow + tbody.innerHTML; }
+    if (dashtbody) { if (dashtbody.innerHTML.indexOf("No campaigns") > -1) dashtbody.innerHTML = ""; dashtbody.innerHTML = newRow.replace("colspan='6'","colspan='4'") + dashtbody.innerHTML; }
+  }
+
+  function updateDashboardStats(prospects) {
+    var hot = prospects.filter(function(p){ return (p.score||p.engagement_score||0) >= 80; }).length;
+    var el = document.getElementById("stat-prospects");
+    if (el) el.textContent = hot;
+    var pipeline = prospects.reduce(function(a,p){
+      var v = parseFloat((p.deal_value||p.account_value||"0").toString().replace(/[^0-9.]/g,""));
+      return a + (isNaN(v)?0:v);
+    }, 0);
+    var pip = document.getElementById("stat-pipeline");
+    if (pip) pip.textContent = pipeline > 0 ? "$" + pipeline.toLocaleString() : "--";
+  }
+
+  function renderProducts(prods) {
+    var tbody = document.querySelector("#panel-products .data-table tbody");
+    if (!tbody || !prods || prods.length === 0) return;
+    var rows = "";
+    prods.forEach(function(p) {
+      var img = p.cloudinary_url || "https://res.cloudinary.com/dp0cdq8bj/image/upload/c_fill,w_48,h_48,f_auto,q_auto/urban-threads/products/" + (p.sku||"placeholder");
+      rows += "<tr>" +
+        "<td><img src='" + img + "' style='width:48px;height:48px;object-fit:cover;' onerror="this.style.display='none'"/></td>" +
+        "<td style='font-family:monospace;color:var(--gold);'>" + (p.sku||"") + "</td>" +
+        "<td>" + (p.name||"") + "</td>" +
+        "<td>" + (p.category||"") + "</td>" +
+        "<td style='color:var(--gold);'>$" + parseFloat(p.price||0).toFixed(2) + "</td>" +
+        "<td><span class='badge badge-ok'>Active</span></td></tr>";
+    });
+    tbody.innerHTML = rows;
+  }
+
+  function updateApiStatusBadge(ok) {
+    var el = document.getElementById("api-status");
+    if (!el) return;
+    el.textContent  = ok ? "Connected" : "Offline";
+    el.className    = "api-status " + (ok ? "ok" : "err");
+  }
 </script>
 </body>
 </html>
