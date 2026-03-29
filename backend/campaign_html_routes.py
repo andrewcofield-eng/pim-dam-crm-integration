@@ -26,7 +26,7 @@ DIRECTUS_URL  = os.getenv("DIRECTUS_URL", "https://directus-production-9f53.up.r
 DIRECTUS_TOKEN= os.getenv("DIRECTUS_TOKEN", "")
 CL_CLOUD      = "dp0cdq8bj"
 
-# ── Brand config ─────────────────────────────────────────────
+# ------ Brand config ---------------------------------------------------------------------------------------------------------------------------------------
 BRAND = {
     "name":     "Urban Threads",
     "charcoal": "#1C1C1C",
@@ -38,7 +38,7 @@ BRAND = {
     "season":   "Spring / Summer 2026",
 }
 
-# ── Cloudinary lifestyle hero pool ───────────────────────────
+# ------ Cloudinary lifestyle hero pool ---------------------------------------------------------------------------------
 HERO_IMAGES = {
     "default":         "v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png",
     "rooftop_couple":  "v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png",
@@ -54,7 +54,7 @@ HERO_IMAGES = {
     "street_couple":   "v1774727358/HOD-001_ACC_001wallStreetcouple_cvrzcx.png",
 }
 
-# ── Segment → hero image + product category affinity ─────────
+# ------ Segment --- hero image + product category affinity ---------------------------
 SEGMENT_CONFIG = {
     "Health & Wellness": {
         "hero":       "steps_man",
@@ -89,7 +89,7 @@ SEGMENT_CONFIG = {
 }
 
 
-# ── Request model ─────────────────────────────────────────────
+# ------ Request model ---------------------------------------------------------------------------------------------------------------------------------------
 class CampaignRequest(BaseModel):
     company:       str
     contact_name:  str
@@ -105,7 +105,7 @@ class CampaignRequest(BaseModel):
     variant:        Optional[str] = "A"       # A/B testing
 
 
-# ── Helpers ───────────────────────────────────────────────────
+# ------ Helpers ---------------------------------------------------------------------------------------------------------------------------------------------------------
 def cl_url(path: str, transform: str = "f_auto,q_auto") -> str:
     return f"https://res.cloudinary.com/{CL_CLOUD}/image/upload/{transform}/{path}"
 
@@ -189,7 +189,7 @@ Rules:
             "preview_text": "Premium gear, fast turnaround, your logo. Let's talk.",
             "headline": f"GEAR UP, {first_name.upper()}.",
             "subheadline": segment_hook(req.segment),
-            "body_copy": f"Your {req.segment} team deserves apparel that performs as hard as they do. We built this collection for exactly that — premium heavyweight fleece, technical outerwear, and clean denim that moves from the floor to the boardroom without missing a beat.",
+            "body_copy": f"Your {req.segment} team deserves apparel that performs as hard as they do. We built this collection for exactly that --- premium heavyweight fleece, technical outerwear, and clean denim that moves from the floor to the boardroom without missing a beat.",
             "cta_text": "CLAIM YOUR CUSTOM QUOTE",
             "lp_headline": f"BUILT FOR {req.segment.upper()}.",
             "lp_body": f"Custom logos. Fast turnaround. No minimums on select styles. Let's put together a package for {req.company}.",
@@ -210,7 +210,7 @@ def build_product_cards_email(products: List[dict]) -> str:
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #E5E0D8;">
             <tr><td><img src="{img_l}" width="268" style="display:block;width:100%;border:0;" /></td></tr>
             <tr><td style="padding:16px;">
-              <p style="margin:0 0 2px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;">{left.get("category","")} — {left.get("sku","")}</p>
+              <p style="margin:0 0 2px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;">{left.get("category","")} --- {left.get("sku","")}</p>
               <h3 style="margin:0 0 6px;font-size:15px;font-weight:700;color:#1C1C1C;">{left.get("name","")}</h3>
               <p style="margin:0 0 12px;font-size:17px;font-weight:700;color:#1C1C1C;">${left.get("price","")}</p>
               <a href="#" style="display:block;text-align:center;background:#1C1C1C;color:#D4AF37;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:10px;text-decoration:none;">SHOP NOW</a>
@@ -225,7 +225,7 @@ def build_product_cards_email(products: List[dict]) -> str:
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #E5E0D8;">
             <tr><td><img src="{img_r}" width="268" style="display:block;width:100%;border:0;" /></td></tr>
             <tr><td style="padding:16px;">
-              <p style="margin:0 0 2px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;">{right.get("category","")} — {right.get("sku","")}</p>
+              <p style="margin:0 0 2px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;">{right.get("category","")} --- {right.get("sku","")}</p>
               <h3 style="margin:0 0 6px;font-size:15px;font-weight:700;color:#1C1C1C;">{right.get("name","")}</h3>
               <p style="margin:0 0 12px;font-size:17px;font-weight:700;color:#1C1C1C;">${right.get("price","")}</p>
               <a href="#" style="display:block;text-align:center;background:#1C1C1C;color:#D4AF37;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:10px;text-decoration:none;">SHOP NOW</a>
@@ -248,7 +248,7 @@ def build_product_cards_lp(products: List[dict]) -> str:
         <div style="background:#fff;border:1px solid #E5E0D8;">
           <img src="{img}" style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;" />
           <div style="padding:20px;">
-            <p style="margin:0 0 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;font-family:Helvetica Neue,Arial,sans-serif;">{p.get("category","")} · {p.get("sku","")}</p>
+            <p style="margin:0 0 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;font-family:Helvetica Neue,Arial,sans-serif;">{p.get("category","")} -- {p.get("sku","")}</p>
             <h3 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1C1C1C;font-family:Helvetica Neue,Arial,sans-serif;">{p.get("name","")}</h3>
             <p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:#6B7280;font-family:Helvetica Neue,Arial,sans-serif;">{p.get("description","")[:90] if p.get("description") else "Premium quality. Built to last."}</p>
             <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -269,7 +269,7 @@ def generate_email_html(req: CampaignRequest, copy: dict, products: List[dict], 
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Urban Threads — {copy["subject_line"]}</title>
+<title>Urban Threads --- {copy["subject_line"]}</title>
 <!-- {variant_label} | Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")} -->
 <!-- Prospect: {req.company} | Segment: {req.segment} | Score: {req.abm_score} -->
 </head>
@@ -325,7 +325,7 @@ def generate_email_html(req: CampaignRequest, copy: dict, products: List[dict], 
 </td></tr>
 <tr><td style="background:#1C1C1C;padding:28px 32px;text-align:center;">
   <h2 style="margin:0 0 10px;font-size:28px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#fff;font-family:Impact,Arial Black,sans-serif;">BUILT FOR BOTH.</h2>
-  <p style="margin:0 0 20px;font-size:13px;color:#C4A882;">Custom logos · Fast turnaround · No minimums on select styles</p>
+  <p style="margin:0 0 20px;font-size:13px;color:#C4A882;">Custom logos -- Fast turnaround -- No minimums on select styles</p>
   <a href="#" style="display:inline-block;background:#D4AF37;color:#1C1C1C;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:12px 32px;text-decoration:none;">EXPLORE ALL STYLES</a>
 </td></tr>
 
@@ -344,7 +344,7 @@ def generate_email_html(req: CampaignRequest, copy: dict, products: List[dict], 
     <a href="#" style="color:#C4A882;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin:0 8px;">Contact</a>
     <a href="#" style="color:#C4A882;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin:0 8px;">Unsubscribe</a>
   </p>
-  <p style="margin:0;font-size:10px;color:#6B7280;">&copy; 2026 Urban Threads · 123 Urban Ave, New York, NY 10001<br/>
+  <p style="margin:0;font-size:10px;color:#6B7280;">&copy; 2026 Urban Threads -- 123 Urban Ave, New York, NY 10001<br/>
     <a href="#" style="color:#6B7280;text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="#" style="color:#6B7280;text-decoration:underline;">Terms</a>
   </p>
 </td></tr>
@@ -366,7 +366,7 @@ def generate_landing_page_html(req: CampaignRequest, copy: dict, products: List[
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Urban Threads — {copy["lp_headline"]} | {req.company}</title>
+<title>Urban Threads --- {copy["lp_headline"]} | {req.company}</title>
 <!-- {variant_label} | Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")} -->
 <!-- Prospect: {req.company} | Segment: {req.segment} | Score: {req.abm_score} -->
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
@@ -466,7 +466,7 @@ footer{{background:var(--c);padding:48px 0 28px;border-top:3px solid var(--g);}}
   <div class="hero-bg"></div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <p class="hero-label">For {req.company} · {req.segment} · SS2026</p>
+    <p class="hero-label">For {req.company} -- {req.segment} -- SS2026</p>
     <h1 class="hero-hl">{copy["lp_headline"].replace(" ", "<br/>", 1)}</h1>
     <p class="hero-sub">{copy["lp_body"]}</p>
     <div class="hero-actions">
@@ -478,7 +478,7 @@ footer{{background:var(--c);padding:48px 0 28px;border-top:3px solid var(--g);}}
 
 <div class="gold-rule"></div>
 <div class="marquee">
-  <div class="marquee-track">PREMIUM QUALITY &nbsp;·&nbsp; FREE SHIPPING OVER $75 &nbsp;·&nbsp; CUSTOM LOGOS &nbsp;·&nbsp; BUILT TO LAST &nbsp;·&nbsp; OWN THE STREET &nbsp;·&nbsp; FREE RETURNS &nbsp;·&nbsp; PREMIUM QUALITY &nbsp;·&nbsp; FREE SHIPPING OVER $75 &nbsp;·&nbsp; CUSTOM LOGOS &nbsp;·&nbsp; BUILT TO LAST &nbsp;·&nbsp; OWN THE STREET &nbsp;·&nbsp; FREE RETURNS &nbsp;·&nbsp;</div>
+  <div class="marquee-track">PREMIUM QUALITY &nbsp;--&nbsp; FREE SHIPPING OVER $75 &nbsp;--&nbsp; CUSTOM LOGOS &nbsp;--&nbsp; BUILT TO LAST &nbsp;--&nbsp; OWN THE STREET &nbsp;--&nbsp; FREE RETURNS &nbsp;--&nbsp; PREMIUM QUALITY &nbsp;--&nbsp; FREE SHIPPING OVER $75 &nbsp;--&nbsp; CUSTOM LOGOS &nbsp;--&nbsp; BUILT TO LAST &nbsp;--&nbsp; OWN THE STREET &nbsp;--&nbsp; FREE RETURNS &nbsp;--&nbsp;</div>
 </div>
 <div class="gold-rule"></div>
 
@@ -509,7 +509,7 @@ footer{{background:var(--c);padding:48px 0 28px;border-top:3px solid var(--g);}}
   <div class="feature-body">
     <p class="section-label">The Lookbook</p>
     <h2 class="feature-title">BUILT FOR<br/><span style="color:#D4AF37">BOTH.</span></h2>
-    <p class="feature-copy">From morning runs to rooftop bars. From the boardroom to the weekend. Urban Threads moves with your team — not against it. Data-informed design. AI-powered speed. Human at the core.</p>
+    <p class="feature-copy">From morning runs to rooftop bars. From the boardroom to the weekend. Urban Threads moves with your team --- not against it. Data-informed design. AI-powered speed. Human at the core.</p>
     <a href="#" class="btn-p" style="align-self:flex-start;">View the Lookbook</a>
   </div>
 </section>
@@ -556,8 +556,8 @@ footer{{background:var(--c);padding:48px 0 28px;border-top:3px solid var(--g);}}
       </div>
     </div>
     <div class="footer-bottom">
-      <p class="footer-legal">&copy; 2026 Urban Threads · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
-      <p class="footer-legal">Instagram · TikTok · Pinterest</p>
+      <p class="footer-legal">&copy; 2026 Urban Threads -- <a href="#">Privacy</a> -- <a href="#">Terms</a></p>
+      <p class="footer-legal">Instagram -- TikTok -- Pinterest</p>
     </div>
   </div>
 </footer>
@@ -565,9 +565,9 @@ footer{{background:var(--c);padding:48px 0 28px;border-top:3px solid var(--g);}}
 </body></html>"""
 
 
-# ════════════════════════════════════════════════════════════════
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ENDPOINTS
-# ════════════════════════════════════════════════════════════════
+# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 @router.post("/generate")
 async def generate_campaign(req: CampaignRequest):
@@ -606,7 +606,7 @@ async def generate_campaign(req: CampaignRequest):
 
 @router.post("/generate/email", response_class=HTMLResponse)
 async def download_email(req: CampaignRequest):
-    """Returns raw HTML email — downloadable directly from browser."""
+    """Returns raw HTML email --- downloadable directly from browser."""
     products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
     hero_url = pick_hero(req.segment, req.hero_image_key)
     copy     = await generate_copy_with_ai(req, products)
@@ -620,7 +620,7 @@ async def download_email(req: CampaignRequest):
 
 @router.post("/generate/landing-page", response_class=HTMLResponse)
 async def download_landing_page(req: CampaignRequest):
-    """Returns raw HTML landing page — downloadable directly from browser."""
+    """Returns raw HTML landing page --- downloadable directly from browser."""
     products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
     copy     = await generate_copy_with_ai(req, products)
     html     = generate_landing_page_html(req, copy, products)
