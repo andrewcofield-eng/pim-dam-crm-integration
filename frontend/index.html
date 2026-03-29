@@ -655,7 +655,7 @@ async function checkApiHealth() {
 async function loadProspects() {
   log("[HubSpot] Fetching warm prospects...", "log-info");
   try {
-    const r = await fetch(`${API}/abm/warm-prospects`, { signal: AbortSignal.timeout(8000) });
+    const r = await fetch(`${API}/abm/warm-prospects?directus_url=https://directus-production-9f53.up.railway.app&directus_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmZmMwZThmLTc3OGItNDFiMS1hMTIxLTBhMDhhNTVhNDA1OSIsInJvbGUiOiIzZDk5OWRlZi0yMzdlLTRhNjgtODYwNC1hOTg1NmIzYzE1ZjciLCJhcHBfYWNjZXNzIjp0cnVlLCJhZG1pbl9hY2Nlc3MiOnRydWUsImlhdCI6MTc3NDc0MzMxNiwiZXhwIjoxNzc0NzQ0MjE2LCJpc3MiOiJkaXJlY3R1cyJ9.aSrGqQv9gkCvqVzK2_b5D2DLOheOj_eOD-y3Kcys_AI`, { signal: AbortSignal.timeout(8000) });
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
     _prospects = data.prospects || data || [];
@@ -1189,3 +1189,5 @@ window.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
+
