@@ -113,26 +113,10 @@ def cl_url(path: str, transform: str = "f_auto,q_auto") -> str:
 
 
 async def get_fresh_directus_token(url: str) -> str:
-    """Get a fresh Directus token using hardcoded Railway URL."""
-    try:
-        email    = os.getenv("DIRECTUS_EMAIL", "admin@portfolio.com")
-        password = os.getenv("DIRECTUS_PASSWORD", "admin123")
-        login_url = "https://directus-production-9f53.up.railway.app"
-        async with httpx.AsyncClient(timeout=8.0) as client:
-            r = await client.post(
-                f"{login_url}/auth/login",
-                json={"email": email, "password": password}
-            )
-            print(f"[auth] login status={r.status_code}", flush=True)
-            data = r.json()
-            if "data" in data and "access_token" in data["data"]:
-                print("[auth] fresh token OK", flush=True)
-                return data["data"]["access_token"]
-            print(f"[auth] failed: {data}", flush=True)
-            return ""
-    except Exception as e:
-        print(f"[auth] exception: {e}", flush=True)
-        return ""
+    """Return the static admin token - never expires."""
+    static = os.getenv("DIRECTUS_STATIC_TOKEN", "ut-admin-static-token-2026")
+    print(f"[auth] using static token: {bool(static)}", flush=True)
+    return static
 
 
 async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None, url: Optional[str] = None) -> List[dict]:
