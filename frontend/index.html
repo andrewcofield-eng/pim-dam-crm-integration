@@ -472,7 +472,7 @@
   <div class="notif-body" id="notif-body"></div>
 </div>
 <script>
-  const API   = "https://pim-dam-crm-integration-production-62d7.up.railway.app";
+  const API   = "https://pim-dam-crm-integration-production.up.railway.app";
   const DU    = "https://directus-production-9f53.up.railway.app";
   const DPASS = "admin123";
   const DEMAIL= "admin@portfolio.com";
@@ -493,13 +493,9 @@
   // ── Auth ─────────────────────────────────────────────────
   async function getToken() {
     try {
-      var r = await fetch(DU + "/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: DEMAIL, password: DPASS })
-      });
+      var r = await fetch(API + "/auth/token");
       var d = await r.json();
-      _token = d.data.access_token;
+      _token = d.token;
       log("[Auth] Directus token acquired", "log-ok");
       return _token;
     } catch(e) {
