@@ -103,6 +103,8 @@ class CampaignRequest(BaseModel):
     hero_image_key: Optional[str] = None
     selected_skus:  Optional[List[str]] = None
     variant:        Optional[str] = "A"       # A/B testing
+    directus_token: Optional[str] = ""
+    directus_url:   Optional[str] = ""
 
 
 # ------ Helpers ---------------------------------------------------------------------------------------------------------------------------------------------------------
