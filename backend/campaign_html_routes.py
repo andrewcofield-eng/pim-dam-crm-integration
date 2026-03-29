@@ -269,6 +269,7 @@ async def generate_copy_with_ai(req: CampaignRequest, products: list) -> dict:
         "lp_hero_sub":       lp_s,
         "closing":           "The Urban Threads Team",
         "ps_line":           "P.S. Bulk orders ship free. Custom logos from 50 units.",
+        "lp_body":           "Premium streetwear, custom branding, 48h turnaround. Built for teams that move fast and look sharp.",
     }
 
 
