@@ -112,19 +112,33 @@ def cl_url(path: str, transform: str = "f_auto,q_auto") -> str:
     return f"https://res.cloudinary.com/{CL_CLOUD}/image/upload/{transform}/{path}"
 
 
-async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None, url: Optional[str] = None) -> List[dict]:
-    """Pull products from Directus, optionally filter by SKU list."""
+async def get_fresh_directus_token(url: str) -> str:
+    """Always get a fresh Directus token using env credentials."""
     try:
-        _tok = token or DIRECTUS_TOKEN or ""
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.post(
+                f"{url}/auth/login",
+                json={"email": os.getenv("DIRECTUS_EMAIL","admin@portfolio.com"),
+                      "password": os.getenv("DIRECTUS_PASSWORD","admin123")}
+            )
+            return r.json()["data"]["access_token"]
+    except Exception:
+        return DIRECTUS_TOKEN or ""
+
+async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None, url: Optional[str] = None) -> List[dict]:
+    """Pull products from Directus with a fresh token."""
+    try:
         _url = url or DIRECTUS_URL
+        _tok = await get_fresh_directus_token(_url)
         headers = {"Authorization": f"Bearer {_tok}"}
         params  = {"limit": 30, "fields": "sku,name,category,price,description,cloudinary_url,target_segment"}
-        print(f"[fetch_products] url={_url} token={bool(_tok)} skus={skus}", flush=True)
+        print(f"[fetch_products] url={_url} fresh_token={bool(_tok)} skus={skus}", flush=True)
         async with httpx.AsyncClient(timeout=8.0) as client:
             r = await client.get(f"{_url}/items/products", headers=headers, params=params)
             print(f"[fetch_products] status={r.status_code} count={len(r.json().get('data',[]))}", flush=True)
             products = r.json().get("data", [])
-    except Exception:
+    except Exception as e:
+        print(f"[fetch_products] ERROR: {e}", flush=True)
         products = []
 
     if skus:
