@@ -110,10 +110,11 @@ def cl_url(path: str, transform: str = "f_auto,q_auto") -> str:
     return f"https://res.cloudinary.com/{CL_CLOUD}/image/upload/{transform}/{path}"
 
 
-async def fetch_products(skus: Optional[List[str]] = None) -> List[dict]:
+async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None) -> List[dict]:
     """Pull products from Directus, optionally filter by SKU list."""
     try:
-        headers = {"Authorization": f"Bearer {DIRECTUS_TOKEN}"}
+        _tok = token or DIRECTUS_TOKEN or ""
+        headers = {"Authorization": f"Bearer {_tok}"}
         params  = {"limit": 30, "fields": "sku,name,category,price,description,cloudinary_url,target_segment"}
         async with httpx.AsyncClient(timeout=8.0) as client:
             r = await client.get(f"{DIRECTUS_URL}/items/products", headers=headers, params=params)
@@ -575,12 +576,12 @@ async def generate_campaign(req: CampaignRequest):
     Returns JSON with email_html, landing_page_html, copy, and metadata.
     Called by the AgenticFlow Dashboard frontend.
     """
-    products = await fetch_products(req.selected_skus)
+    products = await fetch_products(req.selected_skus, token=req.directus_token)
 
     # Segment-aware product filtering fallback
     if not products:
         seg_cats = SEGMENT_CONFIG.get(req.segment, SEGMENT_CONFIG["default"])["categories"]
-        all_products = await fetch_products()
+        all_products = await fetch_products(token=req.directus_token)
         products = [p for p in all_products if p.get("category") in seg_cats][:4]
 
     hero_url = pick_hero(req.segment, req.hero_image_key)
@@ -606,7 +607,7 @@ async def generate_campaign(req: CampaignRequest):
 @router.post("/generate/email", response_class=HTMLResponse)
 async def download_email(req: CampaignRequest):
     """Returns raw HTML email — downloadable directly from browser."""
-    products = await fetch_products(req.selected_skus) or await fetch_products()
+    products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
     hero_url = pick_hero(req.segment, req.hero_image_key)
     copy     = await generate_copy_with_ai(req, products)
     html     = generate_email_html(req, copy, products, hero_url)
@@ -620,7 +621,7 @@ async def download_email(req: CampaignRequest):
 @router.post("/generate/landing-page", response_class=HTMLResponse)
 async def download_landing_page(req: CampaignRequest):
     """Returns raw HTML landing page — downloadable directly from browser."""
-    products = await fetch_products(req.selected_skus) or await fetch_products()
+    products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
     copy     = await generate_copy_with_ai(req, products)
     html     = generate_landing_page_html(req, copy, products)
     slug     = req.company.lower().replace(" ", "-")
@@ -643,7 +644,7 @@ async def generate_ab_test(req: CampaignRequest):
     req_b.tone    = alt_tone
     req_b.variant = "B"
 
-    products = await fetch_products(req.selected_skus) or await fetch_products()
+    products = await fetch_products(req.selected_skus, token=req.directus_token) or await fetch_products()
     hero_url = pick_hero(req.segment, req.hero_image_key)
 
     copy_a = await generate_copy_with_ai(req, products)
