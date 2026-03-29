@@ -260,6 +260,13 @@
                 <span class="score-pill" id="gen-score-pill">&mdash;</span>
               </div>
             </div>
+            <div style="margin-top:10px;">
+              <select id="prospect-picker" onchange="pickProspect(this.value)"
+                style="width:100%;background:var(--charcoal);border:1px solid var(--gold);
+                color:var(--white);padding:8px 10px;font-size:12px;outline:none;">
+                <option value="">-- Pick a prospect --</option>
+              </select>
+            </div>
             <div class="crm-data">
               <div class="crm-item"><div class="crm-key">Segment</div><div class="crm-val" id="gen-segment">&mdash;</div></div>
               <div class="crm-item"><div class="crm-key">Deal Value</div><div class="crm-val gold" id="gen-deal">&mdash;</div></div>
@@ -526,7 +533,7 @@
       var url = API + "/abm/warm-prospects?directus_url="
               + encodeURIComponent(DU)
               + "&directus_token=" + encodeURIComponent(_token || "");
-      var r = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      var r = await fetch(url, { signal: AbortSignal.timeout(30000) });
       if (!r.ok) throw new Error("HTTP " + r.status);
       var data = await r.json();
       _prospects = data.prospects || data || [];
@@ -563,6 +570,23 @@
     if (_prospects && _prospects[idx]) launchGenerator(_prospects[idx]);
   }
 
+  function pickProspect(idx) {
+    if (idx === "") return;
+    launchGeneratorById(parseInt(idx));
+  }
+
+  function populateProspectPicker(prospects) {
+    var sel = document.getElementById("prospect-picker");
+    if (!sel) return;
+    sel.innerHTML = "<option value=''>-- Pick a prospect --</option>";
+    prospects.forEach(function(p, i) {
+      var opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = (p.company || p.name || "Unknown") + " (Score: " + (p.score || p.engagement_score || "--") + ")";
+      sel.appendChild(opt);
+    });
+  }
+
   function renderProspectsFallback() {
     var grid = document.getElementById("prospects-grid");
     if (!grid) return;
@@ -579,7 +603,7 @@
   async function loadProducts() {
     log("[Directus] Fetching products...", "log-info");
     try {
-      var r = await fetch(API + "/products", { signal: AbortSignal.timeout(15000) });
+      var r = await fetch(API + "/products", { signal: AbortSignal.timeout(30000) });
       if (!r.ok) throw new Error("HTTP " + r.status);
       var raw  = await r.json();
       var prods = Array.isArray(raw) ? raw : (raw.data || raw.products || []);
@@ -698,6 +722,7 @@
   // ── Prospect Table Rendering ──────────────────────────────
   function renderProspects(prospects) {
     _prospects = prospects;
+    populateProspectPicker(prospects);
     var tbody = document.getElementById("prospect-tbody");
     var dashtbody = document.getElementById("dash-prospect-tbody");
     var count = document.getElementById("prospect-count");
@@ -753,6 +778,23 @@
 
   function launchGeneratorById(idx) {
     if (_prospects && _prospects[idx]) launchGenerator(_prospects[idx]);
+  }
+
+  function pickProspect(idx) {
+    if (idx === "") return;
+    launchGeneratorById(parseInt(idx));
+  }
+
+  function populateProspectPicker(prospects) {
+    var sel = document.getElementById("prospect-picker");
+    if (!sel) return;
+    sel.innerHTML = "<option value=''>-- Pick a prospect --</option>";
+    prospects.forEach(function(p, i) {
+      var opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = (p.company || p.name || "Unknown") + " (Score: " + (p.score || p.engagement_score || "--") + ")";
+      sel.appendChild(opt);
+    });
   }
 
   function renderProspectsFallback() {
