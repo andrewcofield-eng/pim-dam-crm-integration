@@ -188,21 +188,30 @@ def build_product_cards_lp(products: List[dict]) -> str:
     """Render product cards for landing page."""
     cards = []
     for p in products[:6]:
-        raw_path = p.get("cloudinary_url","").replace(f"https://res.cloudinary.com/{CL_CLOUD}/image/upload/","")
+        img_url = p.get("cloudinary_url") or ""
+        raw_path = img_url.replace(f"https://res.cloudinary.com/{CL_CLOUD}/image/upload/","")
         img = cl_url(raw_path or "v1773412902/image-img_HOD-001.png", "c_fill,w_600,h_600,f_auto,q_auto")
-        cards.append(f"""
-        <div style="background:#fff;border:1px solid #E5E0D8;">
-          <img src="{img}" style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;" />
-          <div style="padding:20px;">
-            <p style="margin:0 0 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37;font-family:Helvetica Neue,Arial,sans-serif;">{p.get("category","")} -- {p.get("sku","")}</p>
-            <h3 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1C1C1C;font-family:Helvetica Neue,Arial,sans-serif;">{p.get("name","")}</h3>
-            <p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:#6B7280;font-family:Helvetica Neue,Arial,sans-serif;">{p.get("description","")[:90] if p.get("description") else "Premium quality. Built to last."}</p>
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:20px;font-weight:700;color:#1C1C1C;font-family:Helvetica Neue,Arial,sans-serif;">${p.get("price","")}</span>
-              <a href="#" style="background:#1C1C1C;color:#D4AF37;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:10px 18px;text-decoration:none;font-family:Helvetica Neue,Arial,sans-serif;">Shop Now</a>
-            </div>
-          </div>
-        </div>""")
+        name  = p.get("name") or p.get("product_name") or "Product"
+        sku   = p.get("sku") or ""
+        price = p.get("price") or ""
+        desc  = p.get("description") or p.get("short_description") or p.get("Description") or ""
+        cat   = p.get("category") or ""
+        try:
+            price_fmt = f"${float(price):.2f}" if price else ""
+        except Exception:
+            price_fmt = str(price)
+        cards.append(
+            f'''<div style="background:#fff;border:1px solid #E5E0D8;">'''
+            f'''<img src="{img}" style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;" />'''
+            f'''<div style="padding:20px;">'''
+            f'''<p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6B7280;margin-bottom:6px;">{cat}</p>'''
+            f'''<p style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#1C1C1C;margin-bottom:8px;">{name}</p>'''
+            f'''<p style="font-size:13px;color:#6B7280;margin-bottom:12px;line-height:1.5;">{desc[:100]}...</p>'''
+            f'''<div style="display:flex;justify-content:space-between;align-items:center;">'''
+            f'''<span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#D4AF37;">{price_fmt}</span>'''
+            f'''<a href="#" style="background:#1C1C1C;color:#D4AF37;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:8px 16px;">Order</a>'''
+            f'''</div></div></div>'''
+        )
     return "\n".join(cards)
 
 
