@@ -112,99 +112,22 @@ def cl_url(path: str, transform: str = "f_auto,q_auto") -> str:
     return f"https://res.cloudinary.com/{CL_CLOUD}/image/upload/{transform}/{path}"
 
 
-async def get_fresh_directus_token(url: str) -> str:
-    """Return static token - set permanently on Directus admin user."""
-    return "ut-admin-static-token-2026"
-
-
-async def fetch_products(skus: Optional[List[str]] = None, token: Optional[str] = None, url: Optional[str] = None) -> List[dict]:
-    """Pull products from Directus with a fresh token."""
+async def fetch_products(skus=None, token=None, url=None):
+    """Fetch products from our own FastAPI /products endpoint - always works."""
     try:
-        _url = url or DIRECTUS_URL
-        _tok = await get_fresh_directus_token(_url)
-        headers = {"Authorization": f"Bearer {_tok}"}
-        params  = {"limit": 30, "fields": "sku,name,category,price,description,cloudinary_url,target_segment"}
-        print(f"[fetch_products] url={_url} fresh_token={bool(_tok)} skus={skus}", flush=True)
-        async with httpx.AsyncClient(timeout=8.0) as client:
-            r = await client.get(f"{_url}/items/products", headers=headers, params=params)
-            print(f"[fetch_products] status={r.status_code} count={len(r.json().get('data',[]))}", flush=True)
-            products = r.json().get("data", [])
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get("http://localhost:8000/products")
+            print(f"[fetch_products] self-call status={r.status_code}", flush=True)
+            all_prods = r.json() if isinstance(r.json(), list) else r.json().get("data", [])
+            print(f"[fetch_products] total={len(all_prods)} skus_filter={skus}", flush=True)
+            if skus:
+                filtered = [p for p in all_prods if p.get("sku") in skus]
+                print(f"[fetch_products] filtered={len(filtered)}", flush=True)
+                return filtered[:6] if filtered else all_prods[:4]
+            return all_prods[:6]
     except Exception as e:
-        print(f"[fetch_products] ERROR: {e}", flush=True)
-        products = []
-
-    if skus:
-        products = [p for p in products if p.get("sku") in skus]
-    return products[:6]
-
-
-def pick_hero(segment: str, override_key: Optional[str]) -> str:
-    key = override_key or SEGMENT_CONFIG.get(segment, SEGMENT_CONFIG["default"])["hero"]
-    path = HERO_IMAGES.get(key, HERO_IMAGES["default"])
-    return cl_url(path, "c_fill,w_600,h_220,f_auto,q_auto")
-
-
-def segment_hook(segment: str) -> str:
-    return SEGMENT_CONFIG.get(segment, SEGMENT_CONFIG["default"])["headline_hook"]
-
-
-async def generate_copy_with_ai(req: CampaignRequest, products: List[dict]) -> dict:
-    """Call OpenAI to produce personalized campaign copy."""
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    first_name = req.contact_name.split()[0]
-    product_list = ", ".join([f"{p.get('sku','')} {p.get('name','')} (${p.get('price','')})" for p in products])
-
-    prompt = f"""You are a copywriter for Urban Threads, a premium urban streetwear brand (SS2026).
-Brand voice: {req.tone}. Colors: charcoal #1C1C1C, gold #D4AF37, cream #F5F0E8.
-Brand tagline: "Own the Street."
-
-Write a SHORT, punchy, personalized B2B campaign for:
-- Company: {req.company}
-- Contact: {first_name} ({req.contact_title})
-- Industry: {req.segment}
-- ABM Score: {req.abm_score} ({req.stage})
-- Deal Value: {req.deal_value}
-- Products: {product_list}
-
-Return ONLY valid JSON with these keys:
-{{
-  "subject_line": "...",
-  "preview_text": "...",
-  "headline": "...",
-  "subheadline": "...",
-  "body_copy": "...",
-  "cta_text": "...",
-  "lp_headline": "...",
-  "lp_body": "..."
-}}
-
-Rules:
-- subject_line: 6-9 words, personalized with first name or company
-- headline: 3-5 words, all caps energy, NOT generic
-- body_copy: 2-3 sentences max, mention their industry
-- cta_text: 3-5 words, action-oriented
-- lp_headline: Different from email headline, big and bold
-"""
-    try:
-        msg = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.75,
-            max_tokens=600,
-            response_format={"type": "json_object"}
-        )
-        return json.loads(msg.choices[0].message.content)
-    except Exception as e:
-        return {
-            "subject_line": f"{first_name}, your {req.segment} team is ready for an upgrade.",
-            "preview_text": "Premium gear, fast turnaround, your logo. Let's talk.",
-            "headline": f"GEAR UP, {first_name.upper()}.",
-            "subheadline": segment_hook(req.segment),
-            "body_copy": f"Your {req.segment} team deserves apparel that performs as hard as they do. We built this collection for exactly that --- premium heavyweight fleece, technical outerwear, and clean denim that moves from the floor to the boardroom without missing a beat.",
-            "cta_text": "CLAIM YOUR CUSTOM QUOTE",
-            "lp_headline": f"BUILT FOR {req.segment.upper()}.",
-            "lp_body": f"Custom logos. Fast turnaround. No minimums on select styles. Let's put together a package for {req.company}.",
-        }
+        print(f"[fetch_products] error: {e}", flush=True)
+        return []
 
 
 def build_product_cards_email(products: List[dict]) -> str:
