@@ -847,8 +847,8 @@
   var _selectedSkus = ["HOD-001", "OUT-001"];
   var _currentProspect = null;
   var _campaignCount = 0;
-  var _generatedEmail = null;
-  var _generatedLP = null;
+  var _generatedEmail = null, _generatedEmailB = null;
+  var _generatedLP = null, _generatedLPB = null;
 
   function launchGenerator(prospect) {
     _currentProspect = typeof prospect === "string" ? JSON.parse(prospect) : prospect;
@@ -916,10 +916,12 @@
     if (el) el.classList.add("active");
     var area = document.getElementById("preview-area");
     if (!area) return;
-    if (tab === "email" && _generatedEmail) {
-      area.innerHTML = '<iframe class="preview" srcdoc="' + _generatedEmail.replace(/"/g,"&quot;") + '"></iframe>';
-    } else if (tab === "landing" && _generatedLP) {
-      area.innerHTML = '<iframe class="preview" srcdoc="' + _generatedLP.replace(/"/g,"&quot;") + '"></iframe>';
+    var emailSrc   = (tab === "email-b"   && _generatedEmailB) ? _generatedEmailB : _generatedEmail;
+    var landingSrc = (tab === "landing-b" && _generatedLPB)    ? _generatedLPB    : _generatedLP;
+    if ((tab === "email" || tab === "email-b") && emailSrc) {
+      area.innerHTML = '<iframe class="preview" srcdoc="' + emailSrc.replace(/"/g,"&quot;") + '"></iframe>';
+    } else if ((tab === "landing" || tab === "landing-b") && landingSrc) {
+      area.innerHTML = '<iframe class="preview" srcdoc="' + landingSrc.replace(/"/g,"&quot;") + '"></iframe>';
     } else if (tab === "copy") {
       var copyEl = document.getElementById("_copy_store");
       area.innerHTML = copyEl ? copyEl.innerHTML : "<div style='padding:20px;color:var(--slate);'>Generate a campaign first.</div>";
@@ -967,8 +969,19 @@
       if (!r.ok) throw new Error("HTTP " + r.status);
       var data = await r.json();
 
-      _generatedEmail = data.email_html || data.html || null;
-      _generatedLP    = data.landing_page_html || data.landing_html || null;
+      if (data.variant_a) {
+        // A/B test response shape
+        _generatedEmail = data.variant_a.email_html || null;
+        _generatedLP    = data.variant_a.landing_page_html || null;
+        _generatedEmailB = data.variant_b ? (data.variant_b.email_html || null) : null;
+        _generatedLPB    = data.variant_b ? (data.variant_b.landing_page_html || null) : null;
+      } else {
+        // Standard response shape
+        _generatedEmail = data.email_html || data.html || null;
+        _generatedLP    = data.landing_page_html || data.landing_html || null;
+        _generatedEmailB = null;
+        _generatedLPB    = null;
+      }
       _campaignCount++;
       document.getElementById("stat-campaigns").textContent = _campaignCount;
       var ccEl = document.getElementById("campaign-count");
