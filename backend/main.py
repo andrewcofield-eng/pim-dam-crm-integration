@@ -1,4 +1,5 @@
-﻿from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
+from typing import List, Optional, Dict
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import os
@@ -46,7 +47,6 @@ async def list_products():
         
         products = response.json()["data"]
         
-        # FIX: Override cloudinary_url for products 11-30 with correct JPG URLs
         url_map = {
             "TOP-003": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774236179/TOP-003_fsomai.jpg",
             "TOP-004": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774234835/TOP-004_pu7ydv.jpg",
@@ -79,6 +79,96 @@ async def list_products():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ✅ /products/export MUST come BEFORE /products/{sku}
+@app.get("/products/export")
+async def export_enriched_products(
+    scenario: Optional[str] = Query(None, description="onboarding, events, gifting"),
+    min_personalization: Optional[str] = Query(None, description="high, medium, low"),
+    limit: int = Query(100, ge=1, le=500)
+):
+    """Export enriched products with AgenticFlow fields."""
+    try:
+        token = await get_directus_token()
+        headers = {"Authorization": f"Bearer {token}"}
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{DIRECTUS_URL}/items/products?limit={limit}",
+                headers=headers
+            )
+            products = response.json().get("data", [])
+
+        enriched_products = []
+        for p in products:
+            if not p.get("af_primary_use_case"):
+                continue
+
+            ideal_audience = p.get("af_ideal_audience") or []
+            vertical_fit = p.get("af_vertical_fit") or []
+            complementary_skus = p.get("af_complementary_skus") or []
+
+            if isinstance(ideal_audience, str):
+                ideal_audience = []
+            if isinstance(vertical_fit, str):
+                vertical_fit = []
+            if isinstance(complementary_skus, str):
+                complementary_skus = []
+
+            enriched_products.append({
+                "sku": p.get("sku"),
+                "name": p.get("name"),
+                "description": p.get("description"),
+                "category": p.get("category"),
+                "price": p.get("price"),
+                "image_url": p.get("cloudinary_url"),
+                "marketing_fit": {
+                    "primary_use_case": p.get("af_primary_use_case"),
+                    "ideal_audience": ideal_audience,
+                    "vertical_fit": vertical_fit,
+                },
+                "scenario_scores": {
+                    "onboarding": p.get("af_onboarding_fit"),
+                    "events": p.get("af_event_fit"),
+                    "gifting": p.get("af_gifting_fit"),
+                },
+                "merchandising": {
+                    "personalization_suitability": p.get("af_personalization_suitability"),
+                    "value_tier": p.get("af_value_tier"),
+                    "bundle_role": p.get("af_bundle_role"),
+                    "complementary_skus": complementary_skus,
+                },
+                "messaging": {
+                    "recommended_cta": p.get("af_recommended_cta_angle"),
+                }
+            })
+
+        if scenario:
+            enriched_products = [
+                p for p in enriched_products
+                if p["scenario_scores"].get(scenario) in ["high", "medium"]
+            ]
+
+        if min_personalization:
+            rank = {"high": 3, "medium": 2, "low": 1, "none": 0}
+            min_rank = rank.get(min_personalization, 0)
+            enriched_products = [
+                p for p in enriched_products
+                if rank.get(p["merchandising"]["personalization_suitability"], 0) >= min_rank
+            ]
+
+        return {
+            "count": len(enriched_products),
+            "filters_applied": {"scenario": scenario, "min_personalization": min_personalization},
+            "products": enriched_products
+        }
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/products/{sku}")
 async def get_product_endpoint(sku: str):
     try:
@@ -95,6 +185,7 @@ async def get_product_endpoint(sku: str):
         return products[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/customers")
 async def list_customers():
@@ -115,7 +206,7 @@ async def get_token():
     return {"token": token}
 
 from campaign_routes import router as campaign_router
-app.include_router(campaign_router)   # handles POST /ai-campaigns/generate
+app.include_router(campaign_router)
 
 from hubspot_routes import router as hubspot_router
 app.include_router(hubspot_router)
@@ -126,4 +217,3 @@ app.include_router(html_campaign_router)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
