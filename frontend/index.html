@@ -224,8 +224,9 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Campaign Generator</div>
-      <div class="nav-item" onclick="showPanel('generator',this)"><span class="icon">&#9889;</span> AI Generator <span class="nav-count hot">NEW</span></div>
-      <div class="nav-item" onclick="showPanel('campaigns',this)"><span class="icon">&#128231;</span> Campaigns <span class="nav-count" id="campaign-count">0</span></div>
+<div class="nav-item" onclick="showPanel('generator',this)"><span class="icon">&#9889;</span> AI Generator <span class="nav-count hot">NEW</span></div>
+<div class="nav-item" onclick="showPanel('pimcampaign',this)"><span class="icon">&#127919;</span> PIM Campaigns <span class="nav-count hot">NEW</span></div>
+<div class="nav-item" onclick="showPanel('campaigns',this)"><span class="icon">&#128231;</span> Campaigns <span class="nav-count" id="campaign-count">0</span></div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Assets</div>
@@ -434,199 +435,198 @@
         </div>
       </div>
     </div>
-    <!-- ═══════════════════════════════════════════════════════
-     PIM CAMPAIGN GENERATOR — AgenticFlow Scenario Engine
-     ═══════════════════════════════════════════════════════ -->
-<div class="card" style="margin-top: 24px;">
-  <div class="card-title">🎯 PIM Campaign Generator</div>
-  <p style="color:#94a3b8; font-size:13px; margin-bottom:16px;">
-    Generate data-informed campaigns powered by enriched product data, CRM account signals, and AI.
-  </p>
-
-  <!-- Scenario Selector -->
-  <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
-    <button class="scenario-btn active" onclick="selectScenario('onboarding')" id="btn-onboarding">
-      🎉 Onboarding
-    </button>
-    <button class="scenario-btn" onclick="selectScenario('events')" id="btn-events">
-      🎪 Events
-    </button>
-    <button class="scenario-btn" onclick="selectScenario('gifting')" id="btn-gifting">
-      🎁 Gifting
-    </button>
-  </div>
-
-  <!-- Input Form -->
-  <div id="pim-campaign-form">
-
-    <!-- Shared Fields -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-      <div>
-        <label class="form-label">Company Name</label>
-        <input class="form-input" id="pim-company" placeholder="e.g. Apex SaaS Solutions" />
+    <!-- PIM CAMPAIGN GENERATOR -->
+    <div id="panel-pimcampaign" class="panel panel-hidden">
+      <div class="page-header">
+        <div class="page-label">AgenticFlow — PIM Intelligence</div>
+        <div class="page-title">PIM CAMPAIGN GENERATOR</div>
+        <div class="page-sub">Enriched product data · CRM account signals · AI-generated briefs</div>
       </div>
-      <div>
-        <label class="form-label">Contact Name</label>
-        <input class="form-input" id="pim-contact" placeholder="e.g. Sarah Chen" />
-      </div>
-      <div>
-        <label class="form-label">Industry</label>
-        <select class="form-input" id="pim-industry">
-          <option value="saas">SaaS / Tech</option>
-          <option value="professional_services">Professional Services</option>
-          <option value="financial_services">Financial Services</option>
-          <option value="hospitality">Hospitality</option>
-          <option value="real_estate">Real Estate</option>
-          <option value="healthcare">Healthcare</option>
-          <option value="events">Events</option>
-          <option value="education">Education</option>
-          <option value="general_b2b">General B2B</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Company Size</label>
-        <select class="form-input" id="pim-size">
-          <option value="1-10">1–10</option>
-          <option value="11-50">11–50</option>
-          <option value="51-200" selected>51–200</option>
-          <option value="201-500">201–500</option>
-          <option value="500+">500+</option>
-        </select>
-      </div>
-    </div>
 
-    <!-- Onboarding Fields -->
-    <div id="fields-onboarding" class="scenario-fields">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div>
-          <label class="form-label">Buyer Persona</label>
-          <select class="form-input" id="pim-persona-onboarding">
-            <option value="people_ops_hr">People Ops / HR</option>
-            <option value="marketing">Marketing</option>
-            <option value="procurement">Procurement</option>
-            <option value="executive_leadership">Executive Leadership</option>
-          </select>
+      <!-- Scenario Selector -->
+      <div style="display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap;">
+        <button class="scenario-btn active" onclick="selectScenario('onboarding')" id="btn-onboarding">🎉 Onboarding</button>
+        <button class="scenario-btn" onclick="selectScenario('events')" id="btn-events">🎪 Events</button>
+        <button class="scenario-btn" onclick="selectScenario('gifting')" id="btn-gifting">🎁 Gifting</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start;">
+
+        <!-- LEFT: Input Form -->
+        <div class="card">
+          <div class="card-title">Account Details</div>
+
+          <!-- Shared Fields -->
+          <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+            <div>
+              <label class="form-label">Company Name</label>
+              <input class="form-input" id="pim-company" placeholder="e.g. Apex SaaS Solutions" />
+            </div>
+            <div>
+              <label class="form-label">Contact Name</label>
+              <input class="form-input" id="pim-contact" placeholder="e.g. Sarah Chen" />
+            </div>
+            <div>
+              <label class="form-label">Industry</label>
+              <select class="form-input" id="pim-industry">
+                <option value="saas">SaaS / Tech</option>
+                <option value="professional_services">Professional Services</option>
+                <option value="financial_services">Financial Services</option>
+                <option value="hospitality">Hospitality</option>
+                <option value="real_estate">Real Estate</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="events">Events</option>
+                <option value="education">Education</option>
+                <option value="general_b2b">General B2B</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Company Size</label>
+              <select class="form-input" id="pim-size">
+                <option value="1-10">1–10</option>
+                <option value="11-50">11–50</option>
+                <option value="51-200" selected>51–200</option>
+                <option value="201-500">201–500</option>
+                <option value="500+">500+</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Onboarding Fields -->
+          <div id="fields-onboarding" class="scenario-fields">
+            <label class="form-label">Buyer Persona</label>
+            <select class="form-input" id="pim-persona-onboarding">
+              <option value="people_ops_hr">People Ops / HR</option>
+              <option value="marketing">Marketing</option>
+              <option value="procurement">Procurement</option>
+              <option value="executive_leadership">Executive Leadership</option>
+            </select>
+          </div>
+
+          <!-- Events Fields -->
+          <div id="fields-events" class="scenario-fields" style="display:none;">
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <label class="form-label">Event Name</label>
+                <input class="form-input" id="pim-event-name" placeholder="e.g. SaaStr Annual 2026" />
+              </div>
+              <div>
+                <label class="form-label">Event Date</label>
+                <input class="form-input" type="date" id="pim-event-date" />
+              </div>
+              <div>
+                <label class="form-label">Buyer Persona</label>
+                <select class="form-input" id="pim-persona-events">
+                  <option value="marketing">Marketing</option>
+                  <option value="events">Events</option>
+                  <option value="sales_enablement">Sales Enablement</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gifting Fields -->
+          <div id="fields-gifting" class="scenario-fields" style="display:none;">
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <label class="form-label">Gifting Occasion</label>
+                <input class="form-input" id="pim-occasion" placeholder="e.g. Q4 Client Appreciation" />
+              </div>
+              <div>
+                <label class="form-label">Budget Per Unit ($)</label>
+                <input class="form-input" type="number" id="pim-budget" placeholder="e.g. 150" />
+              </div>
+              <div>
+                <label class="form-label">Recipient Tier</label>
+                <select class="form-input" id="pim-recipient-tier">
+                  <option value="executive">Executive</option>
+                  <option value="vip_client">VIP Client</option>
+                  <option value="partner">Partner</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Buyer Persona</label>
+                <select class="form-input" id="pim-persona-gifting">
+                  <option value="executive_leadership">Executive Leadership</option>
+                  <option value="marketing">Marketing</option>
+                  <option value="procurement">Procurement</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="generatePIMCampaign()" id="pim-generate-btn"
+            class="generate-btn" style="margin-top:20px; font-size:16px;">
+            ✨ GENERATE BRIEF
+          </button>
         </div>
+
+        <!-- RIGHT: Output -->
+        <div id="pim-campaign-output" style="display:none;">
+
+          <!-- Header -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <div id="pim-output-title" style="font-family:var(--head); font-size:24px; letter-spacing:2px; color:var(--white);"></div>
+              <div id="pim-output-meta" style="font-size:12px; color:var(--slate); margin-top:4px;"></div>
+            </div>
+            <span id="pim-scenario-badge" class="badge"></span>
+          </div>
+
+          <!-- Subject + Headline -->
+          <div class="card" style="margin-bottom:12px;">
+            <div class="card-title">Copy</div>
+            <div class="copy-card">
+              <div class="copy-card-label">Subject Line</div>
+              <div class="copy-card-val" id="pim-subject"></div>
+            </div>
+            <div class="copy-card">
+              <div class="copy-card-label">Hero Headline</div>
+              <div class="copy-card-val" id="pim-headline" style="font-size:18px; font-weight:700;"></div>
+            </div>
+            <div class="copy-card">
+              <div class="copy-card-label">Body Copy</div>
+              <div class="copy-card-val" id="pim-body" style="font-size:13px; line-height:1.7;"></div>
+            </div>
+          </div>
+
+          <!-- Product Recommendations -->
+          <div class="card" style="margin-bottom:12px;">
+            <div class="card-title">Product Recommendations</div>
+            <div id="pim-products" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+
+          <!-- Bundle + CTA -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div class="card">
+              <div class="card-title">Bundle Suggestion</div>
+              <div id="pim-bundle-name" style="color:var(--gold); font-weight:600; font-size:14px; margin-bottom:6px;"></div>
+              <div id="pim-bundle-skus" style="color:var(--slate); font-size:12px; font-family:monospace;"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">CTA &amp; Personalization</div>
+              <div id="pim-cta" style="color:var(--green); font-weight:700; font-size:16px; margin-bottom:12px;"></div>
+              <div style="font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Personalization Angle</div>
+              <div id="pim-personalization" style="color:var(--white); font-size:13px; line-height:1.5;"></div>
+            </div>
+          </div>
+
+          <!-- Campaign Notes -->
+          <div class="card">
+            <div class="card-title">Campaign Notes</div>
+            <div id="pim-notes" style="color:var(--slate); font-size:13px; line-height:1.6;"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT placeholder before generation -->
+        <div id="pim-placeholder" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; color:var(--slate); text-align:center;">
+          <div style="font-size:48px; opacity:0.3; margin-bottom:16px;">🎯</div>
+          <div style="font-family:var(--head); font-size:22px; letter-spacing:2px; color:var(--white); opacity:0.4; margin-bottom:8px;">READY TO GENERATE</div>
+          <p style="font-size:13px; max-width:280px; line-height:1.6;">Fill in the account details, select a scenario, and click Generate Brief.</p>
+        </div>
+
       </div>
     </div>
-
-    <!-- Events Fields -->
-    <div id="fields-events" class="scenario-fields" style="display:none;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div>
-          <label class="form-label">Event Name</label>
-          <input class="form-input" id="pim-event-name" placeholder="e.g. SaaStr Annual 2026" />
-        </div>
-        <div>
-          <label class="form-label">Event Date</label>
-          <input class="form-input" type="date" id="pim-event-date" />
-        </div>
-        <div>
-          <label class="form-label">Buyer Persona</label>
-          <select class="form-input" id="pim-persona-events">
-            <option value="marketing">Marketing</option>
-            <option value="events">Events</option>
-            <option value="sales_enablement">Sales Enablement</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Gifting Fields -->
-    <div id="fields-gifting" class="scenario-fields" style="display:none;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div>
-          <label class="form-label">Gifting Occasion</label>
-          <input class="form-input" id="pim-occasion" placeholder="e.g. Q4 Client Appreciation" />
-        </div>
-        <div>
-          <label class="form-label">Budget Per Unit ($)</label>
-          <input class="form-input" type="number" id="pim-budget" placeholder="e.g. 150" />
-        </div>
-        <div>
-          <label class="form-label">Recipient Tier</label>
-          <select class="form-input" id="pim-recipient-tier">
-            <option value="executive">Executive</option>
-            <option value="vip_client">VIP Client</option>
-            <option value="partner">Partner</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Buyer Persona</label>
-          <select class="form-input" id="pim-persona-gifting">
-            <option value="executive_leadership">Executive Leadership</option>
-            <option value="marketing">Marketing</option>
-            <option value="procurement">Procurement</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Generate Button -->
-    <button
-      onclick="generatePIMCampaign()"
-      id="pim-generate-btn"
-      style="margin-top:16px; width:100%; padding:12px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; letter-spacing:0.5px;">
-      ✨ Generate Campaign Brief
-    </button>
-  </div>
-
-  <!-- Output Card -->
-  <div id="pim-campaign-output" style="display:none; margin-top:24px;">
-
-    <!-- Header -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <div>
-        <div id="pim-output-title" style="font-size:18px; font-weight:700; color:#f1f5f9;"></div>
-        <div id="pim-output-meta" style="font-size:12px; color:#64748b; margin-top:2px;"></div>
-      </div>
-      <span id="pim-scenario-badge" style="padding:4px 12px; border-radius:99px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px;"></span>
-    </div>
-
-    <!-- Subject + Headline -->
-    <div style="background:#1e293b; border-radius:8px; padding:16px; margin-bottom:12px;">
-      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Subject Line</div>
-      <div id="pim-subject" style="color:#a5b4fc; font-weight:600; font-size:14px;"></div>
-      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin:12px 0 4px;">Hero Headline</div>
-      <div id="pim-headline" style="color:#f1f5f9; font-weight:700; font-size:18px;"></div>
-    </div>
-
-    <!-- Body Copy -->
-    <div style="background:#1e293b; border-radius:8px; padding:16px; margin-bottom:12px;">
-      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Campaign Body Copy</div>
-      <div id="pim-body" style="color:#cbd5e1; font-size:14px; line-height:1.6;"></div>
-    </div>
-
-    <!-- Product Recommendations -->
-    <div style="background:#1e293b; border-radius:8px; padding:16px; margin-bottom:12px;">
-      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">
-        📦 Product Recommendations
-      </div>
-      <div id="pim-products" style="display:flex; flex-direction:column; gap:10px;"></div>
-    </div>
-
-    <!-- Bundle + CTA -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-      <div style="background:#1e293b; border-radius:8px; padding:16px;">
-        <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎁 Bundle Suggestion</div>
-        <div id="pim-bundle-name" style="color:#a5b4fc; font-weight:600; font-size:14px; margin-bottom:6px;"></div>
-        <div id="pim-bundle-skus" style="color:#64748b; font-size:12px;"></div>
-      </div>
-      <div style="background:#1e293b; border-radius:8px; padding:16px;">
-        <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎯 CTA</div>
-        <div id="pim-cta" style="color:#34d399; font-weight:700; font-size:16px;"></div>
-        <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin:12px 0 6px;">Personalization Angle</div>
-        <div id="pim-personalization" style="color:#cbd5e1; font-size:12px; line-height:1.5;"></div>
-      </div>
-    </div>
-
-    <!-- Campaign Notes -->
-    <div style="background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:16px;">
-      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">📋 Campaign Notes</div>
-      <div id="pim-notes" style="color:#94a3b8; font-size:13px; line-height:1.6;"></div>
-    </div>
-  </div>
-</div>
     <!-- PIPELINE -->
     <div id="panel-pipeline" class="panel panel-hidden">
       <div class="page-header"><div class="page-label">HubSpot CRM</div><div class="page-title">DEAL PIPELINE</div></div>
@@ -941,7 +941,7 @@
   document.addEventListener("DOMContentLoaded", function() { init(); });
 
   // ── Panel Navigation ─────────────────────────────────────
-  var _panels = ["dashboard","prospects","generator","pipeline","campaigns","cloudinary","products","settings"];
+  var _panels = ["dashboard","prospects","generator","pimcampaign","pipeline","campaigns","cloudinary","products","settings"];
 
   function showPanel(name, el) {
     _panels.forEach(function(id) {
@@ -1439,6 +1439,8 @@ function renderPIMCampaign(data) {
   const bundle = brief.bundle_suggestion || {};
   document.getElementById('pim-bundle-name').textContent = bundle.name || '—';
   document.getElementById('pim-bundle-skus').textContent = (bundle.skus || []).join(' + ');
+  document.getElementById('pim-placeholder').style.display = 'none';
+  document.getElementById('pim-campaign-output').style.display = 'block';
 
   // Show output
   document.getElementById('pim-campaign-output').style.display = 'block';
