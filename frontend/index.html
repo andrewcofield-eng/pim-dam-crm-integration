@@ -153,6 +153,55 @@
     @keyframes slideIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     .notif-title{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px;}.notif-body{font-size:12px;color:var(--slate);}
     ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--charcoal);}::-webkit-scrollbar-thumb{background:var(--rule);}
+    /* PIM Campaign Generator */
+.scenario-btn {
+  padding: 8px 18px;
+  border-radius: 99px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.scenario-btn:hover {
+  border-color: #6366f1;
+  color: #a5b4fc;
+}
+.scenario-btn.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+.form-label {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #f1f5f9;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.form-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+.product-rec-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+}
   </style>
 </head>
 <body>
@@ -385,6 +434,199 @@
         </div>
       </div>
     </div>
+    <!-- ═══════════════════════════════════════════════════════
+     PIM CAMPAIGN GENERATOR — AgenticFlow Scenario Engine
+     ═══════════════════════════════════════════════════════ -->
+<div class="card" style="margin-top: 24px;">
+  <div class="card-title">🎯 PIM Campaign Generator</div>
+  <p style="color:#94a3b8; font-size:13px; margin-bottom:16px;">
+    Generate data-informed campaigns powered by enriched product data, CRM account signals, and AI.
+  </p>
+
+  <!-- Scenario Selector -->
+  <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+    <button class="scenario-btn active" onclick="selectScenario('onboarding')" id="btn-onboarding">
+      🎉 Onboarding
+    </button>
+    <button class="scenario-btn" onclick="selectScenario('events')" id="btn-events">
+      🎪 Events
+    </button>
+    <button class="scenario-btn" onclick="selectScenario('gifting')" id="btn-gifting">
+      🎁 Gifting
+    </button>
+  </div>
+
+  <!-- Input Form -->
+  <div id="pim-campaign-form">
+
+    <!-- Shared Fields -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label class="form-label">Company Name</label>
+        <input class="form-input" id="pim-company" placeholder="e.g. Apex SaaS Solutions" />
+      </div>
+      <div>
+        <label class="form-label">Contact Name</label>
+        <input class="form-input" id="pim-contact" placeholder="e.g. Sarah Chen" />
+      </div>
+      <div>
+        <label class="form-label">Industry</label>
+        <select class="form-input" id="pim-industry">
+          <option value="saas">SaaS / Tech</option>
+          <option value="professional_services">Professional Services</option>
+          <option value="financial_services">Financial Services</option>
+          <option value="hospitality">Hospitality</option>
+          <option value="real_estate">Real Estate</option>
+          <option value="healthcare">Healthcare</option>
+          <option value="events">Events</option>
+          <option value="education">Education</option>
+          <option value="general_b2b">General B2B</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Company Size</label>
+        <select class="form-input" id="pim-size">
+          <option value="1-10">1–10</option>
+          <option value="11-50">11–50</option>
+          <option value="51-200" selected>51–200</option>
+          <option value="201-500">201–500</option>
+          <option value="500+">500+</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Onboarding Fields -->
+    <div id="fields-onboarding" class="scenario-fields">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <label class="form-label">Buyer Persona</label>
+          <select class="form-input" id="pim-persona-onboarding">
+            <option value="people_ops_hr">People Ops / HR</option>
+            <option value="marketing">Marketing</option>
+            <option value="procurement">Procurement</option>
+            <option value="executive_leadership">Executive Leadership</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events Fields -->
+    <div id="fields-events" class="scenario-fields" style="display:none;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <label class="form-label">Event Name</label>
+          <input class="form-input" id="pim-event-name" placeholder="e.g. SaaStr Annual 2026" />
+        </div>
+        <div>
+          <label class="form-label">Event Date</label>
+          <input class="form-input" type="date" id="pim-event-date" />
+        </div>
+        <div>
+          <label class="form-label">Buyer Persona</label>
+          <select class="form-input" id="pim-persona-events">
+            <option value="marketing">Marketing</option>
+            <option value="events">Events</option>
+            <option value="sales_enablement">Sales Enablement</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gifting Fields -->
+    <div id="fields-gifting" class="scenario-fields" style="display:none;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <label class="form-label">Gifting Occasion</label>
+          <input class="form-input" id="pim-occasion" placeholder="e.g. Q4 Client Appreciation" />
+        </div>
+        <div>
+          <label class="form-label">Budget Per Unit ($)</label>
+          <input class="form-input" type="number" id="pim-budget" placeholder="e.g. 150" />
+        </div>
+        <div>
+          <label class="form-label">Recipient Tier</label>
+          <select class="form-input" id="pim-recipient-tier">
+            <option value="executive">Executive</option>
+            <option value="vip_client">VIP Client</option>
+            <option value="partner">Partner</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Buyer Persona</label>
+          <select class="form-input" id="pim-persona-gifting">
+            <option value="executive_leadership">Executive Leadership</option>
+            <option value="marketing">Marketing</option>
+            <option value="procurement">Procurement</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate Button -->
+    <button
+      onclick="generatePIMCampaign()"
+      id="pim-generate-btn"
+      style="margin-top:16px; width:100%; padding:12px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; letter-spacing:0.5px;">
+      ✨ Generate Campaign Brief
+    </button>
+  </div>
+
+  <!-- Output Card -->
+  <div id="pim-campaign-output" style="display:none; margin-top:24px;">
+
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <div id="pim-output-title" style="font-size:18px; font-weight:700; color:#f1f5f9;"></div>
+        <div id="pim-output-meta" style="font-size:12px; color:#64748b; margin-top:2px;"></div>
+      </div>
+      <span id="pim-scenario-badge" style="padding:4px 12px; border-radius:99px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px;"></span>
+    </div>
+
+    <!-- Subject + Headline -->
+    <div style="background:#1e293b; border-radius:8px; padding:16px; margin-bottom:12px;">
+      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Subject Line</div>
+      <div id="pim-subject" style="color:#a5b4fc; font-weight:600; font-size:14px;"></div>
+      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin:12px 0 4px;">Hero Headline</div>
+      <div id="pim-headline" style="color:#f1f5f9; font-weight:700; font-size:18px;"></div>
+    </div>
+
+    <!-- Body Copy -->
+    <div style="background:#1e293b; border-radius:8px; padding:16px; margin-bottom:12px;">
+      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Campaign Body Copy</div>
+      <div id="pim-body" style="color:#cbd5e1; font-size:14px; line-height:1.6;"></div>
+    </div>
+
+    <!-- Product Recommendations -->
+    <div style="background:#1e293b; border-radius:8px; padding:16px; margin-bottom:12px;">
+      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">
+        📦 Product Recommendations
+      </div>
+      <div id="pim-products" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+
+    <!-- Bundle + CTA -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div style="background:#1e293b; border-radius:8px; padding:16px;">
+        <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎁 Bundle Suggestion</div>
+        <div id="pim-bundle-name" style="color:#a5b4fc; font-weight:600; font-size:14px; margin-bottom:6px;"></div>
+        <div id="pim-bundle-skus" style="color:#64748b; font-size:12px;"></div>
+      </div>
+      <div style="background:#1e293b; border-radius:8px; padding:16px;">
+        <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎯 CTA</div>
+        <div id="pim-cta" style="color:#34d399; font-weight:700; font-size:16px;"></div>
+        <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin:12px 0 6px;">Personalization Angle</div>
+        <div id="pim-personalization" style="color:#cbd5e1; font-size:12px; line-height:1.5;"></div>
+      </div>
+    </div>
+
+    <!-- Campaign Notes -->
+    <div style="background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:16px;">
+      <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">📋 Campaign Notes</div>
+      <div id="pim-notes" style="color:#94a3b8; font-size:13px; line-height:1.6;"></div>
+    </div>
+  </div>
+</div>
     <!-- PIPELINE -->
     <div id="panel-pipeline" class="panel panel-hidden">
       <div class="page-header"><div class="page-label">HubSpot CRM</div><div class="page-title">DEAL PIPELINE</div></div>
@@ -1083,6 +1325,125 @@
     el.textContent  = ok ? "Connected" : "Offline";
     el.className    = "api-status " + (ok ? "ok" : "err");
   }
+  // ── PIM Campaign Generator ─────────────────────────────────────────
+let _currentScenario = 'onboarding';
+
+function selectScenario(scenario) {
+  _currentScenario = scenario;
+
+  // Update buttons
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + scenario).classList.add('active');
+
+  // Show/hide scenario-specific fields
+  document.querySelectorAll('.scenario-fields').forEach(f => f.style.display = 'none');
+  document.getElementById('fields-' + scenario).style.display = 'block';
+
+  // Hide previous output
+  document.getElementById('pim-campaign-output').style.display = 'none';
+}
+
+async function generatePIMCampaign() {
+  const btn = document.getElementById('pim-generate-btn');
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+
+  const company  = document.getElementById('pim-company').value || 'Your Company';
+  const contact  = document.getElementById('pim-contact').value || '';
+  const industry = document.getElementById('pim-industry').value;
+  const size     = document.getElementById('pim-size').value;
+
+  // Build scenario-specific payload
+  let account = { company_name: company, contact_name: contact, industry, company_size: size };
+
+  if (_currentScenario === 'onboarding') {
+    account.buyer_persona = document.getElementById('pim-persona-onboarding').value;
+
+  } else if (_currentScenario === 'events') {
+    account.buyer_persona = document.getElementById('pim-persona-events').value;
+    account.event_name    = document.getElementById('pim-event-name').value || 'Upcoming Event';
+    account.event_date    = document.getElementById('pim-event-date').value || '';
+
+  } else if (_currentScenario === 'gifting') {
+    account.buyer_persona    = document.getElementById('pim-persona-gifting').value;
+    account.gifting_occasion = document.getElementById('pim-occasion').value || 'Client Appreciation';
+    account.budget_per_unit  = document.getElementById('pim-budget').value || '';
+    account.recipient_tier   = document.getElementById('pim-recipient-tier').value;
+  }
+
+  try {
+    const API = 'https://pim-dam-crm-integration-production.up.railway.app';
+    const res  = await fetch(`${API}/ai-campaigns/${_currentScenario}`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ account, scenario: _currentScenario })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    renderPIMCampaign(data);
+
+  } catch (err) {
+    alert('Campaign generation failed: ' + err.message);
+  } finally {
+    btn.textContent = '✨ Generate Campaign Brief';
+    btn.disabled = false;
+  }
+}
+
+function renderPIMCampaign(data) {
+  const brief    = data.campaign_brief;
+  const scenario = data.scenario;
+  const account  = data.account;
+
+  // Badge colors
+  const badges = {
+    onboarding: { bg: '#1d4ed8', color: '#bfdbfe', label: '🎉 Onboarding' },
+    events:     { bg: '#065f46', color: '#6ee7b7', label: '🎪 Events' },
+    gifting:    { bg: '#7c2d12', color: '#fdba74', label: '🎁 Gifting'  }
+  };
+  const badge = badges[scenario] || badges.onboarding;
+
+  // Populate header
+  document.getElementById('pim-output-title').textContent     = brief.campaign_title || '';
+  document.getElementById('pim-output-meta').textContent      = `${account.company_name} · ${data.products_evaluated} products evaluated`;
+  const badgeEl = document.getElementById('pim-scenario-badge');
+  badgeEl.textContent   = badge.label;
+  badgeEl.style.background = badge.bg;
+  badgeEl.style.color       = badge.color;
+
+  // Populate copy
+  document.getElementById('pim-subject').textContent          = brief.subject_line || '';
+  document.getElementById('pim-headline').textContent         = brief.hero_headline || '';
+  document.getElementById('pim-body').textContent             = brief.body_copy || '';
+  document.getElementById('pim-cta').textContent              = brief.cta_text || '';
+  document.getElementById('pim-personalization').textContent  = brief.personalization_angle || '';
+  document.getElementById('pim-notes').textContent            = brief.campaign_notes || '';
+
+  // Product recommendations
+  const prodsEl = document.getElementById('pim-products');
+  prodsEl.innerHTML = '';
+  (brief.product_recommendations || []).forEach(p => {
+    prodsEl.innerHTML += `
+      <div class="product-rec-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <span style="color:#f1f5f9; font-weight:600; font-size:14px;">${p.name || p.sku}</span>
+          <span style="color:#64748b; font-size:11px; background:#1e293b; padding:2px 8px; border-radius:4px;">${p.sku}</span>
+        </div>
+        <div style="color:#94a3b8; font-size:12px; margin-bottom:6px;">${p.reason || ''}</div>
+        <div style="color:#6366f1; font-size:11px;">✏️ ${p.personalization_note || ''}</div>
+      </div>`;
+  });
+
+  // Bundle
+  const bundle = brief.bundle_suggestion || {};
+  document.getElementById('pim-bundle-name').textContent = bundle.name || '—';
+  document.getElementById('pim-bundle-skus').textContent = (bundle.skus || []).join(' + ');
+
+  // Show output
+  document.getElementById('pim-campaign-output').style.display = 'block';
+  document.getElementById('pim-campaign-output').scrollIntoView({ behavior: 'smooth' });
+}
 </script>
 </body>
 </html>
