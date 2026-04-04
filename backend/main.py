@@ -146,7 +146,7 @@ async def export_enriched_products(
         if scenario:
             enriched_products = [
                 p for p in enriched_products
-                if p["scenario_scores"].get(scenario) in ["high", "medium"]
+                if str(p["scenario_scores"].get(scenario) or "").lower() in ["high", "medium"]
             ]
 
         if min_personalization:
@@ -154,7 +154,7 @@ async def export_enriched_products(
             min_rank = rank.get(min_personalization, 0)
             enriched_products = [
                 p for p in enriched_products
-                if rank.get(p["merchandising"]["personalization_suitability"], 0) >= min_rank
+                if rank.get(str(p["merchandising"]["personalization_suitability"] or "").lower(), 0) >= min_rank
             ]
 
         return {
