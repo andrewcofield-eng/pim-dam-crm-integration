@@ -286,6 +286,43 @@ def flatten_campaign_copy(campaign_copy: dict) -> dict:
         "campaign_summary":  campaign_summary
     }
 
+def select_scenario_from_crm(account: dict) -> str:
+    """
+    Auto-select campaign scenario based on CRM account signals.
+    Priority order: explicit hint → industry → persona → default
+    """
+    # 1. Explicit hint from CRM (highest priority)
+    hint = (account.get("campaign_hint") or "").lower()
+    if hint in ["onboarding", "events", "gifting"]:
+        return hint
+
+    industry = (account.get("industry") or "").lower()
+    persona  = (account.get("buyer_persona") or "").lower()
+    occasion = (account.get("gifting_occasion") or "").lower()
+    event    = (account.get("event_name") or "").lower()
+
+    # 2. Event signals
+    if event or any(k in industry for k in ["events", "hospitality", "conference"]):
+        return "events"
+    if any(k in persona for k in ["events", "marketing", "sales_enablement"]):
+        return "events"
+
+    # 3. Gifting signals
+    if occasion or any(k in industry for k in ["financial", "real_estate", "luxury"]):
+        return "gifting"
+    if any(k in persona for k in ["executive", "leadership", "c_suite"]):
+        return "gifting"
+
+    # 4. Onboarding signals
+    if any(k in persona for k in ["people_ops", "hr", "human_resources", "procurement"]):
+        return "onboarding"
+    if any(k in industry for k in ["saas", "tech", "software", "professional_services"]):
+        return "onboarding"
+
+    # 5. Default
+    return "onboarding"
+
+
 # ─── Endpoints ────────────────────────────────────────────────────────────────
 
 @router.post("/onboarding")
@@ -519,6 +556,130 @@ Generate the campaign brief now. Return valid JSON only.
                 "persona":          persona,
                 "recipient_tier":   recipient_tier,
                 "gifting_occasion": gifting_occasion
+            },
+            "products_evaluated": len(products),
+            "campaign_brief":     campaign_brief
+        }
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/smart-generate")
+async def smart_generate_campaign(request: dict):
+    """
+    Unified campaign generator — auto-selects scenario from CRM signals.
+    POST /ai-campaigns/smart-generate
+
+    Expects:
+    {
+        "account": {
+            "company_name": "Acme Corp",
+            "industry": "financial_services",
+            "buyer_persona": "executive_leadership",
+            "contact_name": "James Whitfield",
+            "company_size": "201-500",
+
+            // Optional overrides:
+            "campaign_hint": "gifting",       // force a scenario
+            "event_name": "SaaStr 2026",      // triggers events
+            "gifting_occasion": "Q4 gifts",   // triggers gifting
+            "budget_per_unit": "150",
+            "recipient_tier": "executive"
+        }
+    }
+    """
+    try:
+        account  = request.get("account", {})
+
+        # ── Step 1: Auto-select scenario ──────────────────
+        scenario = select_scenario_from_crm(account)
+        print(f"[smart-generate] Selected scenario: {scenario} for {account.get('company_name')}")
+
+        # ── Step 2: Fetch matching products ───────────────
+        async with httpx.AsyncClient() as client:
+            products_response = await client.get(
+                f"http://localhost:8000/products/export?scenario={scenario}",
+                timeout=10.0
+            )
+            products = products_response.json().get("products", [])
+
+        if not products:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No {scenario}-ready products found"
+            )
+
+        # ── Step 3: Select correct system prompt ──────────
+        prompt_map = {
+            "onboarding": ONBOARDING_CAMPAIGN_PROMPT,
+            "events":     EVENTS_CAMPAIGN_PROMPT,
+            "gifting":    GIFTING_CAMPAIGN_PROMPT,
+        }
+        system_prompt = prompt_map[scenario]
+
+        # ── Step 4: Build user message ────────────────────
+        company_name  = account.get("company_name", "Your Company")
+        industry      = account.get("industry", "general_b2b")
+        persona       = account.get("buyer_persona", "marketing")
+        contact_name  = account.get("contact_name", "")
+        company_size  = account.get("company_size", "unknown")
+        event_name    = account.get("event_name", "")
+        occasion      = account.get("gifting_occasion", "")
+        budget        = account.get("budget_per_unit", "")
+        recipient     = account.get("recipient_tier", "")
+
+        # Scenario-specific context lines
+        extra = ""
+        if scenario == "events" and event_name:
+            extra = f"- Event Name: {event_name}\n"
+        elif scenario == "gifting":
+            if occasion: extra += f"- Gifting Occasion: {occasion}\n"
+            if budget:   extra += f"- Budget Per Unit: ${budget}\n"
+            if recipient:extra += f"- Recipient Tier: {recipient}\n"
+
+        user_message = f"""
+Generate a {scenario} campaign brief for the following account:
+
+ACCOUNT:
+- Company: {company_name}
+- Industry: {industry}
+- Company Size: {company_size}
+- Buyer Persona: {persona}
+- Contact Name: {contact_name}
+{extra}
+AVAILABLE {scenario.upper()} PRODUCTS:
+{format_products_for_prompt(products)}
+
+Generate the campaign brief now. Return valid JSON only.
+"""
+
+        # ── Step 5: Call OpenAI ───────────────────────────
+        from openai import OpenAI
+        client_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        response = client_ai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": user_message}
+            ],
+            temperature=0.7,
+            response_format={"type": "json_object"}
+        )
+
+        campaign_brief = json.loads(response.choices[0].message.content)
+
+        # ── Step 6: Return ────────────────────────────────
+        return {
+            "status":             "success",
+            "scenario_selected":  scenario,
+            "scenario_reasoning": f"Auto-selected based on industry='{industry}', persona='{persona}'",
+            "account": {
+                "company_name": company_name,
+                "industry":     industry,
+                "persona":      persona,
             },
             "products_evaluated": len(products),
             "campaign_brief":     campaign_brief
