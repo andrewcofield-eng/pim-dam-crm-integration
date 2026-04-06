@@ -600,7 +600,7 @@ async def smart_generate_campaign(request: dict):
         # ── Step 2: Fetch matching products ───────────────
         async with httpx.AsyncClient() as client:
             products_response = await client.get(
-                f"http://localhost:8000/products/export?scenario={scenario}",
+                f"{os.getenv('API_BASE_URL', 'http://localhost:8000')}/products/export?scenario={scenario}",
                 timeout=10.0
             )
             products = products_response.json().get("products", [])
