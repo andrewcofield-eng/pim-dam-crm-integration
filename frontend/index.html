@@ -1016,7 +1016,9 @@
         "<td style='color:var(--gold);'>" + deal + "</td>" +
         "<td><span class='badge " + badgeCls + "'>" + stage + "</span></td>" +
         "<td><div class='action-cell'>" +
-        "<button class='icon-btn launch' title='Generate Campaign' onclick='launchGeneratorById(" + i + ")'>&#9889;</button></div></td>" +
+        "<button class='icon-btn launch' title='Generate Campaign' onclick='launchGeneratorById(" + i + ")'>&#9889;</button>" +
+        "<button class='icon-btn' title='Smart PIM Brief' onclick='smartGenerateFromProspect(" + i + ")' style='background:rgba(212,175,55,0.15);color:var(--gold);'>&#127919;</button>" +
+        "</div></td>" +
         "</tr>";
     });
     if (tbody) tbody.innerHTML = rows || "<tr><td colspan='7' style='color:var(--slate);text-align:center;padding:28px;'>No prospects found.</td></tr>";
@@ -1446,6 +1448,61 @@ function renderPIMCampaign(data) {
   document.getElementById('pim-campaign-output').style.display = 'block';
   document.getElementById('pim-campaign-output').scrollIntoView({ behavior: 'smooth' });
 }
+
+async function smartGenerateFromProspect(idx) {
+  const p = _prospects[idx];
+  if (!p) return;
+
+  // Navigate to PIM Campaigns panel
+  showPanel('pimcampaign');
+
+  // Show loading state
+  document.getElementById('pim-placeholder').style.display = 'none';
+  document.getElementById('pim-campaign-output').style.display = 'none';
+  document.getElementById('pim-generate-btn').textContent = '⏳ Auto-generating...';
+  document.getElementById('pim-generate-btn').disabled = true;
+
+  log('[Smart Generate] Auto-generating PIM brief for ' + p.company, 'log-gold');
+
+  try {
+    const account = {
+      company_name:  p.company      || '',
+      contact_name:  p.contact_name || '',
+      industry:      (p.segment || 'general_b2b').toLowerCase().replace(/ /g, '_'),
+      company_size:  p.company_size || '51-200',
+      buyer_persona: p.persona      || 'marketing',
+      event_name:    p.event_name   || '',
+      gifting_occasion: p.gifting_occasion || ''
+    };
+
+    const res = await fetch(`${API}/ai-campaigns/smart-generate`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ account })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+
+    // Update scenario buttons to reflect auto-selected scenario
+    selectScenario(data.scenario_selected);
+
+    // Render the brief
+    renderPIMCampaign(data);
+
+    log('[Smart Generate] Brief ready → ' + data.scenario_selected + ' for ' + p.company, 'log-ok');
+    showNotification('PIM Brief Ready!', data.scenario_selected.toUpperCase() + ' campaign generated for ' + p.company);
+
+  } catch(err) {
+    log('[Smart Generate] Error: ' + err.message, 'log-warn');
+    document.getElementById('pim-placeholder').style.display = 'flex';
+    showNotification('Error', 'Smart generate failed: ' + err.message);
+  } finally {
+    document.getElementById('pim-generate-btn').textContent = '✨ GENERATE BRIEF';
+    document.getElementById('pim-generate-btn').disabled = false;
+  }
+}
+
 </script>
 </body>
 </html>
