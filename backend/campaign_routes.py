@@ -797,8 +797,6 @@ async def track_campaign_view(campaign_id: str):
     _analytics["generations"] = len(_campaign_store)
     save_analytics(_analytics)
     return {"status": "tracked", "campaign_id": campaign_id}
-
-
 @router.post("/{campaign_id}/use")
 async def track_campaign_use(campaign_id: str):
     _analytics["views"].append({

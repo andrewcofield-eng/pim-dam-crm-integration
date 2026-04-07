@@ -1,0 +1,158 @@
+# mockup_routes.py
+import httpx
+import base64
+import io
+import os
+
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from openai import AsyncOpenAI
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/ai-campaigns", tags=["Mockups"])
+
+openai_client = AsyncOpenAI()
+
+# ── Initialize Cloudinary ──────────────────────────────────────────────────────
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", "dp0cdq8bj"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
+
+# ── Company → Logo URL map ─────────────────────────────────────────────────────
+COMPANY_LOGO_MAP = {
+    "collegiate spirit co":          "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586397/collegiate-spirit-co-logo_zkp0ol.png",
+    "corporate gifts inc":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
+    "corporate wellness llc":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586475/corporate-wellness-llc-logo_fdraoc.png",
+    "eco adventures tours":          "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586587/eco-adventures-tours-logo_j6vskl.png",
+    "fitlife gyms":                  "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586540/fitlife-gyms-logo_bml45k.png",
+    "ngo relief partners":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586622/ngo_relief_partners-logo_bwbjsw.png",
+    "premium resorts intl":          "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
+    "premium resorts international": "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
+    "summit events group":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586654/summit-events-group-logo_kv0rxk.png",
+}
+
+
+# ── Request model ──────────────────────────────────────────────────────────────
+class MockupRequest(BaseModel):
+    company_name:      str
+    sku:               str
+    product_image_url: str
+    placement:         str = "left chest"   # "left chest" | "center chest" | "back"
+    technique:         str = "embroidered"  # "embroidered" | "screen printed" | "heat transfer"
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
+def get_cached_mockup(slug: str, sku: str) -> str | None:
+    """Return Cloudinary URL if mockup already exists, else None."""
+    try:
+        result = cloudinary.api.resource(f"mockups/{slug}/{sku}")
+        return result["secure_url"]
+    except Exception:
+        return None
+
+
+def upload_to_cloudinary(image_bytes: bytes, public_id: str) -> dict:
+    """Upload raw image bytes to Cloudinary."""
+    return cloudinary.uploader.upload(
+        io.BytesIO(image_bytes),
+        public_id=public_id,
+        overwrite=True,
+        resource_type="image",
+    )
+
+
+# ── Endpoint ───────────────────────────────────────────────────────────────────
+@router.post("/generate-mockup")
+async def generate_product_mockup(req: MockupRequest):
+    """
+    Generates a realistic branded product mockup using GPT Image 1.
+    Composites the company logo onto the product as embroidered/printed.
+    Caches result in Cloudinary under mockups/{slug}/{sku}.
+    """
+    slug = req.company_name.strip().lower().replace(" ", "-")
+
+    # 1. Return cached mockup if already generated
+    cached = get_cached_mockup(slug, req.sku)
+    if cached:
+        return {
+            "status":     "cached",
+            "mockup_url": cached,
+            "company":    req.company_name,
+            "sku":        req.sku,
+        }
+
+    # 2. Look up logo URL from map
+    logo_url = COMPANY_LOGO_MAP.get(req.company_name.strip().lower())
+    if not logo_url:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No logo found for company: {req.company_name}"
+        )
+
+    # 3. Fetch product image + logo as bytes
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        product_resp = await client.get(req.product_image_url)
+        logo_resp    = await client.get(logo_url)
+
+    product_bytes = product_resp.content
+    logo_bytes    = logo_resp.content
+
+    # 4. Build descriptors
+    placement_desc = {
+        "left chest":   "the upper-left chest area",
+        "center chest": "the center chest",
+        "back":         "the upper back yoke area",
+    }.get(req.placement, "the upper-left chest area")
+
+    technique_desc = {
+        "embroidered":    "embroidered with visible raised thread texture and stitching detail",
+        "screen printed": "screen printed with slight ink spread and fabric texture showing through",
+        "heat transfer":  "heat transfer applied with a smooth, slightly glossy finish on the fabric",
+    }.get(req.technique, "embroidered with visible raised thread texture and stitching detail")
+
+    prompt = (
+        f"You are given a product photo of a garment and a brand logo. "
+        f"Create a realistic product mockup showing the logo applied to {placement_desc} of the garment, "
+        f"{technique_desc}. "
+        f"The logo must conform to the fabric surface naturally, following any folds or contours. "
+        f"Preserve the logo's exact colors, shape, and proportions. "
+        f"Keep the rest of the garment and the background completely unchanged. "
+        f"Professional e-commerce product photography. White background. "
+        f"This should look like a real custom-branded garment, not a digital overlay."
+    )
+
+    # 5. Call GPT Image 1 with product + logo
+    response = await openai_client.images.edit(
+        model="gpt-image-1",
+        image=[
+            ("product.jpg", product_bytes, "image/jpeg"),
+            ("logo.png",    logo_bytes,    "image/png"),
+        ],
+        prompt=prompt,
+        n=1,
+        size="1024x1024",
+    )
+
+    # 6. Decode result
+    result_b64   = response.data[0].b64_json
+    result_bytes = base64.b64decode(result_b64)
+
+    # 7. Upload to Cloudinary
+    cloudinary_result = upload_to_cloudinary(
+        result_bytes,
+        public_id=f"mockups/{slug}/{req.sku}",
+    )
+
+    return {
+        "status":     "success",
+        "mockup_url": cloudinary_result["secure_url"],
+        "company":    req.company_name,
+        "sku":        req.sku,
+        "placement":  req.placement,
+        "technique":  req.technique,
+    }
