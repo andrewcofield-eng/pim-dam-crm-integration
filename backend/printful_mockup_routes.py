@@ -11,6 +11,7 @@ import asyncio
 
 router = APIRouter(prefix="/printful-mockups", tags=["Printful Mockups"])
 
+PRINTFUL_STORE_ID = os.getenv("PRINTFUL_STORE_ID")
 PRINTFUL_API_KEY = os.getenv("PRINTFUL_API_KEY")
 PRINTFUL_BASE    = "https://api.printful.com"
 
@@ -57,10 +58,11 @@ async def request_printful_mockup(product_id: int, variant_id: int,
     Submits a mockup generation task to Printful and polls until complete.
     Returns the final mockup image URL.
     """
-    headers = {
-        "Authorization": f"Bearer {PRINTFUL_API_KEY}",
-        "Content-Type":  "application/json",
-    }
+headers = {
+    "Authorization": f"Bearer {PRINTFUL_API_KEY}",
+    "Content-Type":  "application/json",
+    "X-PF-Store-Id": PRINTFUL_STORE_ID,
+}
 
     payload = {
         "variant_ids": [variant_id],
