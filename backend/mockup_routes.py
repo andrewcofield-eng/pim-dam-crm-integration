@@ -123,24 +123,62 @@ async def generate_product_mockup(req: MockupRequest):
         f"This should look like a real custom-branded garment, not a digital overlay."
     )
 
-    # 5. POST directly to OpenAI images/edits via raw multipart
+     # 5. Encode images as base64 for the Responses API
+    product_b64 = base64.b64encode(product_bytes).decode("utf-8")
+    logo_b64    = base64.b64encode(logo_bytes).decode("utf-8")
+
+    # Determine MIME types
+    product_mime = "image/jpeg" if req.product_image_url.lower().endswith(".jpg") or req.product_image_url.lower().endswith(".jpeg") else "image/png"
+    logo_mime    = "image/png"
+
     openai_api_key = os.environ.get("OPENAI_API_KEY")
+
+    payload = {
+        "model": "gpt-image-1",
+        "input": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": product_mime,
+                            "data": product_b64,
+                        },
+                    },
+                    {
+                        "type": "input_image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": logo_mime,
+                            "data": logo_b64,
+                        },
+                    },
+                    {
+                        "type": "input_text",
+                        "text": prompt,
+                    },
+                ],
+            }
+        ],
+        "output": [
+            {
+                "type": "image",
+                "size": "1024x1024",
+                "quality": "high",
+            }
+        ],
+    }
 
     async with httpx.AsyncClient(timeout=120.0) as ai_client:
         api_response = await ai_client.post(
-            "https://api.openai.com/v1/images/edits",
-            headers={"Authorization": f"Bearer {openai_api_key}"},
-            files={
-                "image[]": ("product.jpg", io.BytesIO(product_bytes), "image/jpeg"),
-                "image[]": ("logo.png",    io.BytesIO(logo_bytes),    "image/png"),
+            "https://api.openai.com/v1/responses",
+            headers={
+                "Authorization": f"Bearer {openai_api_key}",
+                "Content-Type":  "application/json",
             },
-            data={
-                "model":           "gpt-image-1",
-                "prompt":          prompt,
-                "n":               "1",
-                "size":            "1024x1024",
-                "response_format": "b64_json",
-            },
+            json=payload,
         )
 
     if api_response.status_code != 200:
@@ -148,6 +186,27 @@ async def generate_product_mockup(req: MockupRequest):
             status_code=502,
             detail=f"OpenAI API error {api_response.status_code}: {api_response.text}"
         )
+
+    # 6. Extract image from response
+    response_data = api_response.json()
+    # The image is in output[0].data[0].b64_json
+    result_b64   = response_data["output"][0]["data"][0]["b64_json"]
+    result_bytes = base64.b64decode(result_b64)
+
+    # 7. Upload to Cloudinary
+    cloudinary_result = upload_to_cloudinary(
+        result_bytes,
+        public_id=f"mockups/{slug}/{req.sku}",
+    )
+
+    return {
+        "status":     "success",
+        "mockup_url": cloudinary_result["secure_url"],
+        "company":    req.company_name,
+        "sku":        req.sku,
+        "placement":  req.placement,
+        "technique":  req.technique,
+    }
 
     # 6. Decode result
     result_b64   = api_response.json()["data"][0]["b64_json"]
