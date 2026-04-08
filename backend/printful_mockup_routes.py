@@ -33,7 +33,7 @@ COMPANY_LOGO_MAP = {
     "corporate gifts inc":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
     "corporate wellness llc": "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586475/corporate-wellness-llc-logo_fdraoc.png",
     "eco adventures tours":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586587/eco-adventures-tours-logo_j6vskl.png",
-    "summit events group":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/summit-events-group-logo.png",
+    "summit events group": "https://res.cloudinary.com/dp0cdq8bj/image/upload/summit-events-group-logo.png",
 }
 
 # ── Request / Response models ──────────────────────────────────────────────────
@@ -112,8 +112,10 @@ async def request_printful_mockup(
                     return mockups[0]["mockup_url"]
                 raise HTTPException(status_code=500, detail="Printful returned no mockup images.")
 
+            print(f"[PRINTFUL POLL] attempt={attempt} raw={poll.text}", flush=True)
+
             if status == "failed":
-                error_detail = result.get("error", "No error detail returned by Printful.")
+                error_detail = result.get("error", poll.text)
                 raise HTTPException(
                     status_code=500,
                     detail=f"Printful mockup task failed: {error_detail}"
