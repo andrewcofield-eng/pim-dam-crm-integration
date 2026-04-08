@@ -21,7 +21,7 @@ SKU_TEMPLATE_MAP = {
     "TOP-002": {"product_id": 87,  "variant_id": 4984,  "placement": "front"},
     "TOP-003": {"product_id": 380, "variant_id": 9969,  "placement": "front"},
     "TOP-004": {"product_id": 392, "variant_id": 10138, "placement": "front"},
-    "HOD-001": {"product_id": 146, "variant_id": 7762,  "placement": "front"},
+    "HOD-001": {"product_id": 146, "variant_id": 5522,  "placement": "front"},
     "HOD-002": {"product_id": 503, "variant_id": 14430, "placement": "front"},
     "ACC-001": {"product_id": 74,  "variant_id": 4162,  "placement": "embroidery_front"},
     "ACC-002": {"product_id": 143, "variant_id": 7542,  "placement": "embroidery_front"},
@@ -70,12 +70,12 @@ async def request_printful_mockup(
                 "placement": placement,
                 "image_url": logo_url,
                 "position": {
-                    "area_width":  1800,
-                    "area_height": 2400,
-                    "width":       400,
-                    "height":      400,
-                    "top":         600,
-                    "left":        700,
+                    "area_width":  2100,
+                    "area_height": 2100,
+                    "width":       600,
+                    "height":      600,
+                    "top":         400,
+                    "left":        750,
                 },
             }
         ],
@@ -116,7 +116,6 @@ async def request_printful_mockup(
                 raise HTTPException(status_code=500, detail="Printful mockup task failed.")
 
         raise HTTPException(status_code=504, detail="Printful mockup timed out after 60s.")
-
 
 # ── Helper: cache mockup in Cloudinary ────────────────────────────────────────
 def cache_mockup_cloudinary(mockup_url: str, slug: str, sku: str) -> str:
