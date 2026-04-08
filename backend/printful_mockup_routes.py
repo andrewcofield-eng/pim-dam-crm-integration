@@ -113,7 +113,11 @@ async def request_printful_mockup(
                 raise HTTPException(status_code=500, detail="Printful returned no mockup images.")
 
             if status == "failed":
-                raise HTTPException(status_code=500, detail="Printful mockup task failed.")
+                error_detail = result.get("error", "No error detail returned by Printful.")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Printful mockup task failed: {error_detail}"
+                )
 
         raise HTTPException(status_code=504, detail="Printful mockup timed out after 60s.")
 
