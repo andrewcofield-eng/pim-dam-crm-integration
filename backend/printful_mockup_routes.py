@@ -219,3 +219,20 @@ async def list_printful_products():
     if resp.status_code != 200:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
     return resp.json()
+
+@router.get("/products/{product_id}/variants")
+async def get_product_variants(product_id: int):
+    """Returns all variants for a Printful product — use to find correct variant_ids."""
+    headers = {
+        "Authorization": f"Bearer {PRINTFUL_API_KEY}",
+        "X-PF-Store-Id": str(PRINTFUL_STORE_ID),
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            f"{PRINTFUL_BASE}/mockup-generator/printfiles/{product_id}",
+            headers=headers,
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail=resp.text)
+    return resp.json()
+
