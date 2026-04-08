@@ -7,13 +7,10 @@ import os
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-from openai import AsyncOpenAI
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/ai-campaigns", tags=["Mockups"])
-
-openai_client = AsyncOpenAI()
 
 # ── Initialize Cloudinary ──────────────────────────────────────────────────────
 cloudinary.config(
@@ -42,8 +39,8 @@ class MockupRequest(BaseModel):
     company_name:      str
     sku:               str
     product_image_url: str
-    placement:         str = "left chest"   # "left chest" | "center chest" | "back"
-    technique:         str = "embroidered"  # "embroidered" | "screen printed" | "heat transfer"
+    placement:         str = "left chest"
+    technique:         str = "embroidered"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -86,7 +83,7 @@ async def generate_product_mockup(req: MockupRequest):
             "sku":        req.sku,
         }
 
-    # 2. Look up logo URL from map
+    # 2. Look up logo URL
     logo_url = COMPANY_LOGO_MAP.get(req.company_name.strip().lower())
     if not logo_url:
         raise HTTPException(
@@ -126,20 +123,34 @@ async def generate_product_mockup(req: MockupRequest):
         f"This should look like a real custom-branded garment, not a digital overlay."
     )
 
-    # 5. Call GPT Image 1 with product + logo
-    response = await openai_client.images.edit(
-        model="gpt-image-1",
-        image=[
-            ("product.jpg", product_bytes, "image/jpeg"),
-            ("logo.png",    logo_bytes,    "image/png"),
-        ],
-        prompt=prompt,
-        n=1,
-        size="1024x1024",
-    )
+    # 5. POST directly to OpenAI images/edits via raw multipart
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+
+    async with httpx.AsyncClient(timeout=120.0) as ai_client:
+        api_response = await ai_client.post(
+            "https://api.openai.com/v1/images/edits",
+            headers={"Authorization": f"Bearer {openai_api_key}"},
+            files={
+                "image[]": ("product.jpg", io.BytesIO(product_bytes), "image/jpeg"),
+                "image[]": ("logo.png",    io.BytesIO(logo_bytes),    "image/png"),
+            },
+            data={
+                "model":           "gpt-image-1",
+                "prompt":          prompt,
+                "n":               "1",
+                "size":            "1024x1024",
+                "response_format": "b64_json",
+            },
+        )
+
+    if api_response.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"OpenAI API error {api_response.status_code}: {api_response.text}"
+        )
 
     # 6. Decode result
-    result_b64   = response.data[0].b64_json
+    result_b64   = api_response.json()["data"][0]["b64_json"]
     result_bytes = base64.b64decode(result_b64)
 
     # 7. Upload to Cloudinary
