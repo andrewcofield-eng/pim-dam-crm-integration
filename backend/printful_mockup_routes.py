@@ -64,19 +64,11 @@ async def request_printful_mockup(
 
     payload = {
         "variant_ids": [variant_id],
-        "format": "jpg",
+        "format":       "jpg",
         "files": [
             {
                 "placement": placement,
                 "image_url": logo_url,
-                "position": {
-                    "area_width":  2100,
-                    "area_height": 2100,
-                    "width":       600,
-                    "height":      600,
-                    "top":         400,
-                    "left":        750,
-                },
             }
         ],
     }
