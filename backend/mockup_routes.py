@@ -1,4 +1,5 @@
 # mockup_routes.py
+from PIL import Image
 import httpx
 import base64
 import io
@@ -78,13 +79,22 @@ async def generate_product_mockup(req: MockupRequest):
     if not logo_url:
         raise HTTPException(status_code=404, detail=f"No logo found for: {req.company_name}")
 
-    # 3. Fetch product image + logo as bytes
+    # 3. Fetch product image + logo as bytes, convert product to PNG
     async with httpx.AsyncClient(timeout=30.0) as client:
         product_resp = await client.get(req.product_image_url)
         logo_resp    = await client.get(logo_url)
 
-    product_bytes = product_resp.content
-    logo_bytes    = logo_resp.content
+    # Convert product image to RGBA PNG (required by DALL-E 2 edits)
+    product_img = Image.open(io.BytesIO(product_resp.content)).convert("RGBA")
+    product_png_buffer = io.BytesIO()
+    product_img.save(product_png_buffer, format="PNG")
+    product_png_bytes = product_png_buffer.getvalue()
+
+    # Logo should already be PNG — ensure it's RGBA too
+    logo_img = Image.open(io.BytesIO(logo_resp.content)).convert("RGBA")
+    logo_png_buffer = io.BytesIO()
+    logo_img.save(logo_png_buffer, format="PNG")
+    logo_png_bytes = logo_png_buffer.getvalue()
 
     # 4. Build prompt
     placement_desc = {
@@ -114,8 +124,10 @@ async def generate_product_mockup(req: MockupRequest):
             "https://api.openai.com/v1/images/edits",
             headers={"Authorization": f"Bearer {openai_api_key}"},
             files={
-                "image": ("product.png", io.BytesIO(product_bytes), "image/png"),
-                "mask":  ("mask.png",    io.BytesIO(logo_bytes),    "image/png"),
+             files={
+                "image": ("product.png", io.BytesIO(product_png_bytes), "image/png"),
+                "mask":  ("mask.png",    io.BytesIO(logo_png_bytes),    "image/png"),
+            },
             },
             data={
                 "model":           "dall-e-2",
