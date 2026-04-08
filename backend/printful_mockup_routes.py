@@ -69,6 +69,14 @@ async def request_printful_mockup(
             {
                 "placement": placement,
                 "image_url": logo_url,
+                "position": {
+                    "area_width":  2100,
+                    "area_height": 2100,
+                    "width":       500,
+                    "height":      500,
+                    "top":         300,
+                    "left":        800,
+                },
             }
         ],
     }
