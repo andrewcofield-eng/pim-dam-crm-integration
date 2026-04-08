@@ -34,7 +34,6 @@ COMPANY_LOGO_MAP = {
 }
 
 
-# ── Request model ──────────────────────────────────────────────────────────────
 class MockupRequest(BaseModel):
     company_name:      str
     sku:               str
@@ -43,9 +42,7 @@ class MockupRequest(BaseModel):
     technique:         str = "embroidered"
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
 def get_cached_mockup(slug: str, sku: str) -> str | None:
-    """Return Cloudinary URL if mockup already exists, else None."""
     try:
         result = cloudinary.api.resource(f"mockups/{slug}/{sku}")
         return result["secure_url"]
@@ -54,7 +51,6 @@ def get_cached_mockup(slug: str, sku: str) -> str | None:
 
 
 def upload_to_cloudinary(image_bytes: bytes, public_id: str) -> dict:
-    """Upload raw image bytes to Cloudinary."""
     return cloudinary.uploader.upload(
         io.BytesIO(image_bytes),
         public_id=public_id,
@@ -63,11 +59,10 @@ def upload_to_cloudinary(image_bytes: bytes, public_id: str) -> dict:
     )
 
 
-# ── Endpoint ───────────────────────────────────────────────────────────────────
 @router.post("/generate-mockup")
 async def generate_product_mockup(req: MockupRequest):
     """
-    Generates a realistic branded product mockup using GPT Image 1.
+    Generates a branded product mockup using DALL-E 2 image editing.
     Composites the company logo onto the product as embroidered/printed.
     Caches result in Cloudinary under mockups/{slug}/{sku}.
     """
@@ -76,20 +71,12 @@ async def generate_product_mockup(req: MockupRequest):
     # 1. Return cached mockup if already generated
     cached = get_cached_mockup(slug, req.sku)
     if cached:
-        return {
-            "status":     "cached",
-            "mockup_url": cached,
-            "company":    req.company_name,
-            "sku":        req.sku,
-        }
+        return {"status": "cached", "mockup_url": cached, "company": req.company_name, "sku": req.sku}
 
     # 2. Look up logo URL
     logo_url = COMPANY_LOGO_MAP.get(req.company_name.strip().lower())
     if not logo_url:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No logo found for company: {req.company_name}"
-        )
+        raise HTTPException(status_code=404, detail=f"No logo found for: {req.company_name}")
 
     # 3. Fetch product image + logo as bytes
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -99,7 +86,7 @@ async def generate_product_mockup(req: MockupRequest):
     product_bytes = product_resp.content
     logo_bytes    = logo_resp.content
 
-    # 4. Build descriptors
+    # 4. Build prompt
     placement_desc = {
         "left chest":   "the upper-left chest area",
         "center chest": "the center chest",
@@ -113,72 +100,30 @@ async def generate_product_mockup(req: MockupRequest):
     }.get(req.technique, "embroidered with visible raised thread texture and stitching detail")
 
     prompt = (
-        f"You are given a product photo of a garment and a brand logo. "
-        f"Create a realistic product mockup showing the logo applied to {placement_desc} of the garment, "
-        f"{technique_desc}. "
-        f"The logo must conform to the fabric surface naturally, following any folds or contours. "
-        f"Preserve the logo's exact colors, shape, and proportions. "
-        f"Keep the rest of the garment and the background completely unchanged. "
-        f"Professional e-commerce product photography. White background. "
-        f"This should look like a real custom-branded garment, not a digital overlay."
+        f"A professional product mockup of a garment with a brand logo {technique_desc} "
+        f"on {placement_desc}. The logo conforms naturally to the fabric surface. "
+        f"White background. Clean e-commerce photography style. "
+        f"The garment is otherwise completely unchanged."
     )
 
-     # 5. Encode images as base64 for the Responses API
-    product_b64 = base64.b64encode(product_bytes).decode("utf-8")
-    logo_b64    = base64.b64encode(logo_bytes).decode("utf-8")
-
-    # Determine MIME types
-    product_mime = "image/jpeg" if req.product_image_url.lower().endswith(".jpg") or req.product_image_url.lower().endswith(".jpeg") else "image/png"
-    logo_mime    = "image/png"
-
+    # 5. POST to DALL-E 2 images/edits via multipart
     openai_api_key = os.environ.get("OPENAI_API_KEY")
-
-    payload = {
-        "model": "gpt-image-1",
-        "input": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "input_image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": product_mime,
-                            "data": product_b64,
-                        },
-                    },
-                    {
-                        "type": "input_image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": logo_mime,
-                            "data": logo_b64,
-                        },
-                    },
-                    {
-                        "type": "input_text",
-                        "text": prompt,
-                    },
-                ],
-            }
-        ],
-        "output": [
-            {
-                "type": "image",
-                "size": "1024x1024",
-                "quality": "high",
-            }
-        ],
-    }
 
     async with httpx.AsyncClient(timeout=120.0) as ai_client:
         api_response = await ai_client.post(
-            "https://api.openai.com/v1/responses",
-            headers={
-                "Authorization": f"Bearer {openai_api_key}",
-                "Content-Type":  "application/json",
+            "https://api.openai.com/v1/images/edits",
+            headers={"Authorization": f"Bearer {openai_api_key}"},
+            files={
+                "image": ("product.png", io.BytesIO(product_bytes), "image/png"),
+                "mask":  ("mask.png",    io.BytesIO(logo_bytes),    "image/png"),
             },
-            json=payload,
+            data={
+                "model":           "dall-e-2",
+                "prompt":          prompt,
+                "n":               "1",
+                "size":            "1024x1024",
+                "response_format": "b64_json",
+            },
         )
 
     if api_response.status_code != 200:
@@ -186,27 +131,6 @@ async def generate_product_mockup(req: MockupRequest):
             status_code=502,
             detail=f"OpenAI API error {api_response.status_code}: {api_response.text}"
         )
-
-    # 6. Extract image from response
-    response_data = api_response.json()
-    # The image is in output[0].data[0].b64_json
-    result_b64   = response_data["output"][0]["data"][0]["b64_json"]
-    result_bytes = base64.b64decode(result_b64)
-
-    # 7. Upload to Cloudinary
-    cloudinary_result = upload_to_cloudinary(
-        result_bytes,
-        public_id=f"mockups/{slug}/{req.sku}",
-    )
-
-    return {
-        "status":     "success",
-        "mockup_url": cloudinary_result["secure_url"],
-        "company":    req.company_name,
-        "sku":        req.sku,
-        "placement":  req.placement,
-        "technique":  req.technique,
-    }
 
     # 6. Decode result
     result_b64   = api_response.json()["data"][0]["b64_json"]
