@@ -217,6 +217,10 @@ app.include_router(html_campaign_router)
 from mockup_routes import router as mockup_router
 app.include_router(mockup_router)
 
+from printful_mockup_routes import router as printful_mockup_router
+app.include_router(printful_mockup_router)
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
