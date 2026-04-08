@@ -51,8 +51,10 @@ def get_cached_mockup(slug: str, sku: str):
         return None
 
 
-def convert_to_rgba_png(image_bytes: bytes) -> bytes:
+def convert_to_rgba_png(image_bytes: bytes, size: tuple = (1024, 1024)) -> bytes:
+    """Convert any image to RGBA PNG at the required square size for DALL-E 2."""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
+    img = img.resize(size, Image.LANCZOS)
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
