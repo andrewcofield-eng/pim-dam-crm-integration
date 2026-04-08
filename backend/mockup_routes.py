@@ -1,5 +1,4 @@
 # mockup_routes.py
-from PIL import Image
 import httpx
 import base64
 import io
@@ -8,6 +7,7 @@ import os
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from PIL import Image
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -43,12 +43,19 @@ class MockupRequest(BaseModel):
     technique:         str = "embroidered"
 
 
-def get_cached_mockup(slug: str, sku: str) -> str | None:
+def get_cached_mockup(slug: str, sku: str):
     try:
         result = cloudinary.api.resource(f"mockups/{slug}/{sku}")
         return result["secure_url"]
     except Exception:
         return None
+
+
+def convert_to_rgba_png(image_bytes: bytes) -> bytes:
+    img = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
 
 
 def upload_to_cloudinary(image_bytes: bytes, public_id: str) -> dict:
@@ -72,31 +79,31 @@ async def generate_product_mockup(req: MockupRequest):
     # 1. Return cached mockup if already generated
     cached = get_cached_mockup(slug, req.sku)
     if cached:
-        return {"status": "cached", "mockup_url": cached, "company": req.company_name, "sku": req.sku}
+        return {
+            "status": "cached",
+            "mockup_url": cached,
+            "company": req.company_name,
+            "sku": req.sku,
+        }
 
     # 2. Look up logo URL
     logo_url = COMPANY_LOGO_MAP.get(req.company_name.strip().lower())
     if not logo_url:
-        raise HTTPException(status_code=404, detail=f"No logo found for: {req.company_name}")
+        raise HTTPException(
+            status_code=404,
+            detail=f"No logo found for: {req.company_name}"
+        )
 
-    # 3. Fetch product image + logo as bytes, convert product to PNG
+    # 3. Fetch both images
     async with httpx.AsyncClient(timeout=30.0) as client:
         product_resp = await client.get(req.product_image_url)
         logo_resp    = await client.get(logo_url)
 
-    # Convert product image to RGBA PNG (required by DALL-E 2 edits)
-    product_img = Image.open(io.BytesIO(product_resp.content)).convert("RGBA")
-    product_png_buffer = io.BytesIO()
-    product_img.save(product_png_buffer, format="PNG")
-    product_png_bytes = product_png_buffer.getvalue()
+    # 4. Convert both to RGBA PNG (required by DALL-E 2)
+    product_png = convert_to_rgba_png(product_resp.content)
+    logo_png    = convert_to_rgba_png(logo_resp.content)
 
-    # Logo should already be PNG — ensure it's RGBA too
-    logo_img = Image.open(io.BytesIO(logo_resp.content)).convert("RGBA")
-    logo_png_buffer = io.BytesIO()
-    logo_img.save(logo_png_buffer, format="PNG")
-    logo_png_bytes = logo_png_buffer.getvalue()
-
-    # 4. Build prompt
+    # 5. Build prompt
     placement_desc = {
         "left chest":   "the upper-left chest area",
         "center chest": "the center chest",
@@ -116,7 +123,7 @@ async def generate_product_mockup(req: MockupRequest):
         f"The garment is otherwise completely unchanged."
     )
 
-    # 5. POST to DALL-E 2 images/edits via multipart
+    # 6. POST to DALL-E 2 images/edits
     openai_api_key = os.environ.get("OPENAI_API_KEY")
 
     async with httpx.AsyncClient(timeout=120.0) as ai_client:
@@ -124,10 +131,8 @@ async def generate_product_mockup(req: MockupRequest):
             "https://api.openai.com/v1/images/edits",
             headers={"Authorization": f"Bearer {openai_api_key}"},
             files={
-             files={
-                "image": ("product.png", io.BytesIO(product_png_bytes), "image/png"),
-                "mask":  ("mask.png",    io.BytesIO(logo_png_bytes),    "image/png"),
-            },
+                "image": ("product.png", io.BytesIO(product_png), "image/png"),
+                "mask":  ("mask.png",    io.BytesIO(logo_png),    "image/png"),
             },
             data={
                 "model":           "dall-e-2",
@@ -144,11 +149,11 @@ async def generate_product_mockup(req: MockupRequest):
             detail=f"OpenAI API error {api_response.status_code}: {api_response.text}"
         )
 
-    # 6. Decode result
+    # 7. Decode result
     result_b64   = api_response.json()["data"][0]["b64_json"]
     result_bytes = base64.b64decode(result_b64)
 
-    # 7. Upload to Cloudinary
+    # 8. Upload to Cloudinary
     cloudinary_result = upload_to_cloudinary(
         result_bytes,
         public_id=f"mockups/{slug}/{req.sku}",
