@@ -33,8 +33,7 @@ COMPANY_LOGO_MAP = {
     "corporate gifts inc":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
     "corporate wellness llc": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586475/corporate-wellness-llc-logo_fdraoc.png",
     "eco adventures tours":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586587/eco-adventures-tours-logo_j6vskl.png",
-    # Temporarily using a known-good versioned URL for testing:
-    "summit events group":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
+    "summit events group":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586654/summit-events-group-logo_kv0rxk.png",
 }
 
 # ── Request / Response models ──────────────────────────────────────────────────
