@@ -200,6 +200,16 @@ async def generate_printful_mockup(req: PrintfulMockupRequest):
         source="printful",
     )
 
+@router.get("/stores")
+async def list_printful_stores():
+    """Returns your Printful stores — use to find your store_id."""
+    headers = {"Authorization": f"Bearer {PRINTFUL_API_KEY}"}
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(f"{PRINTFUL_BASE}/stores", headers=headers)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail=resp.text)
+    return resp.json()
+
 
 # ── Utility: list available products from Printful ────────────────────────────
 @router.get("/products")
