@@ -48,10 +48,10 @@ SKU_TEMPLATE_MAP = {
         "position": {"area_width": 1950, "area_height": 1950, "width": 420, "height": 210, "top": 300, "left": 180, "limit_to_print_area": True},
     },
 
-    # DTF Hat — wide center front panel, printfile 816: 1500×600
+    # DTF Hat — wide short printfile 816: 1500×600 — HEIGHT is the constraint
     "ACC-001": {
         "product_id": 952, "variant_id": 24379, "placement": "front_dtf_hat",
-        "position": {"area_width": 1500, "area_height": 600, "width": 700, "height": 280, "top": 160, "left": 400, "limit_to_print_area": True},
+        "position": {"area_width": 1500, "area_height": 600, "width": 700, "height": 280, "top": 160, "left": 400, "limit_to_print_area": True, "constrain_by": "height"},
     },
 
     # Beanie — front embroidery, printfile 74: 1500×525
@@ -189,11 +189,24 @@ def compute_position(
     target_w: int,
     top: int,
     left_center: int,
+    constrain_by: str = "width",   # ← new param
 ) -> dict:
-    """Scales logo to target_w, preserving aspect ratio, centered on left_center."""
+    """Scales logo preserving aspect ratio, constrained by width or height."""
     ratio = logo_h / logo_w
-    w = target_w
-    h = int(target_w * ratio)
+    if constrain_by == "height":
+        # Fix height, derive width
+        target_h = int(target_w * ratio)  # what height would be if width-constrained
+        max_h = int(area_h * 0.75)        # 75% of printfile height as max
+        if target_h > max_h:
+            h = max_h
+            w = int(max_h / ratio)
+        else:
+            w = target_w
+            h = target_h
+    else:
+        w = target_w
+        h = int(target_w * ratio)
+
     left = left_center - (w // 2)
     return {
         "area_width":  area_w,
@@ -257,6 +270,7 @@ async def generate_printful_mockup(req: PrintfulMockupRequest):
         target_w=pos_cfg["width"],
         top=pos_cfg["top"],
         left_center=pos_cfg["left"] + pos_cfg["width"] // 2,
+        constrain_by=pos_cfg.get("constrain_by", "width"),  # ← add this
     )
 
     # 5. Generate mockup via Printful
