@@ -616,6 +616,13 @@
             <div class="card-title">Campaign Notes</div>
             <div id="pim-notes" style="color:var(--slate); font-size:13px; line-height:1.6;"></div>
           </div>
+
+          <!-- Product Mockup -->
+          <div id="pim-mockup-section" class="card" style="display:none;">
+            <div class="card-title">🎽 Product Mockup <span id="pim-mockup-sku" style="color:var(--slate); font-size:11px; font-weight:400; margin-left:8px;"></span></div>
+            <img id="pim-mockup-img" src="" alt="Product mockup"
+                 style="width:100%; border-radius:8px; box-shadow:0 4px 24px rgba(0,0,0,0.4); margin-top:8px;" />
+          </div>
         </div>
 
         <!-- RIGHT placeholder before generation -->
@@ -1407,20 +1414,20 @@ function renderPIMCampaign(data) {
   const badge = badges[scenario] || badges.onboarding;
 
   // Populate header
-  document.getElementById('pim-output-title').textContent     = brief.campaign_title || '';
-  document.getElementById('pim-output-meta').textContent      = `${account.company_name} · ${data.products_evaluated} products evaluated`;
+  document.getElementById('pim-output-title').textContent    = brief.campaign_title || '';
+  document.getElementById('pim-output-meta').textContent     = `${account.company_name} · ${data.products_evaluated} products evaluated`;
   const badgeEl = document.getElementById('pim-scenario-badge');
-  badgeEl.textContent   = badge.label;
-  badgeEl.style.background = badge.bg;
-  badgeEl.style.color       = badge.color;
+  badgeEl.textContent        = badge.label;
+  badgeEl.style.background   = badge.bg;
+  badgeEl.style.color        = badge.color;
 
   // Populate copy
-  document.getElementById('pim-subject').textContent          = brief.subject_line || '';
-  document.getElementById('pim-headline').textContent         = brief.hero_headline || '';
-  document.getElementById('pim-body').textContent             = brief.body_copy || '';
-  document.getElementById('pim-cta').textContent              = brief.cta_text || '';
-  document.getElementById('pim-personalization').textContent  = brief.personalization_angle || '';
-  document.getElementById('pim-notes').textContent            = brief.campaign_notes || '';
+  document.getElementById('pim-subject').textContent         = brief.subject_line || '';
+  document.getElementById('pim-headline').textContent        = brief.hero_headline || '';
+  document.getElementById('pim-body').textContent            = brief.body_copy || '';
+  document.getElementById('pim-cta').textContent             = brief.cta_text || '';
+  document.getElementById('pim-personalization').textContent = brief.personalization_angle || '';
+  document.getElementById('pim-notes').textContent           = brief.campaign_notes || '';
 
   // Product recommendations
   const prodsEl = document.getElementById('pim-products');
@@ -1441,14 +1448,22 @@ function renderPIMCampaign(data) {
   const bundle = brief.bundle_suggestion || {};
   document.getElementById('pim-bundle-name').textContent = bundle.name || '—';
   document.getElementById('pim-bundle-skus').textContent = (bundle.skus || []).join(' + ');
-  document.getElementById('pim-placeholder').style.display = 'none';
-  document.getElementById('pim-campaign-output').style.display = 'block';
+
+  // ── Product Mockup ────────────────────────────────────────────────
+  if (data.mockup_url) {
+    document.getElementById('pim-mockup-img').src            = data.mockup_url;
+    document.getElementById('pim-mockup-sku').textContent    = 'SKU: ' + (data.mockup_sku || '');
+    document.getElementById('pim-mockup-section').style.display = 'block';
+  } else {
+    document.getElementById('pim-mockup-section').style.display = 'none';
+  }
+  // ─────────────────────────────────────────────────────────────────
 
   // Show output
-  document.getElementById('pim-campaign-output').style.display = 'block';
+  document.getElementById('pim-placeholder').style.display      = 'none';
+  document.getElementById('pim-campaign-output').style.display  = 'block';
   document.getElementById('pim-campaign-output').scrollIntoView({ behavior: 'smooth' });
 }
-
 async function smartGenerateFromProspect(idx) {
   const p = _prospects[idx];
   if (!p) return;
