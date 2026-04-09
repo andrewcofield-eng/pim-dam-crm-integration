@@ -357,10 +357,6 @@ def select_scenario_from_crm(account: dict) -> str:
 
 @router.post("/onboarding")
 async def generate_onboarding_campaign(request: dict):
-    """
-    Generate an AI-powered onboarding campaign brief.
-    POST /ai-campaigns/onboarding
-    """
     try:
         account      = request.get("account", {})
         company_name = account.get("company_name", "Your Company")
@@ -369,38 +365,29 @@ async def generate_onboarding_campaign(request: dict):
         contact_name = account.get("contact_name", "")
         company_size = account.get("company_size", "unknown")
 
-        # Step 1: Fetch onboarding-ready products
         async with httpx.AsyncClient() as client:
             products_response = await client.get(
-                "http://localhost:8000/products/export?scenario=onboarding",
-                timeout=10.0
+                "http://localhost:8000/products/export?scenario=onboarding", timeout=10.0
             )
             products = products_response.json().get("products", [])
 
         if not products:
             raise HTTPException(status_code=404, detail="No onboarding-ready products found")
 
-        # Step 2: Build user message
         user_message = f"""
 Generate an onboarding campaign brief for the following account:
-
 ACCOUNT:
 - Company: {company_name}
 - Industry: {industry}
 - Company Size: {company_size}
 - Buyer Persona: {persona}
 - Contact Name: {contact_name}
-
 AVAILABLE ONBOARDING PRODUCTS:
 {format_products_for_prompt(products)}
-
 Generate the campaign brief now. Return valid JSON only.
 """
-
-        # Step 3: Call OpenAI
         from openai import OpenAI
         client_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
         response = client_ai.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -410,20 +397,22 @@ Generate the campaign brief now. Return valid JSON only.
             temperature=0.7,
             response_format={"type": "json_object"}
         )
-
-        # Step 4: Parse and return
         campaign_brief = json.loads(response.choices[0].message.content)
 
+        # ── Fetch Printful mockup ──────────────────────────────────
+        mockup_company = company_name.strip().lower()
+        hero_sku       = "HOD-001"
+        mockup_url     = await fetch_mockup_for_company(mockup_company, hero_sku) if mockup_company else None
+        # ──────────────────────────────────────────────────────────
+
         return {
-            "status": "success",
-            "scenario": "onboarding",
-            "account": {
-                "company_name": company_name,
-                "industry":     industry,
-                "persona":      persona
-            },
+            "status":             "success",
+            "scenario":           "onboarding",
+            "account":            {"company_name": company_name, "industry": industry, "persona": persona},
             "products_evaluated": len(products),
-            "campaign_brief":     campaign_brief
+            "campaign_brief":     campaign_brief,
+            "mockup_url":         mockup_url,
+            "mockup_sku":         hero_sku,
         }
 
     except Exception as e:
@@ -431,12 +420,9 @@ Generate the campaign brief now. Return valid JSON only.
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/events")
 async def generate_events_campaign(request: dict):
-    """
-    Generate an AI-powered event/trade show campaign brief.
-    POST /ai-campaigns/events
-    """
     try:
         account      = request.get("account", {})
         company_name = account.get("company_name", "Your Company")
@@ -444,24 +430,20 @@ async def generate_events_campaign(request: dict):
         persona      = account.get("buyer_persona", "marketing")
         contact_name = account.get("contact_name", "")
         company_size = account.get("company_size", "unknown")
-        event_name   = account.get("event_name", "upcoming event")
+        event_name   = account.get("event_name", "Upcoming Event")
         event_date   = account.get("event_date", "")
 
-        # Step 1: Fetch event-ready products
         async with httpx.AsyncClient() as client:
             products_response = await client.get(
-                "http://localhost:8000/products/export?scenario=events",
-                timeout=10.0
+                "http://localhost:8000/products/export?scenario=events", timeout=10.0
             )
             products = products_response.json().get("products", [])
 
         if not products:
             raise HTTPException(status_code=404, detail="No event-ready products found")
 
-        # Step 2: Build user message
         user_message = f"""
-Generate an event/trade show campaign brief for the following account:
-
+Generate an event campaign brief for the following account:
 ACCOUNT:
 - Company: {company_name}
 - Industry: {industry}
@@ -469,18 +451,13 @@ ACCOUNT:
 - Buyer Persona: {persona}
 - Contact Name: {contact_name}
 - Event Name: {event_name}
-- Event Date: {event_date if event_date else "TBD"}
-
+- Event Date: {event_date}
 AVAILABLE EVENT PRODUCTS:
 {format_products_for_prompt(products)}
-
 Generate the campaign brief now. Return valid JSON only.
 """
-
-        # Step 3: Call OpenAI
         from openai import OpenAI
         client_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
         response = client_ai.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -490,21 +467,22 @@ Generate the campaign brief now. Return valid JSON only.
             temperature=0.7,
             response_format={"type": "json_object"}
         )
-
-        # Step 4: Parse and return
         campaign_brief = json.loads(response.choices[0].message.content)
 
+        # ── Fetch Printful mockup ──────────────────────────────────
+        mockup_company = company_name.strip().lower()
+        hero_sku       = "ACC-001"
+        mockup_url     = await fetch_mockup_for_company(mockup_company, hero_sku) if mockup_company else None
+        # ──────────────────────────────────────────────────────────
+
         return {
-            "status": "success",
-            "scenario": "events",
-            "account": {
-                "company_name": company_name,
-                "industry":     industry,
-                "persona":      persona,
-                "event_name":   event_name
-            },
+            "status":             "success",
+            "scenario":           "events",
+            "account":            {"company_name": company_name, "industry": industry, "persona": persona},
             "products_evaluated": len(products),
-            "campaign_brief":     campaign_brief
+            "campaign_brief":     campaign_brief,
+            "mockup_url":         mockup_url,
+            "mockup_sku":         hero_sku,
         }
 
     except Exception as e:
@@ -512,12 +490,9 @@ Generate the campaign brief now. Return valid JSON only.
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/gifting")
 async def generate_gifting_campaign(request: dict):
-    """
-    Generate an AI-powered executive gifting campaign brief.
-    POST /ai-campaigns/gifting
-    """
     try:
         account          = request.get("account", {})
         company_name     = account.get("company_name", "Your Company")
@@ -525,45 +500,36 @@ async def generate_gifting_campaign(request: dict):
         persona          = account.get("buyer_persona", "executive_leadership")
         contact_name     = account.get("contact_name", "")
         company_size     = account.get("company_size", "unknown")
-        recipient_tier   = account.get("recipient_tier", "executive")
-        gifting_occasion = account.get("gifting_occasion", "client appreciation")
+        gifting_occasion = account.get("gifting_occasion", "Client Appreciation")
         budget_per_unit  = account.get("budget_per_unit", "")
+        recipient_tier   = account.get("recipient_tier", "executive")
 
-        # Step 1: Fetch gifting-ready products
         async with httpx.AsyncClient() as client:
             products_response = await client.get(
-                "http://localhost:8000/products/export?scenario=gifting",
-                timeout=10.0
+                "http://localhost:8000/products/export?scenario=gifting", timeout=10.0
             )
             products = products_response.json().get("products", [])
 
         if not products:
             raise HTTPException(status_code=404, detail="No gifting-ready products found")
 
-        # Step 2: Build user message
         user_message = f"""
-Generate an executive gifting campaign brief for the following account:
-
+Generate a gifting campaign brief for the following account:
 ACCOUNT:
 - Company: {company_name}
 - Industry: {industry}
 - Company Size: {company_size}
 - Buyer Persona: {persona}
 - Contact Name: {contact_name}
-- Recipient Tier: {recipient_tier}
 - Gifting Occasion: {gifting_occasion}
-- Budget Per Unit: {"$" + str(budget_per_unit) if budget_per_unit else "flexible"}
-
+- Budget Per Unit: ${budget_per_unit}
+- Recipient Tier: {recipient_tier}
 AVAILABLE GIFTING PRODUCTS:
 {format_products_for_prompt(products)}
-
 Generate the campaign brief now. Return valid JSON only.
 """
-
-        # Step 3: Call OpenAI
         from openai import OpenAI
         client_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
         response = client_ai.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -573,22 +539,22 @@ Generate the campaign brief now. Return valid JSON only.
             temperature=0.7,
             response_format={"type": "json_object"}
         )
-
-        # Step 4: Parse and return
         campaign_brief = json.loads(response.choices[0].message.content)
 
+        # ── Fetch Printful mockup ──────────────────────────────────
+        mockup_company = company_name.strip().lower()
+        hero_sku       = "HOD-002"
+        mockup_url     = await fetch_mockup_for_company(mockup_company, hero_sku) if mockup_company else None
+        # ──────────────────────────────────────────────────────────
+
         return {
-            "status": "success",
-            "scenario": "gifting",
-            "account": {
-                "company_name":     company_name,
-                "industry":         industry,
-                "persona":          persona,
-                "recipient_tier":   recipient_tier,
-                "gifting_occasion": gifting_occasion
-            },
+            "status":             "success",
+            "scenario":           "gifting",
+            "account":            {"company_name": company_name, "industry": industry, "persona": persona},
             "products_evaluated": len(products),
-            "campaign_brief":     campaign_brief
+            "campaign_brief":     campaign_brief,
+            "mockup_url":         mockup_url,
+            "mockup_sku":         hero_sku,
         }
 
     except Exception as e:
