@@ -17,14 +17,44 @@ PRINTFUL_BASE     = "https://api.printful.com"
 
 # ── SKU → Printful Product + Variant IDs ──────────────────────────────────────
 SKU_TEMPLATE_MAP = {
-    "TOP-001": {"product_id": 71,  "variant_id": 4011,  "placement": "front"},
-    "TOP-002": {"product_id": 87,  "variant_id": 4984,  "placement": "front"},
-    "TOP-003": {"product_id": 380, "variant_id": 9969,  "placement": "front"},
-    "TOP-004": {"product_id": 392, "variant_id": 10138, "placement": "front"},
-    "HOD-001": {"product_id": 146, "variant_id": 5522,  "placement": "front"},
-    "HOD-002": {"product_id": 503, "variant_id": 14430, "placement": "front"},
-    "ACC-001": {"product_id": 74,  "variant_id": 4162,  "placement": "embroidery_front"},
-    "ACC-002": {"product_id": 143, "variant_id": 7542,  "placement": "embroidery_front"},
+    # T-Shirts — large center chest print
+    "TOP-001": {
+        "product_id": 71,  "variant_id": 4011,  "placement": "front",
+        "position": {"area_width": 1800, "area_height": 2400, "width": 800, "height": 400, "top": 350, "left": 500, "limit_to_print_area": True},
+    },
+    "TOP-002": {
+        "product_id": 87,  "variant_id": 4984,  "placement": "front",
+        "position": {"area_width": 1800, "area_height": 2400, "width": 800, "height": 400, "top": 350, "left": 500, "limit_to_print_area": True},
+    },
+    # Polo / Performance — small left chest
+    "TOP-003": {
+        "product_id": 380, "variant_id": 9969,  "placement": "front",
+        "position": {"area_width": 1800, "area_height": 2400, "width": 380, "height": 190, "top": 320, "left": 280, "limit_to_print_area": True},
+    },
+    # Oversized drop shoulder — large center
+    "TOP-004": {
+        "product_id": 392, "variant_id": 10138, "placement": "front",
+        "position": {"area_width": 1800, "area_height": 2400, "width": 900, "height": 450, "top": 380, "left": 450, "limit_to_print_area": True},
+    },
+    # Hoodies — large center chest
+    "HOD-001": {
+        "product_id": 146, "variant_id": 5522,  "placement": "front",
+        "position": {"area_width": 2100, "area_height": 2100, "width": 900, "height": 450, "top": 350, "left": 600, "limit_to_print_area": True},
+    },
+    "HOD-002": {
+        "product_id": 503, "variant_id": 14430, "placement": "front",
+        "position": {"area_width": 2100, "area_height": 2100, "width": 900, "height": 450, "top": 350, "left": 600, "limit_to_print_area": True},
+    },
+    # Cap — small centered embroidery
+    "ACC-001": {
+        "product_id": 74,  "variant_id": 4162,  "placement": "embroidery_front",
+        "position": {"area_width": 1800, "area_height": 1800, "width": 350, "height": 175, "top": 750, "left": 725, "limit_to_print_area": True},
+    },
+    # Beanie — small centered embroidery
+    "ACC-002": {
+        "product_id": 143, "variant_id": 7542,  "placement": "embroidery_front",
+        "position": {"area_width": 1800, "area_height": 1800, "width": 300, "height": 150, "top": 600, "left": 750, "limit_to_print_area": True},
+    },
 }
 
 # ── Cloudinary logo map ────────────────────────────────────────────────────────
@@ -55,6 +85,7 @@ async def request_printful_mockup(
     variant_id: int,
     placement: str,
     logo_url: str,
+    position: dict,          # ← add this
 ) -> str:
     headers = {
         "Authorization": f"Bearer {PRINTFUL_API_KEY}",
@@ -69,14 +100,7 @@ async def request_printful_mockup(
             {
                 "placement": placement,
                 "image_url": logo_url,
-                "position": {
-                    "area_width":  2100,
-                    "area_height": 2100,
-                    "width":       500,
-                    "height":      500,
-                    "top":         300,
-                    "left":        800,
-                },
+                "position":  position,   # ← use passed-in position
             }
         ],
     }
@@ -189,6 +213,7 @@ async def generate_printful_mockup(req: PrintfulMockupRequest):
         variant_id=template["variant_id"],
         placement=template["placement"],
         logo_url=logo_url,
+        position=template["position"],   # ← pass it through
     )
 
     # 5. Cache in Cloudinary
