@@ -62,11 +62,15 @@ SKU_TEMPLATE_MAP = {
 }
 # ── Cloudinary logo map ────────────────────────────────────────────────────────
 COMPANY_LOGO_MAP = {
-    "collegiate spirit co":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586397/collegiate-spirit-co-logo_zkp0ol.png",
-    "corporate gifts inc":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
-    "corporate wellness llc": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586475/corporate-wellness-llc-logo_fdraoc.png",
-    "eco adventures tours":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586587/eco-adventures-tours-logo_j6vskl.png",
-    "summit events group":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586654/summit-events-group-logo_kv0rxk.png",
+    "collegiate spirit co":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586397/collegiate-spirit-co-logo_zkp0ol.png",
+    "corporate gifts inc":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
+    "corporate wellness llc":      "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586475/corporate-wellness-llc-logo_fdraoc.png",
+    "eco adventures tours":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586587/eco-adventures-tours-logo_j6vskl.png",
+    "summit events group":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586654/summit-events-group-logo_kv0rxk.png",
+    "urban streetwear collective": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586696/urban-streetwear-collective-logo_wvpvsh.png",
+    "techwear":                    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586721/TechWear-co-logo_dzxowy.png",
+    "fitlife gyms":                "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586540/fitlife-gyms-logo_bml45k.png",
+    "premium resorts intl":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586368/premium-resorts-intl-logo_yf57ak.png",
 }
 
 # ── Request / Response models ──────────────────────────────────────────────────
