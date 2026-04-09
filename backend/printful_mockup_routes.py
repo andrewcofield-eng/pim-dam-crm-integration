@@ -42,10 +42,10 @@ SKU_TEMPLATE_MAP = {
         "position": {"area_width": 2100, "area_height": 2100, "width": 900, "height": 450, "top": 350, "left": 600, "limit_to_print_area": True},
     },
 
-    # Zip Hoodie — large center chest, printfile 306: 1950×1950
+    # Zip Hoodie — small LEFT chest (zipper blocks center), printfile 306: 1950×1950
     "HOD-002": {
         "product_id": 584, "variant_id": 15038, "placement": "front",
-        "position": {"area_width": 1950, "area_height": 1950, "width": 850, "height": 425, "top": 320, "left": 550, "limit_to_print_area": True},
+        "position": {"area_width": 1950, "area_height": 1950, "width": 420, "height": 210, "top": 300, "left": 180, "limit_to_print_area": True},
     },
 
     # DTF Hat — wide center front panel, printfile 816: 1500×600
