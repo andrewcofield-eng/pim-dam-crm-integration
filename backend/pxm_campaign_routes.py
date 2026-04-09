@@ -61,19 +61,31 @@ class PXMCampaignRequest(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 async def fetch_crm_account(company_name: str) -> dict:
-    """Pull live account data from HubSpot via your ABM endpoint."""
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(f"{BASE_URL}/abm/warm-prospects")
-            if resp.status_code == 200:
-                prospects = resp.json().get("prospects", [])
-                for p in prospects:
-                    if p.get("company", "").lower() == company_name.lower():
-                        return p
-    except Exception:
-        pass
-    return {"company": company_name, "industry": "General B2B", "segment": "general"}
+    """Pull account data — first try ACCOUNTS list, then ABM endpoint as fallback."""
+    from accounts import ACCOUNTS
 
+    # Direct lookup from ACCOUNTS (same source as HubSpot orchestrator)
+    name_lower = company_name.strip().lower()
+    for acc in ACCOUNTS:
+        if acc.get("company_name", "").lower() == name_lower:
+            return {
+                "company":       acc["company_name"],
+                "industry":      acc["industry"],
+                "segment":       acc.get("use_case", ""),
+                "pain_point":    acc.get("pain_point", ""),
+                "use_case":      acc.get("use_case", ""),
+                "buying_stage":  acc.get("buying_stage", ""),
+                "company_size":  acc.get("company_size", ""),
+                "employees":     acc.get("employees", ""),
+                "annual_revenue":acc.get("annual_revenue", ""),
+                "account_value": acc.get("account_value", ""),
+                "contact_name":  acc["contact"]["name"],
+                "contact_title": acc["contact"]["title"],
+                "interested_categories": acc.get("interested_categories", []),
+            }
+
+    # Fallback
+    return {"company": company_name, "industry": "General B2B", "segment": "general"}
 
 async def fetch_pxm_products(scenario: str) -> list:
     """Pull PIM products enriched with WHY data, filtered by scenario."""
