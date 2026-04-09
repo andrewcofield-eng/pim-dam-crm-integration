@@ -17,6 +17,12 @@ SEGMENT_SKU_MAP = {
     "seg_003": "ACC-001",   # Events / Promo  → Hat
 }
 
+SEGMENT_COMPANY_MAP = {
+    "seg_001": "corporate gifts inc",      # High-Value Repeat Buyers → B2B corporate
+    "seg_002": "collegiate spirit co",     # → Collegiate
+    "seg_003": "summit events group",      # → Events / Promo
+}
+
 async def fetch_mockup_for_company(company_name: str, sku: str) -> str | None:
     """Call the Printful mockup endpoint and return the URL, or None on failure."""
     try:
@@ -728,9 +734,9 @@ async def generate_campaign_endpoint(req: GenerateRequest):
     flat = flatten_campaign_copy(result.get("campaign_copy", {}))
 
     # ── Fetch Printful mockup ──────────────────────────────────────────────────
-    company_name = result.get("company_name") or result.get("account", {}).get("name", "")
+    company_name = SEGMENT_COMPANY_MAP.get(req.segment_id, "corporate gifts inc")
     hero_sku     = SEGMENT_SKU_MAP.get(req.segment_id, "HOD-001")
-    mockup_url   = await fetch_mockup_for_company(company_name, hero_sku) if company_name else None
+    mockup_url   = await fetch_mockup_for_company(company_name, hero_sku)
     # ──────────────────────────────────────────────────────────────────────────
 
     record = {
