@@ -7,6 +7,30 @@ import json
 import os
 import httpx
 
+# ─── Printful Mockup Integration ───────────────────────────────────────────────
+
+PRINTFUL_MOCKUP_URL = "https://pim-dam-crm-integration-production.up.railway.app/printful-mockups/generate"
+
+SEGMENT_SKU_MAP = {
+    "seg_001": "HOD-001",   # Corporate / B2B → Hoodie
+    "seg_002": "TOP-001",   # Collegiate      → Tee
+    "seg_003": "ACC-001",   # Events / Promo  → Hat
+}
+
+async def fetch_mockup_for_company(company_name: str, sku: str) -> str | None:
+    """Call the Printful mockup endpoint and return the URL, or None on failure."""
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                PRINTFUL_MOCKUP_URL,
+                json={"company_name": company_name, "sku": sku},
+            )
+            if resp.status_code == 200:
+                return resp.json().get("mockup_url")
+    except Exception:
+        pass
+    return None
+
 # ─── Prompts ──────────────────────────────────────────────────────────────────
 
 ONBOARDING_CAMPAIGN_PROMPT = """
@@ -703,18 +727,25 @@ async def generate_campaign_endpoint(req: GenerateRequest):
 
     flat = flatten_campaign_copy(result.get("campaign_copy", {}))
 
+    # ── Fetch Printful mockup ──────────────────────────────────────────────────
+    company_name = result.get("company_name") or result.get("account", {}).get("name", "")
+    hero_sku     = SEGMENT_SKU_MAP.get(req.segment_id, "HOD-001")
+    mockup_url   = await fetch_mockup_for_company(company_name, hero_sku) if company_name else None
+    # ──────────────────────────────────────────────────────────────────────────
+
     record = {
         "campaign_id":  str(uuid.uuid4()),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         **result,
-        **flat
+        **flat,
+        "mockup_url":  mockup_url,
+        "mockup_sku":  hero_sku,
     }
 
     _campaign_store.insert(0, record)
     save_campaigns(_campaign_store)
 
     return record
-
 
 @router.get("/history")
 async def get_campaign_history(limit: int = 50):
