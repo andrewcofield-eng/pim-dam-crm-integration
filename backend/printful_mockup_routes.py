@@ -170,6 +170,42 @@ def get_cached_mockup(slug: str, sku: str) -> Optional[str]:
         return None
 
 
+# ── Helper: compute aspect-ratio-correct position ─────────────────────────────
+async def get_image_dimensions(url: str) -> tuple[int, int]:
+    """Fetch logo and return its natural pixel dimensions."""
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(url)
+    from PIL import Image
+    import io
+    img = Image.open(io.BytesIO(resp.content))
+    return img.width, img.height
+
+
+def compute_position(
+    logo_w: int,
+    logo_h: int,
+    area_w: int,
+    area_h: int,
+    target_w: int,
+    top: int,
+    left_center: int,
+) -> dict:
+    """Scales logo to target_w, preserving aspect ratio, centered on left_center."""
+    ratio = logo_h / logo_w
+    w = target_w
+    h = int(target_w * ratio)
+    left = left_center - (w // 2)
+    return {
+        "area_width":  area_w,
+        "area_height": area_h,
+        "width":       w,
+        "height":      h,
+        "top":         top,
+        "left":        max(0, left),
+        "limit_to_print_area": True,
+    }
+
+
 # ── Main endpoint ──────────────────────────────────────────────────────────────
 @router.post("/generate", response_model=PrintfulMockupResponse)
 async def generate_printful_mockup(req: PrintfulMockupRequest):
@@ -210,16 +246,29 @@ async def generate_printful_mockup(req: PrintfulMockupRequest):
                    f"Available: {list(SKU_TEMPLATE_MAP.keys())}"
         )
 
-    # 4. Generate mockup via Printful
+    # 4. Fetch logo dimensions and compute aspect-correct position
+    logo_w, logo_h = await get_image_dimensions(logo_url)
+    pos_cfg = template["position"]
+    position = compute_position(
+        logo_w=logo_w,
+        logo_h=logo_h,
+        area_w=pos_cfg["area_width"],
+        area_h=pos_cfg["area_height"],
+        target_w=pos_cfg["width"],
+        top=pos_cfg["top"],
+        left_center=pos_cfg["left"] + pos_cfg["width"] // 2,
+    )
+
+    # 5. Generate mockup via Printful
     printful_url = await request_printful_mockup(
         product_id=template["product_id"],
         variant_id=template["variant_id"],
         placement=template["placement"],
         logo_url=logo_url,
-        position=template["position"],   # ← pass it through
+        position=position,
     )
 
-    # 5. Cache in Cloudinary
+    # 6. Cache in Cloudinary
     final_url = cache_mockup_cloudinary(printful_url, slug, sku)
 
     return PrintfulMockupResponse(
@@ -229,7 +278,6 @@ async def generate_printful_mockup(req: PrintfulMockupRequest):
         sku=sku,
         source="printful",
     )
-
 
 # ── Utility endpoints ──────────────────────────────────────────────────────────
 @router.get("/stores")
