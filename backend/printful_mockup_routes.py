@@ -17,46 +17,49 @@ PRINTFUL_BASE     = "https://api.printful.com"
 
 # ── SKU → Printful Product + Variant IDs ──────────────────────────────────────
 SKU_TEMPLATE_MAP = {
-    # T-Shirts — large center chest print
+
+    # Unisex Heavy Cotton Tee — large center chest, printfile 1: 1800×2400
     "TOP-001": {
-        "product_id": 71,  "variant_id": 4011,  "placement": "front",
-        "position": {"area_width": 1800, "area_height": 2400, "width": 800, "height": 400, "top": 350, "left": 500, "limit_to_print_area": True},
+        "product_id": 71, "variant_id": 4011, "placement": "front",
+        "position": {"area_width": 1800, "area_height": 2400, "width": 900, "height": 450, "top": 400, "left": 450, "limit_to_print_area": True},
     },
+
+    # DTFabric Tee — large center chest, printfile 1340: 4200×5400
     "TOP-002": {
-        "product_id": 87,  "variant_id": 4984,  "placement": "front",
-        "position": {"area_width": 1800, "area_height": 2400, "width": 800, "height": 400, "top": 350, "left": 500, "limit_to_print_area": True},
+        "product_id": 1414, "variant_id": 33937, "placement": "front_dtfabric",
+        "position": {"area_width": 4200, "area_height": 5400, "width": 2000, "height": 1000, "top": 900, "left": 1100, "limit_to_print_area": True},
     },
-    # Polo / Performance — small left chest
+
+    # Performance Polo — small left chest, printfile 1: 1800×2400
     "TOP-003": {
-        "product_id": 380, "variant_id": 9969,  "placement": "front",
-        "position": {"area_width": 1800, "area_height": 2400, "width": 380, "height": 190, "top": 320, "left": 280, "limit_to_print_area": True},
+        "product_id": 108, "variant_id": 4865, "placement": "front",
+        "position": {"area_width": 1800, "area_height": 2400, "width": 380, "height": 190, "top": 320, "left": 220, "limit_to_print_area": True},
     },
-    # Oversized drop shoulder — large center
-    "TOP-004": {
-        "product_id": 392, "variant_id": 10138, "placement": "front",
-        "position": {"area_width": 1800, "area_height": 2400, "width": 900, "height": 450, "top": 380, "left": 450, "limit_to_print_area": True},
-    },
-    # Hoodies — large center chest
+
+    # Pullover Hoodie — large center chest, printfile 139: 2100×2100
     "HOD-001": {
-        "product_id": 146, "variant_id": 5522,  "placement": "front",
+        "product_id": 146, "variant_id": 5522, "placement": "front",
         "position": {"area_width": 2100, "area_height": 2100, "width": 900, "height": 450, "top": 350, "left": 600, "limit_to_print_area": True},
     },
+
+    # Zip Hoodie — large center chest, printfile 306: 1950×1950
     "HOD-002": {
-        "product_id": 503, "variant_id": 14430, "placement": "front",
-        "position": {"area_width": 2100, "area_height": 2100, "width": 900, "height": 450, "top": 350, "left": 600, "limit_to_print_area": True},
+        "product_id": 584, "variant_id": 15038, "placement": "front",
+        "position": {"area_width": 1950, "area_height": 1950, "width": 850, "height": 425, "top": 320, "left": 550, "limit_to_print_area": True},
     },
-    # Cap — small centered embroidery
+
+    # DTF Hat — wide center front panel, printfile 816: 1500×600
     "ACC-001": {
-        "product_id": 74,  "variant_id": 4162,  "placement": "embroidery_front",
-        "position": {"area_width": 1800, "area_height": 1800, "width": 350, "height": 175, "top": 750, "left": 725, "limit_to_print_area": True},
+        "product_id": 952, "variant_id": 24379, "placement": "front_dtf_hat",
+        "position": {"area_width": 1500, "area_height": 600, "width": 700, "height": 280, "top": 160, "left": 400, "limit_to_print_area": True},
     },
-    # Beanie — small centered embroidery
+
+    # Beanie — front embroidery, printfile 74: 1500×525
     "ACC-002": {
-        "product_id": 143, "variant_id": 7542,  "placement": "embroidery_front",
-        "position": {"area_width": 1800, "area_height": 1800, "width": 300, "height": 150, "top": 600, "left": 750, "limit_to_print_area": True},
+        "product_id": 81, "variant_id": 4522, "placement": "embroidery_front",
+        "position": {"area_width": 1500, "area_height": 525, "width": 600, "height": 240, "top": 143, "left": 450, "limit_to_print_area": True},
     },
 }
-
 # ── Cloudinary logo map ────────────────────────────────────────────────────────
 COMPANY_LOGO_MAP = {
     "collegiate spirit co":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586397/collegiate-spirit-co-logo_zkp0ol.png",
