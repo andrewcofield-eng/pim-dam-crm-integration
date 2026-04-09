@@ -6,6 +6,8 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from orchestrator import ABMSimulationOrchestrator
+from pxm_campaign_routes import router as pxm_router
+app.include_router(pxm_router)
 
 load_dotenv()
 
