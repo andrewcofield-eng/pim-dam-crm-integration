@@ -444,7 +444,7 @@
     const company  = document.getElementById('sel-company').value;
     const scenario = document.getElementById('sel-scenario').value;
     const tone     = document.getElementById('sel-tone').value;
-    const hero_key = document.getElementById('sel-hero').value;
+    const hero_key = null;  // removed — hero now AI-generated server-side
 
     if (!company) { showError('Please select an account first.'); return; }
     hideError();
