@@ -222,8 +222,14 @@ app.include_router(mockup_router)
 from printful_mockup_routes import router as printful_mockup_router
 app.include_router(printful_mockup_router)
 
-from pxm_campaign_routes import router as pxm_router   # ← ADD HERE
-app.include_router(pxm_router)                          # ← ADD HERE
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/studio")
+async def campaign_studio():
+    return FileResponse("static/pxm_campaign_studio.html")
 
 if __name__ == "__main__":
     import uvicorn

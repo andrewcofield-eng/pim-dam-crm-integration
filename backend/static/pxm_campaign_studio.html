@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PXM Campaign Studio — AgenticFlow</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:   #1A1A2E;
+      --gold:   #D4AF37;
+      --white:  #FFFFFF;
+      --gray-100: #F5F5F0;
+      --gray-200: #E8E8E0;
+      --gray-400: #999990;
+      --gray-600: #555550;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(26,26,46,0.12);
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-100); color: var(--navy); min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar {
+      background: var(--navy); color: var(--white);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 60px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .topbar .brand { display:flex; align-items:center; gap:12px; }
+    .topbar .logo { width:36px; height:36px; background:var(--gold); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px; color:var(--navy); }
+    .topbar .brand-name { font-weight:700; font-size:18px; }
+    .topbar .brand-sub  { font-size:11px; color:var(--gold); letter-spacing:1px; text-transform:uppercase; }
+    .topbar .status-pill { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.08); border-radius:20px; padding:6px 14px; font-size:12px; color:var(--gray-200); }
+    .topbar .status-dot { width:8px; height:8px; border-radius:50%; background:#2ECC71; box-shadow:0 0 6px #2ECC71; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    /* LAYOUT */
+    .layout { display:grid; grid-template-columns:380px 1fr; min-height:calc(100vh - 60px); }
+
+    /* LEFT PANEL */
+    .panel-left { background:var(--white); border-right:1px solid var(--gray-200); padding:28px 24px; overflow-y:auto; display:flex; flex-direction:column; gap:24px; }
+    .section-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+    .field-group { display:flex; flex-direction:column; gap:6px; }
+    .field-group label { font-size:13px; font-weight:600; color:var(--gray-600); }
+    select, input[type="text"] { width:100%; padding:11px 14px; border:1.5px solid var(--gray-200); border-radius:8px; font-size:14px; color:var(--navy); background:var(--gray-100); appearance:none; transition:border-color .2s, box-shadow .2s; }
+    select:focus, input[type="text"]:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,175,55,0.15); }
+
+    .account-card { background:var(--gray-100); border-radius:var(--radius); padding:14px; font-size:12px; line-height:1.7; border-left:3px solid var(--gold); display:none; }
+    .account-card.visible { display:block; }
+    .account-card .ac-name { font-weight:700; font-size:14px; color:var(--navy); margin-bottom:4px; }
+    .tag { display:inline-block; background:var(--navy); color:var(--gold); font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; padding:2px 8px; border-radius:20px; margin:2px 2px 0 0; }
+
+    /* SCENARIO */
+    .scenario-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .scenario-btn { padding:10px 8px; border-radius:10px; font-size:12px; font-weight:600; border:1.5px solid var(--gray-200); cursor:pointer; background:var(--gray-100); color:var(--gray-600); text-align:center; transition:all .2s; }
+    .scenario-btn .s-icon { font-size:20px; display:block; margin-bottom:4px; }
+    .scenario-btn:hover { border-color:var(--gold); }
+    .scenario-btn.active { background:var(--navy); border-color:var(--navy); color:var(--gold); }
+
+    /* TONE */
+    .tone-grid { display:flex; flex-wrap:wrap; gap:8px; }
+    .tone-btn { padding:8px 16px; border-radius:20px; font-size:12px; font-weight:600; border:1.5px solid var(--gray-200); cursor:pointer; background:var(--gray-100); color:var(--gray-600); transition:all .2s; }
+    .tone-btn:hover { border-color:var(--gold); color:var(--navy); }
+    .tone-btn.active { background:var(--navy); border-color:var(--navy); color:var(--gold); }
+
+    /* HERO GRID */
+    .hero-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .hero-opt { border-radius:8px; overflow:hidden; border:2px solid var(--gray-200); cursor:pointer; transition:all .2s; position:relative; }
+    .hero-opt img { width:100%; height:70px; object-fit:cover; display:block; }
+    .hero-opt .hero-label { font-size:9px; text-align:center; padding:3px; background:var(--gray-100); color:var(--gray-600); font-weight:600; }
+    .hero-opt.active { border-color:var(--gold); }
+    .hero-opt.active::after { content:"✓"; position:absolute; top:4px; right:5px; background:var(--gold); color:var(--navy); border-radius:50%; width:16px; height:16px; font-size:10px; font-weight:900; display:flex; align-items:center; justify-content:center; }
+
+    /* GENERATE BUTTON */
+    .btn-generate { width:100%; padding:16px; border-radius:var(--radius); background:var(--gold); color:var(--navy); font-size:16px; font-weight:800; border:none; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .btn-generate:hover:not(:disabled) { background:#c9a230; transform:translateY(-1px); box-shadow:var(--shadow); }
+    .btn-generate:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+    .btn-generate .spinner { width:18px; height:18px; border:2.5px solid rgba(26,26,46,.3); border-top-color:var(--navy); border-radius:50%; animation:spin .7s linear infinite; display:none; }
+    .btn-generate.loading .spinner { display:block; }
+    .btn-generate.loading .btn-label { display:none; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ERROR */
+    .error-toast { background:#C0392B; color:var(--white); border-radius:var(--radius); padding:14px 20px; font-size:13px; font-weight:600; display:none; align-items:center; gap:10px; }
+    .error-toast.visible { display:flex; }
+
+    /* RIGHT PANEL */
+    .panel-right { padding:28px 32px; overflow-y:auto; display:flex; flex-direction:column; gap:24px; }
+
+    /* EMPTY STATE */
+    .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; min-height:400px; text-align:center; gap:16px; color:var(--gray-400); }
+    .empty-state .es-icon { font-size:64px; }
+    .empty-state h3 { font-size:20px; font-weight:700; color:var(--gray-600); }
+    .empty-state p { font-size:14px; max-width:340px; line-height:1.6; }
+
+    /* META BAR */
+    .meta-bar { display:flex; gap:20px; background:var(--navy); border-radius:var(--radius); padding:12px 20px; color:var(--white); font-size:12px; flex-wrap:wrap; }
+    .meta-bar .m-item { display:flex; flex-direction:column; gap:2px; }
+    .meta-bar .m-label { color:rgba(255,255,255,.5); font-size:10px; text-transform:uppercase; letter-spacing:.8px; }
+    .meta-bar .m-val { font-weight:700; color:var(--gold); }
+
+    /* ACCOUNT STRIP */
+    .account-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
+    .as-cell { background:var(--white); border-radius:10px; padding:12px 14px; box-shadow:var(--shadow); }
+    .as-cell .as-label { font-size:10px; color:var(--gray-400); text-transform:uppercase; letter-spacing:.8px; font-weight:700; }
+    .as-cell .as-val { font-size:14px; font-weight:700; color:var(--navy); margin-top:4px; }
+    .as-cell .as-val.gold { color:var(--gold); }
+
+    /* CARDS */
+    .card { background:var(--white); border-radius:var(--radius); padding:20px 24px; box-shadow:var(--shadow); border:1px solid var(--gray-200); }
+    .card-title { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:16px; }
+
+    /* BRIEF */
+    .brief-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .brief-item label { font-size:11px; font-weight:700; color:var(--gray-400); text-transform:uppercase; letter-spacing:.8px; }
+    .brief-item .value { font-size:14px; font-weight:600; color:var(--navy); margin-top:4px; line-height:1.4; }
+    .brief-item.full { grid-column:1/-1; }
+
+    /* PRODUCTS */
+    .product-list { display:flex; flex-direction:column; gap:14px; }
+    .product-card { border:1px solid var(--gray-200); border-radius:10px; padding:14px 16px; display:flex; gap:14px; align-items:flex-start; }
+    .product-card .sku-badge { background:var(--navy); color:var(--gold); font-size:10px; font-weight:800; letter-spacing:.8px; padding:4px 10px; border-radius:6px; white-space:nowrap; flex-shrink:0; margin-top:2px; }
+    .product-card .p-name { font-size:14px; font-weight:700; color:var(--navy); }
+    .product-card .p-reason { font-size:12px; color:var(--gray-600); margin-top:3px; line-height:1.5; }
+    .product-card .p-personal { font-size:11px; color:var(--gold); font-weight:600; margin-top:4px; }
+
+    /* BUNDLE */
+    .bundle-box { background:var(--navy); color:var(--white); border-radius:var(--radius); padding:16px 20px; display:flex; align-items:center; gap:16px; margin-top:16px; }
+    .bundle-box .b-icon { font-size:28px; flex-shrink:0; }
+    .bundle-box .b-name { font-size:14px; font-weight:700; color:var(--gold); }
+    .bundle-box .b-skus { font-size:12px; color:rgba(255,255,255,.7); margin-top:2px; }
+
+    /* VISUALS */
+    .visual-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .img-card { background:var(--white); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); border:1px solid var(--gray-200); }
+    .img-card img { width:100%; height:240px; object-fit:cover; display:block; }
+    .img-card .img-footer { padding:12px 16px; }
+    .img-card .img-footer .img-title { font-size:12px; font-weight:700; color:var(--navy); }
+    .img-card .img-footer .img-sub   { font-size:11px; color:var(--gray-400); margin-top:2px; }
+
+    /* TABS + IFRAMES */
+    .tab-bar { display:flex; gap:4px; border-bottom:2px solid var(--gray-200); margin-bottom:20px; }
+    .tab-btn { padding:10px 20px; font-size:13px; font-weight:600; border:none; background:none; cursor:pointer; color:var(--gray-400); border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; }
+    .tab-btn.active { color:var(--navy); border-bottom-color:var(--gold); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    .preview-frame { width:100%; height:520px; border:none; border-radius:var(--radius); box-shadow:var(--shadow); }
+
+    @media(max-width:900px){
+      .layout { grid-template-columns:1fr; }
+      .panel-left { border-right:none; border-bottom:1px solid var(--gray-200); }
+      .brief-grid, .visual-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">AF</div>
+    <div>
+      <div class="brand-name">AgenticFlow</div>
+      <div class="brand-sub">PXM Campaign Studio</div>
+    </div>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    Live API Connected
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ── LEFT PANEL ── -->
+  <aside class="panel-left">
+
+    <div>
+      <div class="section-label">① Select Prospect (CRM)</div>
+      <div class="field-group">
+        <label>Company Account</label>
+        <select id="sel-company" onchange="onCompanyChange()">
+          <option value="">— Choose an account —</option>
+          <option value="TechWear Co"               data-industry="Outdoor Apparel Retail"  data-contact="Sarah Chen"        data-title="Procurement Manager"   data-stage="consideration"   data-pain="bulk customization for seasonal launches"    data-rev="$15M"  data-emp="250">TechWear Co</option>
+          <option value="FitLife Gyms"               data-industry="Fitness Chain"           data-contact="Marcus Williams"   data-title="Brand Manager"         data-stage="early awareness" data-pain="consistent quality across 50+ locations"     data-rev="$45M"  data-emp="500">FitLife Gyms</option>
+          <option value="Corporate Gifts Inc"        data-industry="Corporate Merchandise"   data-contact="Jennifer Lopez"    data-title="Operations Director"    data-stage="negotiation"     data-pain="fast turnaround and API integration"         data-rev="$3M"   data-emp="45">Corporate Gifts Inc</option>
+          <option value="Eco Adventures Tours"       data-industry="Adventure Travel"        data-contact="James Reeves"      data-title="Logistics Manager"      data-stage="awareness"       data-pain="durable, customizable outerwear"             data-rev="$2.5M" data-emp="30">Eco Adventures Tours</option>
+          <option value="Urban Streetwear Collective" data-industry="Fashion Retail"         data-contact="Alex Martinez"     data-title="Creative Director"      data-stage="consideration"   data-pain="fast production and design flexibility"      data-rev="$8M"   data-emp="60">Urban Streetwear Collective</option>
+          <option value="Corporate Wellness LLC"     data-industry="Employee Benefits"       data-contact="Diana Park"        data-title="Program Director"       data-stage="early awareness" data-pain="bulk orders with employee personalization"   data-rev="$12M"  data-emp="180">Corporate Wellness LLC</option>
+          <option value="Summit Events Group"        data-industry="Event Management"        data-contact="Ryan Thompson"     data-title="Supply Chain Manager"   data-stage="negotiation"     data-pain="rapid production and last-minute changes"    data-rev="$4M"   data-emp="35">Summit Events Group</option>
+          <option value="Collegiate Spirit Co"       data-industry="College Merchandise"     data-contact="Michelle Zhang"    data-title="Accounts Manager"       data-stage="early awareness" data-pain="inventory management for 50+ schools"        data-rev="$25M"  data-emp="200">Collegiate Spirit Co</option>
+          <option value="NGO Relief Partners"        data-industry="Non-Profit"              data-contact="Olivia Green"      data-title="Operations Manager"     data-stage="awareness"       data-pain="cost-effective bulk orders"                  data-rev="$2M"   data-emp="50">NGO Relief Partners</option>
+          <option value="Premium Resorts Int'l"      data-industry="Hospitality"             data-contact="Sebastian Morales" data-title="Global Procurement"     data-stage="consideration"   data-pain="consistent quality and rapid replenishment"  data-rev="$150M" data-emp="2000">Premium Resorts Int'l</option>
+        </select>
+      </div>
+      <div class="account-card" id="account-card">
+        <div class="ac-name" id="ac-name"></div>
+        <div id="ac-body" style="color:#555550"></div>
+        <div id="ac-tags" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">② Campaign Scenario (PIM)</div>
+      <div class="scenario-grid">
+        <button class="scenario-btn active" data-val="onboarding" onclick="setScenario(this)">
+          <span class="s-icon">🎉</span>Onboarding
+        </button>
+        <button class="scenario-btn" data-val="events" onclick="setScenario(this)">
+          <span class="s-icon">🎪</span>Events
+        </button>
+        <button class="scenario-btn" data-val="gifting" onclick="setScenario(this)">
+          <span class="s-icon">🎁</span>Gifting
+        </button>
+      </div>
+      <input type="hidden" id="sel-scenario" value="onboarding" />
+    </div>
+
+    <div>
+      <div class="section-label">③ Campaign Tone</div>
+      <div class="tone-grid">
+        <button class="tone-btn active" data-val="confident"  onclick="setTone(this)">Confident</button>
+        <button class="tone-btn"        data-val="urgent"     onclick="setTone(this)">Urgent</button>
+        <button class="tone-btn"        data-val="premium"    onclick="setTone(this)">Premium</button>
+        <button class="tone-btn"        data-val="playful"    onclick="setTone(this)">Playful</button>
+        <button class="tone-btn"        data-val="exclusive"  onclick="setTone(this)">Exclusive</button>
+      </div>
+      <input type="hidden" id="sel-tone" value="confident" />
+    </div>
+
+    <div>
+      <div class="section-label">④ Hero Image (DAM)</div>
+      <div class="hero-grid">
+        <div class="hero-opt active" data-val="default" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png" alt="City Street" />
+          <div class="hero-label">City Street</div>
+        </div>
+        <div class="hero-opt" data-val="rooftop_couple" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png" alt="Rooftop" />
+          <div class="hero-label">Rooftop</div>
+        </div>
+        <div class="hero-opt" data-val="wall_woman" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png" alt="Urban Wall" />
+          <div class="hero-label">Urban Wall</div>
+        </div>
+        <div class="hero-opt" data-val="car_couple" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png" alt="Car Hood" />
+          <div class="hero-label">Car Hood</div>
+        </div>
+        <div class="hero-opt" data-val="rooftop_man" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png" alt="Rooftop Man" />
+          <div class="hero-label">Rooftop Man</div>
+        </div>
+        <div class="hero-opt" data-val="coffee_man" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727363/KNIT-001coffeeshopMan_rvhsik.png" alt="Coffee Shop" />
+          <div class="hero-label">Coffee Shop</div>
+        </div>
+      </div>
+      <input type="hidden" id="sel-hero" value="default" />
+    </div>
+
+    <button class="btn-generate" id="btn-gen" onclick="generate()">
+      <div class="spinner"></div>
+      <span class="btn-label">⚡ Generate Campaign</span>
+    </button>
+
+    <div class="error-toast" id="error-toast">
+      <span>⚠️</span><span id="error-msg"></span>
+    </div>
+
+  </aside>
+
+  <!-- ── RIGHT PANEL ── -->
+  <main class="panel-right">
+
+    <div class="empty-state" id="empty-state">
+      <div class="es-icon">🧠</div>
+      <h3>PXM Campaign Studio Ready</h3>
+      <p>Select an account, choose your scenario and tone, pick a hero image — then click <strong>Generate Campaign</strong>.</p>
+      <p style="font-size:12px;color:#bbb;margin-top:8px">WHO (CRM) + WHY (PIM) + LOOK (DAM) + AI → Full Campaign + Mockup</p>
+    </div>
+
+    <div id="output" style="display:none; display:flex; flex-direction:column; gap:24px;">
+
+      <div class="meta-bar" id="meta-bar">
+        <div class="m-item"><div class="m-label">Model</div><div class="m-val" id="m-model">—</div></div>
+        <div class="m-item"><div class="m-label">Tokens Used</div><div class="m-val" id="m-tokens">—</div></div>
+        <div class="m-item"><div class="m-label">Latency</div><div class="m-val" id="m-latency">—</div></div>
+        <div class="m-item"><div class="m-label">Products Evaluated</div><div class="m-val" id="m-products">—</div></div>
+        <div class="m-item"><div class="m-label">Scenario</div><div class="m-val" id="m-scenario">—</div></div>
+        <div class="m-item"><div class="m-label">Tone</div><div class="m-val" id="m-tone">—</div></div>
+      </div>
+
+      <div class="account-strip" id="acct-strip">
+        <div class="as-cell"><div class="as-label">Company</div><div class="as-val" id="s-company">—</div></div>
+        <div class="as-cell"><div class="as-label">Industry</div><div class="as-val" id="s-industry">—</div></div>
+        <div class="as-cell"><div class="as-label">Contact</div><div class="as-val" id="s-contact">—</div></div>
+        <div class="as-cell"><div class="as-label">Buying Stage</div><div class="as-val gold" id="s-stage">—</div></div>
+        <div class="as-cell"><div class="as-label">Revenue</div><div class="as-val" id="s-revenue">—</div></div>
+        <div class="as-cell"><div class="as-label">Employees</div><div class="as-val" id="s-employees">—</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Campaign Brief — AI Generated</div>
+        <div class="brief-grid">
+          <div class="brief-item full">
+            <label>Campaign Title</label>
+            <div class="value" id="b-title" style="font-size:20px"></div>
+          </div>
+          <div class="brief-item">
+            <label>Subject Line</label>
+            <div class="value" id="b-subject"></div>
+          </div>
+          <div class="brief-item">
+            <label>Hero Headline</label>
+            <div class="value" id="b-headline"></div>
+          </div>
+          <div class="brief-item full">
+            <label>Body Copy</label>
+            <div class="value" id="b-body" style="font-weight:400;line-height:1.6"></div>
+          </div>
+          <div class="brief-item">
+            <label>CTA</label>
+            <div class="value" id="b-cta" style="color:var(--gold)"></div>
+          </div>
+          <div class="brief-item">
+            <label>Personalization Angle</label>
+            <div class="value" id="b-personal" style="font-weight:400;font-size:13px"></div>
+          </div>
+          <div class="brief-item full">
+            <label>Strategic Notes</label>
+            <div class="value" id="b-notes" style="font-weight:400;font-size:13px;color:var(--gray-600)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Product Recommendations — PIM Intelligence</div>
+        <div class="product-list" id="product-list"></div>
+        <div class="bundle-box">
+          <div class="b-icon">📦</div>
+          <div>
+            <div class="b-name" id="bundle-name">—</div>
+            <div class="b-skus" id="bundle-skus">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Visual Assets — DAM + Printful Mockup</div>
+        <div class="visual-row">
+          <div class="img-card">
+            <img id="hero-img" src="" alt="Hero Image" />
+            <div class="img-footer">
+              <div class="img-title">Hero Image (Cloudinary DAM)</div>
+              <div class="img-sub">Selected lifestyle asset</div>
+            </div>
+          </div>
+          <div class="img-card">
+            <img id="mockup-img" src="" alt="Product Mockup" />
+            <div class="img-footer">
+              <div class="img-title">Product Mockup (Printful)</div>
+              <div class="img-sub" id="mockup-sku-label">Customer logo applied</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Campaign Deliverables</div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('email',this)">📧 Email Preview</button>
+          <button class="tab-btn"        onclick="switchTab('landing',this)">🌐 Landing Page</button>
+        </div>
+        <div class="tab-panel active" id="tab-email">
+          <iframe id="frame-email" class="preview-frame" title="Email Preview"></iframe>
+        </div>
+        <div class="tab-panel" id="tab-landing">
+          <iframe id="frame-landing" class="preview-frame" title="Landing Page Preview"></iframe>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  const API = 'https://pim-dam-crm-integration-production.up.railway.app';
+
+  const SCENARIO_MAP = {
+    'Outdoor Apparel Retail': 'events',
+    'Fitness Chain':          'onboarding',
+    'Corporate Merchandise':  'gifting',
+    'Adventure Travel':       'events',
+    'Fashion Retail':         'onboarding',
+    'Employee Benefits':      'onboarding',
+    'Event Management':       'events',
+    'College Merchandise':    'events',
+    'Non-Profit':             'onboarding',
+    'Hospitality':            'gifting',
+  };
+
+  function setScenario(el) {
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('sel-scenario').value = el.dataset.val;
+  }
+  function setTone(el) {
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('sel-tone').value = el.dataset.val;
+  }
+  function setHero(el) {
+    document.querySelectorAll('.hero-opt').forEach(h => h.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('sel-hero').value = el.dataset.val;
+  }
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  function onCompanyChange() {
+    const sel = document.getElementById('sel-company');
+    const opt = sel.options[sel.selectedIndex];
+    const card = document.getElementById('account-card');
+    if (!opt.value) { card.classList.remove('visible'); return; }
+
+    const industry = opt.dataset.industry;
+    const auto = SCENARIO_MAP[industry] || 'onboarding';
+    document.getElementById('sel-scenario').value = auto;
+    document.querySelectorAll('.scenario-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.val === auto);
+    });
+
+    document.getElementById('ac-name').textContent = opt.value;
+    document.getElementById('ac-body').innerHTML =
+      `<strong>${industry}</strong> &nbsp;·&nbsp; ${opt.dataset.contact}, ${opt.dataset.title}<br>` +
+      `Stage: <strong>${opt.dataset.stage}</strong> &nbsp;·&nbsp; Rev: <strong>${opt.dataset.rev}</strong> &nbsp;·&nbsp; ${opt.dataset.emp} employees<br>` +
+      `<em>Pain: ${opt.dataset.pain}</em>`;
+    document.getElementById('ac-tags').innerHTML =
+      `<span class="tag">${opt.dataset.stage}</span><span class="tag">${industry}</span>`;
+    card.classList.add('visible');
+  }
+
+  async function generate() {
+    const company  = document.getElementById('sel-company').value;
+    const scenario = document.getElementById('sel-scenario').value;
+    const tone     = document.getElementById('sel-tone').value;
+    const hero_key = document.getElementById('sel-hero').value;
+
+    if (!company) { showError('Please select an account first.'); return; }
+    hideError();
+
+    const btn = document.getElementById('btn-gen');
+    btn.disabled = true; btn.classList.add('loading');
+    document.getElementById('output').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'none';
+
+    try {
+      const res = await fetch(`${API}/pxm/campaign/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ company_name: company, scenario, tone, hero_key })
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+      const data = await res.json();
+      renderOutput(data);
+    } catch(e) {
+      showError('Generation failed: ' + e.message);
+      document.getElementById('empty-state').style.display = 'flex';
+    } finally {
+      btn.disabled = false; btn.classList.remove('loading');
+    }
+  }
+
+  function renderOutput(data) {
+    const b = data.campaign_brief;
+    const a = data.account;
+
+    // Meta
+    document.getElementById('m-model').textContent    = data.model || '—';
+    document.getElementById('m-tokens').textContent   = (data.tokens_used || 0).toLocaleString();
+    document.getElementById('m-latency').textContent  = data.latency_ms ? (data.latency_ms/1000).toFixed(1)+'s' : '—';
+    document.getElementById('m-products').textContent = data.products_evaluated ?? '—';
+    document.getElementById('m-scenario').textContent = (data.scenario || '').toUpperCase();
+    document.getElementById('m-tone').textContent     = data.tone ? data.tone[0].toUpperCase()+data.tone.slice(1) : '—';
+
+    // Account strip
+    document.getElementById('s-company').textContent  = a.company  || '—';
+    document.getElementById('s-industry').textContent = a.industry || '—';
+    document.getElementById('s-contact').textContent  = `${a.contact_name||'—'}, ${a.contact_title||''}`;
+    document.getElementById('s-stage').textContent    = a.buying_stage || '—';
+    document.getElementById('s-revenue').textContent  = a.annual_revenue ? '$'+a.annual_revenue : '—';
+    document.getElementById('s-employees').textContent = a.employees ?? '—';
+
+    // Brief
+    document.getElementById('b-title').textContent    = b.campaign_title || '—';
+    document.getElementById('b-subject').textContent  = b.subject_line   || '—';
+    document.getElementById('b-headline').textContent = b.hero_headline   || '—';
+    document.getElementById('b-body').textContent     = b.body_copy      || '—';
+    document.getElementById('b-cta').textContent      = b.cta_text       || '—';
+    document.getElementById('b-personal').textContent = b.personalization_angle || '—';
+    document.getElementById('b-notes').textContent    = b.campaign_notes  || '—';
+
+    // Products
+    const pl = document.getElementById('product-list');
+    pl.innerHTML = (b.product_recommendations || []).map(p => `
+      <div class="product-card">
+        <div class="sku-badge">${p.sku}</div>
+        <div>
+          <div class="p-name">${p.name}</div>
+          <div class="p-reason">${p.reason}</div>
+          <div class="p-personal">✦ ${p.personalization_note}</div>
+        </div>
+      </div>`).join('');
+
+    // Bundle
+    if (b.bundle_suggestion) {
+      document.getElementById('bundle-name').textContent = b.bundle_suggestion.name || '—';
+      document.getElementById('bundle-skus').textContent = 'Bundle SKUs: ' + (b.bundle_suggestion.skus||[]).join(' · ');
+    }
+
+    // Images
+    document.getElementById('hero-img').src   = data.hero_image_url || '';
+    document.getElementById('mockup-img').src = data.mockup_url     || '';
+    document.getElementById('mockup-sku-label').textContent = `SKU: ${data.mockup_sku||''} · Customer logo applied`;
+
+    // iFrames
+    const ef = document.getElementById('frame-email').contentDocument;
+    const lf = document.getElementById('frame-landing').contentDocument;
+    ef.open(); ef.write(b.email_html         || '<p>No email generated.</p>'); ef.close();
+    lf.open(); lf.write(b.landing_page_html  || '<p>No page generated.</p>'); lf.close();
+
+    document.getElementById('output').style.display = 'flex';
+  }
+
+  function showError(msg) {
+    document.getElementById('error-msg').textContent = msg;
+    document.getElementById('error-toast').classList.add('visible');
+  }
+  function hideError() {
+    document.getElementById('error-toast').classList.remove('visible');
+  }
+</script>
+</body>
+</html>
