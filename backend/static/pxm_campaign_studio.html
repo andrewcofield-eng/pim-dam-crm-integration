@@ -138,6 +138,10 @@
     .img-card .img-footer .img-title { font-size:12px; font-weight:700; color:var(--navy); }
     .img-card .img-footer .img-sub   { font-size:11px; color:var(--gray-400); margin-top:2px; }
 
+    /* DOWNLOAD BUTTONS */
+    .btn-download { padding:7px 16px; border-radius:6px; font-size:12px; font-weight:700; border:1.5px solid var(--gold); cursor:pointer; background:transparent; color:var(--gold); letter-spacing:.3px; transition:all .2s; }
+    .btn-download:hover { background:var(--gold); color:var(--navy); }
+
     /* TABS + IFRAMES */
     .tab-bar { display:flex; gap:4px; border-bottom:2px solid var(--gray-200); margin-bottom:20px; }
     .tab-btn { padding:10px 20px; font-size:13px; font-weight:600; border:none; background:none; cursor:pointer; color:var(--gray-400); border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; }
@@ -368,17 +372,16 @@
 
       <div class="card">
         <div class="card-title">Campaign Deliverables</div>
-        <div class="tab-bar">
-          <button class="tab-btn active" onclick="switchTab('email',this)">📧 Email Preview</button>
-          <button class="tab-btn"        onclick="switchTab('landing',this)">🌐 Landing Page</button>
+        <div class="tab-bar" style="justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:4px;">
+            <button class="tab-btn active" onclick="switchTab('email',this)">📧 Email Preview</button>
+            <button class="tab-btn"        onclick="switchTab('landing',this)">🌐 Landing Page</button>
+          </div>
+          <div style="display:flex; gap:8px; padding-bottom:2px;">
+            <button class="btn-download" id="btn-dl-email"   onclick="downloadEmail()">⬇ Download Email</button>
+            <button class="btn-download" id="btn-dl-landing" onclick="downloadLanding()" style="display:none;">⬇ Download Landing Page</button>
+          </div>
         </div>
-        <div class="tab-panel active" id="tab-email">
-          <iframe id="frame-email" class="preview-frame" title="Email Preview"></iframe>
-        </div>
-        <div class="tab-panel" id="tab-landing">
-          <iframe id="frame-landing" class="preview-frame" title="Landing Page Preview"></iframe>
-        </div>
-      </div>
 
     </div>
   </main>
@@ -415,12 +418,45 @@
     el.classList.add('active');
     document.getElementById('sel-hero').value = el.dataset.val;
   }
+
   function switchTab(name, el) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('tab-' + name).classList.add('active');
-  }
+   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+   el.classList.add('active');
+   document.getElementById('tab-' + name).classList.add('active');
+
+  // Show the correct download button
+  document.getElementById('btn-dl-email').style.display   = (name === 'email')   ? 'block' : 'none';
+  document.getElementById('btn-dl-landing').style.display = (name === 'landing') ? 'block' : 'none';
+}
+
+function downloadEmail() {
+  const company = (document.getElementById('s-company').textContent || 'campaign')
+    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const doc = document.getElementById('frame-email').contentDocument;
+  const html = doc.documentElement.outerHTML;
+  triggerDownload(html, `${company}-email.html`);
+}
+
+function downloadLanding() {
+  const company = (document.getElementById('s-company').textContent || 'campaign')
+    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const doc = document.getElementById('frame-landing').contentDocument;
+  const html = doc.documentElement.outerHTML;
+  triggerDownload(html, `${company}-landing-page.html`);
+}
+
+function triggerDownload(html, filename) {
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
   function onCompanyChange() {
     const sel = document.getElementById('sel-company');
