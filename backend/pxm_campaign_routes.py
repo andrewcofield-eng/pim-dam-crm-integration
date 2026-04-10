@@ -65,6 +65,40 @@ INDUSTRY_SCENE_MAP = {
     "Adventure Travel":         "a scenic outdoor adventure basecamp at sunrise",
 }
 
+# ── Product category → clothing description for DALL-E prompt ────────────────
+PRODUCT_CLOTHING_MAP = {
+    "hoodie":   "premium pullover hoodies with kangaroo pockets",
+    "jacket":   "structured zip-up jackets with clean lines",
+    "denim":    "dark wash denim jackets with subtle stitching",
+    "tee":      "fitted crew-neck t-shirts",
+    "shirt":    "button-down collared shirts",
+    "knit":     "fine-knit crewneck sweaters",
+    "shorts":   "tailored chino shorts",
+    "outerwear":"lightweight performance outerwear jackets",
+    "accessory":"branded caps and tote bags",
+    "sock":     "crew-neck t-shirts and premium socks",
+    "swimwear": "performance athletic wear",
+    "underwear":"casual lifestyle t-shirts",
+}
+
+def get_clothing_description(products: list) -> str:
+    """Map top 2 recommended products to specific clothing descriptions."""
+    descriptions = []
+    for p in products[:2]:
+        name = (p.get("name") or "").lower()
+        category = (p.get("category") or "").lower()
+        combined = name + " " + category
+        for keyword, desc in PRODUCT_CLOTHING_MAP.items():
+            if keyword in combined:
+                descriptions.append(desc)
+                break
+        else:
+            descriptions.append("premium branded apparel")
+    
+    if not descriptions:
+        return "premium branded apparel"
+    return " and ".join(dict.fromkeys(descriptions))  # deduplicate
+
 # ── Fallback static hero (used if DALL-E fails) ───────────────────────────────
 FALLBACK_HERO = "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png"
 
@@ -145,18 +179,20 @@ async def generate_contextual_hero(
         category = products[0].get("category", "apparel") if products else "apparel"
         contact_industry = industry.lower()
 
+        clothing_desc = get_clothing_description(products)
+        
         prompt = (
             f"Professional commercial fashion photography, editorial style. "
-            f"A diverse group of confident professionals wearing premium custom-branded {category} "
-            f"with subtle embroidered logo details, photographed in {scene}. "
+            f"A diverse group of confident professionals wearing {clothing_desc} "
+            f"with a small embroidered company logo on the chest, "
+            f"photographed in {scene}. "
             f"Clothing palette: deep charcoal black and warm gold accents. "
             f"Shot on medium format camera, shallow depth of field, "
             f"warm cinematic lighting, clean composition. "
             f"Aspirational lifestyle feel, authentic and modern. "
-            f"No visible text, no brand names, no logos visible in scene. "
+            f"No visible text or readable words anywhere in the image. "
             f"Wide landscape format suitable for email hero banner."
         )
-
         client_ai = OpenAI(api_key=OPENAI_KEY)
         img_response = client_ai.images.generate(
             model="dall-e-3",
