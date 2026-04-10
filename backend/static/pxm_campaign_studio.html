@@ -564,14 +564,26 @@ function triggerDownload(html, filename) {
     document.getElementById('mockup-img').src = data.mockup_url     || '';
     document.getElementById('mockup-sku-label').textContent = `SKU: ${data.mockup_sku||''} · Customer logo applied`;
 
-    // iFrames
-    const ef = document.getElementById('frame-email').contentDocument;
-    const lf = document.getElementById('frame-landing').contentDocument;
-    ef.open(); ef.write(b.email_html         || '<p>No email generated.</p>'); ef.close();
-    lf.open(); lf.write(b.landing_page_html  || '<p>No page generated.</p>'); lf.close();
-
+    // Show output BEFORE writing to iframes (iframes need to be visible/in DOM first)
     document.getElementById('output').style.display = 'flex';
-  }
+
+    // iFrames — use setTimeout to ensure DOM has rendered before writing
+    setTimeout(() => {
+      const ef = document.getElementById('frame-email');
+      const lf = document.getElementById('frame-landing');
+
+      if (ef && ef.contentDocument) {
+        ef.contentDocument.open();
+        ef.contentDocument.write(b.email_html || '<p>No email generated.</p>');
+        ef.contentDocument.close();
+      }
+
+      if (lf && lf.contentDocument) {
+        lf.contentDocument.open();
+        lf.contentDocument.write(b.landing_page_html || '<p>No page generated.</p>');
+        lf.contentDocument.close();
+      }
+    }, 50);
 
   function showError(msg) {
     document.getElementById('error-msg').textContent = msg;
