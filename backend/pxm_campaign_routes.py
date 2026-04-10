@@ -1,6 +1,6 @@
 """
 pxm_campaign_routes.py
-─────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────
 PXM Campaign Studio — Unified endpoint
 Merges: CRM (WHO) + PIM (WHY) + DAM (LOOK) + AI (SYNTHESIZE) → Full Campaign
 
@@ -11,7 +11,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from openai import OpenAI
-import httpx, os, json, time
+import httpx, os, json, time, asyncio
+import cloudinary
+import cloudinary.uploader
 
 router = APIRouter(prefix="/pxm", tags=["PXM Campaign Studio"])
 
@@ -21,24 +23,21 @@ DIRECTUS_URL   = os.getenv("DIRECTUS_URL", "https://directus-production-9f53.up.
 DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "")
 OPENAI_KEY     = os.getenv("OPENAI_API_KEY", "")
 
-# ── Hero image map (Cloudinary DAM) ───────────────────────────────────────────
-HERO_IMAGES = {
-    "default":       "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png",
-    "rooftop_couple":"https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png",
-    "wall_woman":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png",
-    "car_couple":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png",
-    "rooftop_man":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png",
-    "coffee_man":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727363/KNIT-001coffeeshopMan_rvhsik.png",
-}
+# ── Cloudinary config ─────────────────────────────────────────────────────────
+cloudinary.config(
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME", "dp0cdq8bj"),
+    api_key    = os.getenv("CLOUDINARY_API_KEY", ""),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET", ""),
+)
 
-# Scenario → hero SKU for Printful mockup
+# ── Scenario → hero SKU for Printful mockup ───────────────────────────────────
 SCENARIO_SKU_MAP = {
     "onboarding": "HOD-001",
     "events":     "ACC-001",
     "gifting":    "HOD-002",
 }
 
-# Industry → best-fit scenario (fallback if not specified)
+# ── Industry → best-fit scenario ─────────────────────────────────────────────
 INDUSTRY_SCENARIO_MAP = {
     "Fitness Chain":            "onboarding",
     "Corporate Merchandise":    "gifting",
@@ -49,43 +48,57 @@ INDUSTRY_SCENARIO_MAP = {
     "Outdoor Apparel Retail":   "events",
     "Fashion Retail":           "onboarding",
     "Non-Profit":               "onboarding",
+    "Adventure Travel":         "events",
 }
+
+# ── Industry → DALL-E scene description ──────────────────────────────────────
+INDUSTRY_SCENE_MAP = {
+    "Fitness Chain":            "a modern gym weight room with natural light and professional equipment",
+    "Corporate Merchandise":    "a bright contemporary corporate office lobby with glass walls",
+    "Event Management":         "a busy professional trade show convention floor with booth displays",
+    "College Merchandise":      "a vibrant college campus quad in autumn with students",
+    "Employee Benefits":        "a bright open-plan office wellness space with standing desks",
+    "Hospitality":              "a luxury hotel lobby with warm ambient lighting and marble floors",
+    "Outdoor Apparel Retail":   "a rugged mountain trail at golden hour with dramatic landscape",
+    "Fashion Retail":           "an urban city street with modern architecture and soft daylight",
+    "Non-Profit":               "an outdoor community gathering and event space with people",
+    "Adventure Travel":         "a scenic outdoor adventure basecamp at sunrise",
+}
+
+# ── Fallback static hero (used if DALL-E fails) ───────────────────────────────
+FALLBACK_HERO = "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png"
 
 # ── Request model ─────────────────────────────────────────────────────────────
 class PXMCampaignRequest(BaseModel):
     company_name: str
-    scenario:     Optional[str] = None      # onboarding | events | gifting
+    scenario:     Optional[str] = None
     tone:         Optional[str] = "confident"
-    hero_key:     Optional[str] = "default"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 async def fetch_crm_account(company_name: str) -> dict:
-    """Pull account data — first try ACCOUNTS list, then ABM endpoint as fallback."""
+    """Pull account data from ACCOUNTS list, with fallback."""
     from accounts import ACCOUNTS
-
-    # Direct lookup from ACCOUNTS (same source as HubSpot orchestrator)
     name_lower = company_name.strip().lower()
     for acc in ACCOUNTS:
         if acc.get("company_name", "").lower() == name_lower:
             return {
-                "company":       acc["company_name"],
-                "industry":      acc["industry"],
-                "segment":       acc.get("use_case", ""),
-                "pain_point":    acc.get("pain_point", ""),
-                "use_case":      acc.get("use_case", ""),
-                "buying_stage":  acc.get("buying_stage", ""),
-                "company_size":  acc.get("company_size", ""),
-                "employees":     acc.get("employees", ""),
-                "annual_revenue":acc.get("annual_revenue", ""),
-                "account_value": acc.get("account_value", ""),
-                "contact_name":  acc["contact"]["name"],
-                "contact_title": acc["contact"]["title"],
+                "company":        acc["company_name"],
+                "industry":       acc["industry"],
+                "segment":        acc.get("use_case", ""),
+                "pain_point":     acc.get("pain_point", ""),
+                "use_case":       acc.get("use_case", ""),
+                "buying_stage":   acc.get("buying_stage", ""),
+                "company_size":   acc.get("company_size", ""),
+                "employees":      acc.get("employees", ""),
+                "annual_revenue": acc.get("annual_revenue", ""),
+                "account_value":  acc.get("account_value", ""),
+                "contact_name":   acc["contact"]["name"],
+                "contact_title":  acc["contact"]["title"],
                 "interested_categories": acc.get("interested_categories", []),
             }
-
-    # Fallback
     return {"company": company_name, "industry": "General B2B", "segment": "general"}
+
 
 async def fetch_pxm_products(scenario: str) -> list:
     """Pull PIM products enriched with WHY data, filtered by scenario."""
@@ -102,7 +115,7 @@ async def fetch_pxm_products(scenario: str) -> list:
 
 
 async def fetch_mockup(company_name: str, sku: str) -> Optional[str]:
-    """Get Printful mockup URL from your existing endpoint."""
+    """Get Printful mockup URL from existing endpoint."""
     try:
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
@@ -116,18 +129,73 @@ async def fetch_mockup(company_name: str, sku: str) -> Optional[str]:
     return None
 
 
+async def generate_contextual_hero(
+    company_name: str,
+    industry: str,
+    scenario: str,
+    products: list
+) -> Optional[str]:
+    """
+    Generate a contextual hero image via DALL-E 3 matching the customer's
+    industry and scenario, then upload to Cloudinary DAM for persistence.
+    Falls back to None on any failure (caller uses static fallback).
+    """
+    try:
+        scene    = INDUSTRY_SCENE_MAP.get(industry, "a professional business setting")
+        category = products[0].get("category", "apparel") if products else "apparel"
+        contact_industry = industry.lower()
+
+        prompt = (
+            f"Professional commercial fashion photography, editorial style. "
+            f"A diverse group of confident professionals wearing premium custom-branded {category} "
+            f"with subtle embroidered logo details, photographed in {scene}. "
+            f"Clothing palette: deep charcoal black and warm gold accents. "
+            f"Shot on medium format camera, shallow depth of field, "
+            f"warm cinematic lighting, clean composition. "
+            f"Aspirational lifestyle feel, authentic and modern. "
+            f"No visible text, no brand names, no logos visible in scene. "
+            f"Wide landscape format suitable for email hero banner."
+        )
+
+        client_ai = OpenAI(api_key=OPENAI_KEY)
+        img_response = client_ai.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1792x1024",
+            quality="standard",
+            n=1,
+        )
+        dalle_url = img_response.data[0].url
+
+        # Upload to Cloudinary so URL persists (DALL-E URLs expire ~1hr)
+        slug = company_name.lower().replace(" ", "-").replace("'", "").replace(".", "")
+        upload_result = cloudinary.uploader.upload(
+            dalle_url,
+            public_id=f"pxm-campaigns/{slug}-hero",
+            overwrite=True,
+            resource_type="image",
+        )
+        cloudinary_url = upload_result["secure_url"]
+        print(f"✅ Hero generated + uploaded to Cloudinary: {cloudinary_url}")
+        return cloudinary_url
+
+    except Exception as e:
+        print(f"⚠️  Hero image generation failed: {e}")
+        return None
+
+
 def format_crm_for_prompt(account: dict) -> str:
     return f"""
 CRM ACCOUNT (WHO):
 - Company:      {account.get('company', account.get('company_name', 'Unknown'))}
 - Industry:     {account.get('industry', '—')}
 - Segment:      {account.get('segment', '—')}
-- Deal Value:   {account.get('deal_value', '—')}
-- ABM Score:    {account.get('abm_score', '—')}
 - Buying Stage: {account.get('stage', account.get('buying_stage', '—'))}
 - Pain Point:   {account.get('pain_point', '—')}
 - Use Case:     {account.get('use_case', '—')}
-- Contact:      {account.get('contact_name', account.get('contact', {}).get('name', '—'))}
+- Contact:      {account.get('contact_name', '—')}, {account.get('contact_title', '—')}
+- Employees:    {account.get('employees', '—')}
+- Revenue:      {account.get('annual_revenue', '—')}
 """
 
 
@@ -135,7 +203,7 @@ def format_pxm_products_for_prompt(products: list) -> str:
     if not products:
         return "No products available."
     lines = []
-    for p in products[:6]:  # cap at 6 for prompt size
+    for p in products[:6]:
         scores = p.get("scenario_scores", {})
         merch  = p.get("merchandising", {})
         fit    = p.get("marketing_fit", {})
@@ -151,24 +219,6 @@ def format_pxm_products_for_prompt(products: list) -> str:
 
 
 # ── System prompt ─────────────────────────────────────────────────────────────
-# ── Brand Asset Library (Cloudinary DAM) ─────────────────────────────────────
-# ── Brand Asset Library (Cloudinary DAM) ─────────────────────────────────────
-# ── Brand Asset Library (Cloudinary DAM) ─────────────────────────────────────
-URBAN_THREADS_BRAND = {
-    "colors": {
-        "black":  "#191714",
-        "cream":  "#F5F0E8",
-        "gold":   "#D4AF37",
-        "tan":    "#C4A882",
-        "olive":  "#4E511E",
-    },
-    "fonts": {
-        "display":     "'Bebas Neue', Impact, sans-serif",   # headlines, logotype
-        "subheading":  "'Open Sans', Tahoma, sans-serif",    # subheads, product names, labels — bold weight
-        "body":        "'Open Sans', Tahoma, sans-serif",    # body copy, fine print — regular weight
-    }
-}
-
 PXM_SYSTEM_PROMPT = """
 You are an expert B2B marketing strategist and senior email designer for AgenticFlow — a marketing technology agency.
 
@@ -185,7 +235,7 @@ You will receive:
 2. PXM product data — products enriched with WHY (scenario fit, vertical fit, bundle role, value tier)
 3. Campaign scenario: onboarding | events | gifting
 4. Tone: confident | urgent | premium | playful | exclusive
-5. Hero image URL — a lifestyle photo from the Urban Threads DAM (Cloudinary)
+5. Hero image URL — an AI-generated contextual lifestyle photo matching the customer's industry
 
 ═══════════════════════════════════════════════════════
 URBAN THREADS BRAND IDENTITY
@@ -200,154 +250,74 @@ COLORS — use ONLY these hex values:
 
 TYPOGRAPHY:
 - Display headlines:  'Bebas Neue', Impact, sans-serif
-  → ALL CAPS, wide letter-spacing (2–4px), used for brand name logotype, hero headlines, section titles
+  → ALL CAPS, wide letter-spacing (2–4px), hero headlines, section titles, logotype
   → Load via: <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-
 - Subheadings / labels / product names:  'Open Sans', Tahoma, sans-serif — font-weight 700
-  → Use wherever Garamond or Times New Roman was previously specified
-  → No italic, no serif — clean, bold, modern
+- Body copy / fine print:  'Open Sans', Tahoma, sans-serif — font-weight 400, line-height 1.7
 
-- Body copy / fine print / meta:  'Open Sans', Tahoma, sans-serif — font-weight 400
-  → Use wherever Verdana was previously specified
-  → Line-height 1.7–1.8, readable at 13–15px
+LOGOTYPE — render as styled TEXT only, never an <img> tag:
+- Dark backgrounds: <span style="font-family:'Bebas Neue',Impact,sans-serif; font-size:28px; letter-spacing:4px; color:#D4AF37;">URBAN THREADS</span>
+- Light backgrounds: same but color:#191714
+- Keep compact: 28px max in headers/footers
 
-LOGOTYPE — render the brand name as styled TEXT, not an image:
-- Use: <span style="font-family:'Bebas Neue',Impact,sans-serif; font-size:28px; letter-spacing:4px; color:#D4AF37;">URBAN THREADS</span>
-- On light/cream backgrounds use color #191714 instead of gold
-- NEVER use an <img> tag for the logo — always render as Bebas Neue text
-- Keep it compact: 28px in headers/footers, never larger
-
-NO TEXTURE IMAGES — do not use any background-image textures.
-All decorative styling over images must use CSS gradients or vignettes only.
+NO TEXTURE IMAGES — gradients and vignettes only over photos.
 
 ═══════════════════════════════════════
 EMAIL HTML DESIGN REQUIREMENTS
 ═══════════════════════════════════════
-Build a complete, production-quality HTML email (600px max-width, inline styles for email client compatibility).
-Import in <head>:
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+Build a complete, production-quality HTML email (600px max-width, inline styles).
+Import Bebas Neue + Open Sans from Google Fonts in <head>.
 
 STRUCTURE:
-
-1. HEADER
-   - Background: #191714
-   - Left-aligned logotype: URBAN THREADS in Bebas Neue 28px, #D4AF37, letter-spacing 4px
-   - Right-aligned: small label "Premium Apparel" in Verdana 10px, #C4A882
-   - Bottom border: 2px solid #D4AF37
-   - Padding: 16px 24px
-
-2. HERO SECTION
-   - Background-image: the provided HERO IMAGE URL, background-size: cover, background-position: center
-   - Overlay: linear-gradient(to bottom, rgba(25,23,20,0.45) 0%, rgba(25,23,20,0.75) 100%)
-   - Min-height: 280px, display flex, align-items center, justify-content center, text-align center
-   - Hero headline: Bebas Neue 52px, #F5F0E8, letter-spacing 3px, ALL CAPS, text-shadow 0 2px 8px rgba(0,0,0,0.6)
-   - Subheading: Gara'Open Sans', Tahoma, sans-serif; font-style:normal; font-weight:600mond italic 19px, #D4AF37, margin-top 8px
-
-3. PERSONALIZED INTRO
-   - Background: #F5F0E8
-   - Padding: 28px 32px
-   - Opening line: "Hi [Contact Name]," — Bebas Neue 22px, #191714, letter-spacing 1px
-   - Body copy: Verdana 14px, #191714, line-height 1.8
-   - Left accent border: 3px solid #D4AF37, padding-left 16px
-
-4. PRODUCT CARDS (one per recommendation)
-   - Background: #191714, border: 1px solid #C4A882, border-radius: 4px
-   - Left accent bar: 4px solid #D4AF37
-   - Product name: Open Sans', Tahoma, sans-serif; font-weight:700 20px, #D4AF37
-   - Reason: Verdana 13px, #F5F0E8, line-height 1.6
-   - Personalization note: 'Open Sans', Tahoma, sans-serif; font-style:normal; font-weight:600 13px, #C4A882
-   - Padding: 16px 20px, margin-bottom 12px
-
-5. BUNDLE HIGHLIGHT
-   - Background: #D4AF37, padding 24px 32px
-   - Bundle name: Bebas Neue 30px, #191714, letter-spacing 2px
-   - SKU list: Verdana 12px, #4E511E
-   - CTA button: background #191714, color #D4AF37, Bebas Neue 18px, padding 12px 36px,
-     border-radius 2px, letter-spacing 2px, display inline-block, text-decoration none
-
-6. FOOTER
-   - Background: #4E511E, padding 20px 24px
-   - Logotype: URBAN THREADS in Bebas Neue 22px, #F5F0E8, letter-spacing 3px
-   - Tagline: Garamo'Open Sans', Tahoma, sans-serif; font-style:normal; font-weight:600nd italic 13px, #C4A882 — "Premium Apparel. Precision Marketing."
-   - Fine print: Verdana 10px, #C4A882 — unsubscribe placeholder
+1. HEADER — #191714 bg, URBAN THREADS logotype left (Bebas Neue 28px #D4AF37), 2px #D4AF37 bottom border
+2. HERO — background-image: HERO IMAGE URL, cover center, min-height 280px
+   overlay: linear-gradient(to bottom, rgba(25,23,20,0.45), rgba(25,23,20,0.75))
+   Headline: Bebas Neue 52px #F5F0E8 ALL CAPS, Subhead: Open Sans 700 16px #D4AF37
+3. INTRO — #F5F0E8 bg, "Hi [Contact Name]," Bebas Neue 22px #191714, body Open Sans 14px #191714
+   left border 3px #D4AF37
+4. PRODUCT CARDS — #191714 bg, left bar 4px #D4AF37
+   Name: Open Sans 700 18px #D4AF37, Reason: Open Sans 13px #F5F0E8, Note: Open Sans 600 13px #C4A882
+5. BUNDLE — #D4AF37 bg, name Bebas Neue 30px #191714, SKUs Open Sans 12px #4E511E
+   CTA button: #191714 bg, #D4AF37 text, Bebas Neue 18px, padding 12px 36px
+6. FOOTER — #4E511E bg, URBAN THREADS logotype Bebas Neue 22px #F5F0E8
+   Tagline: Open Sans italic 13px #C4A882 "Premium Apparel. Precision Marketing."
 
 ═══════════════════════════════════════
 LANDING PAGE HTML DESIGN REQUIREMENTS
 ═══════════════════════════════════════
 Build a complete, modern HTML landing page (full-width, internal <style> block).
-Import in <head>:
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+Import Bebas Neue + Open Sans from Google Fonts in <head>.
 
 STRUCTURE:
-
-1. NAV BAR
-   - Background: #191714, height 60px, padding 0 40px
-   - Left: URBAN THREADS logotype — Bebas Neue 26px, #D4AF37, letter-spacing 4px
-   - Right: CTA button — background #D4AF37, color #191714, Bebas Neue 16px, letter-spacing 1px,
-     padding 8px 24px, border-radius 2px
-
-2. HERO SECTION
-   - Full-width, min-height 560px
-   - background-image: the provided HERO IMAGE URL, background-size: cover, background-position: center
-   - Overlay: linear-gradient(135deg, rgba(25,23,20,0.80) 0%, rgba(25,23,20,0.40) 60%, rgba(25,23,20,0.65) 100%)
-   - Display: flex, flex-direction: column, align-items: center, justify-content: center, text-align: center
-   - H1: Bebas Neue 88px, #F5F0E8, letter-spacing 5px, ALL CAPS, text-shadow 0 4px 16px rgba(0,0,0,0.5)
-   - H2: Open Sans italic 26px, #D4AF37, margin-top 12px
-   - CTA button: background #D4AF37, color #191714, Bebas Neue 22px, padding 14px 48px,
-     letter-spacing 2px, border-radius 2px, margin-top 28px
-
-3. PERSONALIZATION BAND
-   - Background: #D4AF37, padding 14px 40px
-   - Text: Verdana 13px bold, #191714, text-align center
-   - Content: "Crafted exclusively for [Company] · [Industry] · [Contact Name], [Title]"
-
-4. VALUE PROPS — 3 columns
-   - Background: #F5F0E8, padding 60px 40px
-   - Section title: Bebas Neue 42px, #191714, text-align center, margin-bottom 40px
-   - Each column: emoji icon (⚡ 🎨 ✦), Bebas Neue 20px label #191714, Verdana 13px #4E511E description
-
-5. PRODUCT SHOWCASE
-   - Background: #191714, padding 60px 40px
-   - Section header: Bebas Neue 52px, #F5F0E8, text-align center
-   - Gold underline: 3px solid #D4AF37, width 60px, margin 12px auto 40px
-   - Product cards: background #F5F0E8, border-radius 4px, padding 24px
-     - SKU badge: background #4E511E, color #C4A882, Verdana 10px, letter-spacing 1px
-     - Product name: Open Sans bold 20px, #191714
-     - Reason: Verdana 13px, #191714, line-height 1.6
-     - Personalization note: Open Sans italic 13px, #D4AF37
-
-6. BUNDLE SECTION
-   - Background: #4E511E, padding 60px 40px, text-align center
-   - Bundle name: Bebas Neue 60px, #D4AF37, letter-spacing 4px
-   - SKU pills: background #191714, color #C4A882, Verdana 11px, padding 4px 14px, border-radius 20px
-   - CTA button: background #D4AF37, color #191714, Bebas Neue 24px, padding 16px 56px,
-     border-radius 2px, margin-top 28px
-
-7. STATS BAND
-   - Background: #191714, padding 40px, border-top: 3px solid #D4AF37
-   - 3 stats side by side — Bebas Neue 44px #D4AF37, Verdana 12px #C4A882 label below
-   - "500+ Brands Outfitted" · "48-Hour Rush Available" · "MOQ from 12 Units"
-
-8. FINAL CTA SECTION
-   - Background: #F5F0E8, padding 80px 40px, text-align center
-   - Headline: Bebas Neue 56px, #191714, letter-spacing 3px
-   - Subtext: Open Sans italic 19px, #4E511E, tied to the scenario pain point
-   - Button: background #D4AF37, color #191714, Bebas Neue 22px, padding 16px 52px,
-     border-radius 2px, letter-spacing 2px
-
-9. FOOTER
-   - Background: #4E511E, padding 28px 40px
-   - Logotype: URBAN THREADS — Bebas Neue 24px, #F5F0E8, letter-spacing 4px
-   - Tagline: Open Sans italic 14px, #C4A882 — "Premium Apparel. Precision Marketing."
-   - Fine print: Verdana 10px, #C4A882
+1. NAV — #191714 bg 60px, URBAN THREADS logotype left Bebas Neue 26px #D4AF37
+   CTA button right: #D4AF37 bg, #191714 text, Bebas Neue 16px
+2. HERO — full-width min-height 560px, background-image: HERO IMAGE URL cover center
+   overlay: linear-gradient(135deg, rgba(25,23,20,0.80), rgba(25,23,20,0.40) 60%, rgba(25,23,20,0.65))
+   H1: Bebas Neue 88px #F5F0E8 letter-spacing 5px ALL CAPS
+   H2: Open Sans 700 22px #D4AF37
+   CTA: #D4AF37 bg, #191714 text, Bebas Neue 22px, padding 14px 48px
+3. PERSONALIZATION BAND — #D4AF37 bg, Open Sans 700 13px #191714
+   "Crafted exclusively for [Company] · [Industry] · [Contact Name], [Title]"
+4. VALUE PROPS — #F5F0E8 bg, 3 columns: emoji icon, Bebas Neue 20px #191714 label,
+   Open Sans 13px #4E511E description (⚡ Rapid Production / 🎨 Custom Branding / ✦ Premium Quality)
+5. PRODUCTS — #191714 bg, header Bebas Neue 52px #F5F0E8, gold underline
+   Cards: #F5F0E8 bg, SKU badge #4E511E bg #C4A882 text, name Open Sans 700 20px #191714,
+   reason Open Sans 13px, personalization note Open Sans 600 13px #D4AF37
+6. BUNDLE — #4E511E bg, name Bebas Neue 60px #D4AF37 letter-spacing 4px
+   SKU pills #191714 bg #C4A882 text, CTA #D4AF37 bg #191714 text Bebas Neue 24px
+7. STATS — #191714 bg border-top 3px #D4AF37, 3 stats Bebas Neue 44px #D4AF37
+   labels Open Sans 12px #C4A882: "500+ Brands Outfitted" · "48-Hour Rush Available" · "MOQ from 12 Units"
+8. FINAL CTA — #F5F0E8 bg, headline Bebas Neue 56px #191714, subtext Open Sans 19px #4E511E
+   button #D4AF37 bg #191714 text Bebas Neue 22px
+9. FOOTER — #4E511E bg, URBAN THREADS Bebas Neue 24px #F5F0E8
+   Tagline Open Sans 14px italic #C4A882 "Premium Apparel. Precision Marketing."
 
 ═══════════════════════════════════════
 OUTPUT FORMAT
 ═══════════════════════════════════════
-Output a single valid JSON object with these exact keys:
 {
   "campaign_title": "max 8 words",
-  "subject_line": "personalized email subject, max 10 words",
+  "subject_line": "personalized, max 10 words",
   "hero_headline": "benefit-driven, max 12 words, ALL CAPS friendly",
   "body_copy": "2-3 sentences referencing company name, industry, and pain point",
   "product_recommendations": [
@@ -362,19 +332,19 @@ Output a single valid JSON object with these exact keys:
   "cta_text": "max 6 words",
   "personalization_angle": "1-2 sentences on persona-specific angle for the contact",
   "campaign_notes": "strategic notes on timing, MOQ, vertical considerations",
-  "email_html": "<FULL production-quality HTML email per EMAIL requirements above>",
-  "landing_page_html": "<FULL production-quality HTML landing page per LANDING PAGE requirements above>"
+  "email_html": "<FULL production-quality HTML email>",
+  "landing_page_html": "<FULL production-quality HTML landing page>"
 }
 
 RULES:
-- Always open the email with "Hi [contact_name]," using the actual first name from CRM data
-- Always reference the company name AND industry in body_copy
-- Match products precisely to the account's pain_point and use_case
-- The HERO IMAGE URL passed in the user message MUST be the hero background in both email and landing page
-- Use CSS gradients/vignettes over the hero image — NO texture background-images anywhere
-- Render the brand name as Bebas Neue TEXT logotype only — NEVER use an <img> tag for the logo
-- email_html and landing_page_html must be complete, self-contained HTML documents
-- NO external CSS frameworks — inline styles for email, internal <style> block for landing page
+- Always open email with "Hi [contact_name]," using actual first name from CRM
+- Always reference company name AND industry in body_copy
+- Match products precisely to pain_point and use_case
+- The HERO IMAGE URL passed in the user message is an AI-generated scene — use it as hero background in both email and landing page
+- CSS gradients/vignettes over hero image only — NO texture background-images
+- Render brand name as Bebas Neue TEXT logotype — NEVER use <img> for logo
+- email_html and landing_page_html must be complete self-contained HTML documents
+- NO external CSS frameworks — inline styles for email, internal <style> for landing page
 - Return ONLY valid JSON. No markdown, no explanation, no code fences.
 """
 
@@ -383,14 +353,14 @@ RULES:
 async def generate_pxm_campaign(req: PXMCampaignRequest):
     """
     PXM Campaign Studio — Unified generation endpoint.
-    WHO (CRM) + WHY (PIM) + LOOK (DAM) + AI = Full Campaign + Mockup
+    WHO (CRM) + WHY (PIM) + LOOK (AI-generated DAM) + AI = Full Campaign + Mockup
     """
     start_ms = int(time.time() * 1000)
 
     # 1. Pull CRM account data
     account = await fetch_crm_account(req.company_name)
 
-    # 2. Determine scenario (use provided or infer from industry)
+    # 2. Determine scenario
     scenario = req.scenario or INDUSTRY_SCENARIO_MAP.get(
         account.get("industry", ""), "onboarding"
     )
@@ -398,11 +368,21 @@ async def generate_pxm_campaign(req: PXMCampaignRequest):
     # 3. Pull PXM-enriched products filtered for scenario
     products = await fetch_pxm_products(scenario)
 
-    # 4. Fetch Printful mockup + hero image in parallel
-    hero_sku   = SCENARIO_SKU_MAP.get(scenario, "HOD-001")
-    hero_image = HERO_IMAGES.get(req.hero_key or "default", HERO_IMAGES["default"])
+    # 4. Run mockup + hero image generation concurrently
+    hero_sku = SCENARIO_SKU_MAP.get(scenario, "HOD-001")
 
-    mockup_url = await fetch_mockup(req.company_name, hero_sku)
+    mockup_url, generated_hero = await asyncio.gather(
+        fetch_mockup(req.company_name, hero_sku),
+        generate_contextual_hero(
+            company_name=req.company_name,
+            industry=account.get("industry", ""),
+            scenario=scenario,
+            products=products[:3],
+        )
+    )
+
+    # Use AI-generated hero; fall back to static if generation failed
+    hero_image = generated_hero or FALLBACK_HERO
 
     # 5. Build prompt context
     crm_context = format_crm_for_prompt(account)
@@ -418,10 +398,12 @@ CAMPAIGN SCENARIO: {scenario.upper()}
 TONE: {req.tone or 'confident'}
 HERO IMAGE URL: {hero_image}
 
-Generate the full PXM campaign JSON now.
-Use the hero image as the background for both email and landing page hero sections.
+This hero image was AI-generated to match {account.get('company', req.company_name)}'s industry ({account.get('industry', '')}).
+Use it as the background for both the email and landing page hero sections.
 Apply gradient overlays only — no texture images.
 Render the brand logotype as Bebas Neue text — no image tags for the logo.
+
+Generate the full PXM campaign JSON now.
 """
 
     # 6. Call GPT-4o
@@ -440,16 +422,17 @@ Render the brand logotype as Bebas Neue text — no image tags for the logo.
 
     # 7. Return unified response
     return {
-        "status":      "success",
-        "scenario":    scenario,
-        "tone":        req.tone,
-        "account":     account,
+        "status":             "success",
+        "scenario":           scenario,
+        "tone":               req.tone,
+        "account":            account,
         "products_evaluated": len(products),
         "campaign_brief":     brief,
         "mockup_url":         mockup_url,
         "mockup_sku":         hero_sku,
         "hero_image_url":     hero_image,
-        "model":       response.model,
-        "tokens_used": response.usage.total_tokens,
-        "latency_ms":  latency_ms,
+        "hero_generated":     generated_hero is not None,
+        "model":              response.model,
+        "tokens_used":        response.usage.total_tokens,
+        "latency_ms":         latency_ms,
     }
