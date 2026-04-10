@@ -408,11 +408,13 @@
     el.classList.add('active');
     document.getElementById('sel-scenario').value = el.dataset.val;
   }
+
   function setTone(el) {
     document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('sel-tone').value = el.dataset.val;
   }
+
   function setHero(el) {
     document.querySelectorAll('.hero-opt').forEach(h => h.classList.remove('active'));
     el.classList.add('active');
@@ -420,47 +422,17 @@
   }
 
   function switchTab(name, el) {
-   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-   el.classList.add('active');
-   document.getElementById('tab-' + name).classList.add('active');
-
-  // Show the correct download button
-  document.getElementById('btn-dl-email').style.display   = (name === 'email')   ? 'block' : 'none';
-  document.getElementById('btn-dl-landing').style.display = (name === 'landing') ? 'block' : 'none';
-}
-
-function downloadEmail() {
-  const company = (document.getElementById('s-company').textContent || 'campaign')
-    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const doc = document.getElementById('frame-email').contentDocument;
-  const html = doc.documentElement.outerHTML;
-  triggerDownload(html, `${company}-email.html`);
-}
-
-function downloadLanding() {
-  const company = (document.getElementById('s-company').textContent || 'campaign')
-    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const doc = document.getElementById('frame-landing').contentDocument;
-  const html = doc.documentElement.outerHTML;
-  triggerDownload(html, `${company}-landing-page.html`);
-}
-
-function triggerDownload(html, filename) {
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('btn-dl-email').style.display   = (name === 'email')   ? 'inline-block' : 'none';
+    document.getElementById('btn-dl-landing').style.display = (name === 'landing') ? 'inline-block' : 'none';
+  }
 
   function onCompanyChange() {
-    const sel = document.getElementById('sel-company');
-    const opt = sel.options[sel.selectedIndex];
+    const sel  = document.getElementById('sel-company');
+    const opt  = sel.options[sel.selectedIndex];
     const card = document.getElementById('account-card');
     if (!opt.value) { card.classList.remove('visible'); return; }
 
@@ -473,11 +445,11 @@ function triggerDownload(html, filename) {
 
     document.getElementById('ac-name').textContent = opt.value;
     document.getElementById('ac-body').innerHTML =
-      `<strong>${industry}</strong> &nbsp;·&nbsp; ${opt.dataset.contact}, ${opt.dataset.title}<br>` +
-      `Stage: <strong>${opt.dataset.stage}</strong> &nbsp;·&nbsp; Rev: <strong>${opt.dataset.rev}</strong> &nbsp;·&nbsp; ${opt.dataset.emp} employees<br>` +
-      `<em>Pain: ${opt.dataset.pain}</em>`;
+      '<strong>' + industry + '</strong> &nbsp;·&nbsp; ' + opt.dataset.contact + ', ' + opt.dataset.title + '<br>' +
+      'Stage: <strong>' + opt.dataset.stage + '</strong> &nbsp;·&nbsp; Rev: <strong>' + opt.dataset.rev + '</strong> &nbsp;·&nbsp; ' + opt.dataset.emp + ' employees<br>' +
+      '<em>Pain: ' + opt.dataset.pain + '</em>';
     document.getElementById('ac-tags').innerHTML =
-      `<span class="tag">${opt.dataset.stage}</span><span class="tag">${industry}</span>`;
+      '<span class="tag">' + opt.dataset.stage + '</span><span class="tag">' + industry + '</span>';
     card.classList.add('visible');
   }
 
@@ -491,24 +463,29 @@ function triggerDownload(html, filename) {
     hideError();
 
     const btn = document.getElementById('btn-gen');
-    btn.disabled = true; btn.classList.add('loading');
+    btn.disabled = true;
+    btn.classList.add('loading');
     document.getElementById('output').style.display = 'none';
     document.getElementById('empty-state').style.display = 'none';
 
     try {
-      const res = await fetch(`${API}/pxm/campaign/generate`, {
+      const res = await fetch(API + '/pxm/campaign/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ company_name: company, scenario, tone, hero_key })
+        body: JSON.stringify({ company_name: company, scenario: scenario, tone: tone, hero_key: hero_key })
       });
-      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+      if (!res.ok) {
+        const e = await res.json();
+        throw new Error(e.detail || 'HTTP ' + res.status);
+      }
       const data = await res.json();
       renderOutput(data);
     } catch(e) {
       showError('Generation failed: ' + e.message);
       document.getElementById('empty-state').style.display = 'flex';
     } finally {
-      btn.disabled = false; btn.classList.remove('loading');
+      btn.disabled = false;
+      btn.classList.remove('loading');
     }
   }
 
@@ -516,79 +493,110 @@ function triggerDownload(html, filename) {
     const b = data.campaign_brief;
     const a = data.account;
 
-    // Meta
+    // Meta bar
     document.getElementById('m-model').textContent    = data.model || '—';
     document.getElementById('m-tokens').textContent   = (data.tokens_used || 0).toLocaleString();
-    document.getElementById('m-latency').textContent  = data.latency_ms ? (data.latency_ms/1000).toFixed(1)+'s' : '—';
-    document.getElementById('m-products').textContent = data.products_evaluated ?? '—';
+    document.getElementById('m-latency').textContent  = data.latency_ms ? (data.latency_ms / 1000).toFixed(1) + 's' : '—';
+    document.getElementById('m-products').textContent = data.products_evaluated != null ? data.products_evaluated : '—';
     document.getElementById('m-scenario').textContent = (data.scenario || '').toUpperCase();
-    document.getElementById('m-tone').textContent     = data.tone ? data.tone[0].toUpperCase()+data.tone.slice(1) : '—';
+    document.getElementById('m-tone').textContent     = data.tone ? data.tone[0].toUpperCase() + data.tone.slice(1) : '—';
 
     // Account strip
-    document.getElementById('s-company').textContent  = a.company  || '—';
-    document.getElementById('s-industry').textContent = a.industry || '—';
-    document.getElementById('s-contact').textContent  = `${a.contact_name||'—'}, ${a.contact_title||''}`;
-    document.getElementById('s-stage').textContent    = a.buying_stage || '—';
-    document.getElementById('s-revenue').textContent  = a.annual_revenue ? '$'+a.annual_revenue : '—';
-    document.getElementById('s-employees').textContent = a.employees ?? '—';
+    document.getElementById('s-company').textContent   = a.company   || '—';
+    document.getElementById('s-industry').textContent  = a.industry  || '—';
+    document.getElementById('s-contact').textContent   = (a.contact_name || '—') + ', ' + (a.contact_title || '');
+    document.getElementById('s-stage').textContent     = a.buying_stage || '—';
+    document.getElementById('s-revenue').textContent   = a.annual_revenue ? '$' + a.annual_revenue : '—';
+    document.getElementById('s-employees').textContent = a.employees != null ? a.employees : '—';
 
     // Brief
-    document.getElementById('b-title').textContent    = b.campaign_title || '—';
-    document.getElementById('b-subject').textContent  = b.subject_line   || '—';
-    document.getElementById('b-headline').textContent = b.hero_headline   || '—';
-    document.getElementById('b-body').textContent     = b.body_copy      || '—';
-    document.getElementById('b-cta').textContent      = b.cta_text       || '—';
+    document.getElementById('b-title').textContent    = b.campaign_title       || '—';
+    document.getElementById('b-subject').textContent  = b.subject_line         || '—';
+    document.getElementById('b-headline').textContent = b.hero_headline        || '—';
+    document.getElementById('b-body').textContent     = b.body_copy            || '—';
+    document.getElementById('b-cta').textContent      = b.cta_text             || '—';
     document.getElementById('b-personal').textContent = b.personalization_angle || '—';
-    document.getElementById('b-notes').textContent    = b.campaign_notes  || '—';
+    document.getElementById('b-notes').textContent    = b.campaign_notes       || '—';
 
     // Products
     const pl = document.getElementById('product-list');
-    pl.innerHTML = (b.product_recommendations || []).map(p => `
-      <div class="product-card">
-        <div class="sku-badge">${p.sku}</div>
-        <div>
-          <div class="p-name">${p.name}</div>
-          <div class="p-reason">${p.reason}</div>
-          <div class="p-personal">✦ ${p.personalization_note}</div>
-        </div>
-      </div>`).join('');
+    pl.innerHTML = (b.product_recommendations || []).map(function(p) {
+      return '<div class="product-card">' +
+        '<div class="sku-badge">' + p.sku + '</div>' +
+        '<div>' +
+          '<div class="p-name">' + p.name + '</div>' +
+          '<div class="p-reason">' + p.reason + '</div>' +
+          '<div class="p-personal">\u2756 ' + p.personalization_note + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
 
     // Bundle
     if (b.bundle_suggestion) {
       document.getElementById('bundle-name').textContent = b.bundle_suggestion.name || '—';
-      document.getElementById('bundle-skus').textContent = 'Bundle SKUs: ' + (b.bundle_suggestion.skus||[]).join(' · ');
+      document.getElementById('bundle-skus').textContent = 'Bundle SKUs: ' + (b.bundle_suggestion.skus || []).join(' · ');
     }
 
     // Images
-    document.getElementById('hero-img').src   = data.hero_image_url || '';
-    document.getElementById('mockup-img').src = data.mockup_url     || '';
-    document.getElementById('mockup-sku-label').textContent = `SKU: ${data.mockup_sku||''} · Customer logo applied`;
+    document.getElementById('hero-img').src    = data.hero_image_url || '';
+    document.getElementById('mockup-img').src  = data.mockup_url     || '';
+    document.getElementById('mockup-sku-label').textContent = 'SKU: ' + (data.mockup_sku || '') + ' · Customer logo applied';
 
-    // Show output BEFORE writing to iframes (iframes need to be visible/in DOM first)
+    // Show output div FIRST so iframes are in the DOM
     document.getElementById('output').style.display = 'flex';
 
-    // iFrames — use setTimeout to ensure DOM has rendered before writing
-    setTimeout(() => {
-      const ef = document.getElementById('frame-email');
-      const lf = document.getElementById('frame-landing');
-
+    // Write to iframes after DOM has rendered
+    setTimeout(function() {
+      var ef = document.getElementById('frame-email');
+      var lf = document.getElementById('frame-landing');
       if (ef && ef.contentDocument) {
         ef.contentDocument.open();
         ef.contentDocument.write(b.email_html || '<p>No email generated.</p>');
         ef.contentDocument.close();
       }
-
       if (lf && lf.contentDocument) {
         lf.contentDocument.open();
         lf.contentDocument.write(b.landing_page_html || '<p>No page generated.</p>');
         lf.contentDocument.close();
       }
     }, 50);
+  }
+
+  function downloadEmail() {
+    var company = (document.getElementById('s-company').textContent || 'campaign')
+      .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    var ef = document.getElementById('frame-email');
+    if (ef && ef.contentDocument) {
+      triggerDownload(ef.contentDocument.documentElement.outerHTML, company + '-email.html');
+    }
+  }
+
+  function downloadLanding() {
+    var company = (document.getElementById('s-company').textContent || 'campaign')
+      .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    var lf = document.getElementById('frame-landing');
+    if (lf && lf.contentDocument) {
+      triggerDownload(lf.contentDocument.documentElement.outerHTML, company + '-landing-page.html');
+    }
+  }
+
+  function triggerDownload(html, filename) {
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   function showError(msg) {
     document.getElementById('error-msg').textContent = msg;
     document.getElementById('error-toast').classList.add('visible');
   }
+
   function hideError() {
     document.getElementById('error-toast').classList.remove('visible');
   }
