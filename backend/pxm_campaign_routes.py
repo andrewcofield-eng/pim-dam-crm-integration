@@ -327,13 +327,20 @@ PXM PRODUCTS (WHY — what each product solves):
 
 CAMPAIGN SCENARIO: {scenario.upper()}
 TONE: {req.tone or 'confident'}
-HERO IMAGE URL: {hero_image}
 
-Use the hero image as the background for both email and landing page hero sections.
-Apply gradient overlays only — no texture images.
-Render the brand logotype as Bebas Neue text — no image tags for the logo.
+══════════════════════════════════════════
+HERO IMAGE — YOU MUST USE THIS EXACT URL
+══════════════════════════════════════════
+{hero_image}
+
+This URL MUST appear as the background-image in BOTH the email hero section AND
+the landing page hero section. Do not use any other image URL. Do not use a
+placeholder. Copy this URL exactly as written above.
+══════════════════════════════════════════
 
 Generate the full PXM campaign JSON now.
+Apply gradient overlays only over the hero image — no textures.
+Render the brand logotype as Bebas Neue text — no image tags for the logo.
 """
 
     # 6. Call GPT-4o
