@@ -233,11 +233,34 @@
     </div>
 
     <div>
-      <div class="section-label">④ AI Hero Image</div>
-      <div style="background:var(--gray-100); border-radius:8px; padding:12px 14px; font-size:12px; line-height:1.6; border-left:3px solid var(--gold); color:var(--gray-600);">
-        <strong style="color:var(--navy); display:block; margin-bottom:4px;">🎨 Auto-Generated for Account</strong>
-        DALL-E 3 will generate a contextual hero image matching the selected account's industry and setting — models in branded apparel, uploaded to Cloudinary DAM.
+      <div class="section-label">④ Hero Image (DAM)</div>
+      <div class="hero-grid">
+        <div class="hero-opt active" data-val="default" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png" alt="City Street" />
+          <div class="hero-label">City Street</div>
+        </div>
+        <div class="hero-opt" data-val="rooftop_couple" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png" alt="Rooftop" />
+          <div class="hero-label">Rooftop</div>
+        </div>
+        <div class="hero-opt" data-val="wall_woman" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png" alt="Urban Wall" />
+          <div class="hero-label">Urban Wall</div>
+        </div>
+        <div class="hero-opt" data-val="car_couple" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png" alt="Car Hood" />
+          <div class="hero-label">Car Hood</div>
+        </div>
+        <div class="hero-opt" data-val="rooftop_man" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png" alt="Rooftop Man" />
+          <div class="hero-label">Rooftop Man</div>
+        </div>
+        <div class="hero-opt" data-val="coffee_man" onclick="setHero(this)">
+          <img src="https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727363/KNIT-001coffeeshopMan_rvhsik.png" alt="Coffee Shop" />
+          <div class="hero-label">Coffee Shop</div>
+        </div>
       </div>
+      <input type="hidden" id="sel-hero" value="default" />
     </div>
 
     <button class="btn-generate" id="btn-gen" onclick="generate()">
@@ -444,7 +467,9 @@
     const company  = document.getElementById('sel-company').value;
     const scenario = document.getElementById('sel-scenario').value;
     const tone     = document.getElementById('sel-tone').value;
-    const hero_key = null;  // removed — hero now AI-generated server-side
+    const hero_key = document.getElementById('sel-hero').value;
+    // ...
+    body: JSON.stringify({ company_name: company, scenario: scenario, tone: tone, hero_key: hero_key })
 
     if (!company) { showError('Please select an account first.'); return; }
     hideError();

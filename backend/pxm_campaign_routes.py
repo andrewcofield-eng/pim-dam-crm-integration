@@ -11,9 +11,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from openai import OpenAI
-import httpx, os, json, time, asyncio
-import cloudinary
-import cloudinary.uploader
+import httpx, os, json, time
 
 router = APIRouter(prefix="/pxm", tags=["PXM Campaign Studio"])
 
@@ -23,12 +21,6 @@ DIRECTUS_URL   = os.getenv("DIRECTUS_URL", "https://directus-production-9f53.up.
 DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "")
 OPENAI_KEY     = os.getenv("OPENAI_API_KEY", "")
 
-# ── Cloudinary config ─────────────────────────────────────────────────────────
-cloudinary.config(
-    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME", "dp0cdq8bj"),
-    api_key    = os.getenv("CLOUDINARY_API_KEY", ""),
-    api_secret = os.getenv("CLOUDINARY_API_SECRET", ""),
-)
 
 # ── Scenario → hero SKU for Printful mockup ───────────────────────────────────
 SCENARIO_SKU_MAP = {
@@ -36,6 +28,18 @@ SCENARIO_SKU_MAP = {
     "events":     "ACC-001",
     "gifting":    "HOD-002",
 }
+
+# ── Hero image map (Cloudinary DAM) ──────────────────────────────────────────
+HERO_IMAGES = {
+    "default":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png",
+    "rooftop_couple": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png",
+    "wall_woman":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png",
+    "car_couple":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png",
+    "rooftop_man":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png",
+    "coffee_man":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727363/KNIT-001coffeeshopMan_rvhsik.png",
+}
+
+
 
 # ── Industry → best-fit scenario ─────────────────────────────────────────────
 INDUSTRY_SCENARIO_MAP = {
@@ -51,62 +55,14 @@ INDUSTRY_SCENARIO_MAP = {
     "Adventure Travel":         "events",
 }
 
-# ── Industry → DALL-E scene description ──────────────────────────────────────
-INDUSTRY_SCENE_MAP = {
-    "Fitness Chain":            "a modern gym weight room with natural light and professional equipment",
-    "Corporate Merchandise":    "a bright contemporary corporate office lobby with glass walls",
-    "Event Management":         "a busy professional trade show convention floor with booth displays",
-    "College Merchandise":      "a vibrant college campus quad in autumn with students",
-    "Employee Benefits":        "a bright open-plan office wellness space with standing desks",
-    "Hospitality":              "a luxury hotel lobby with warm ambient lighting and marble floors",
-    "Outdoor Apparel Retail":   "a rugged mountain trail at golden hour with dramatic landscape",
-    "Fashion Retail":           "an urban city street with modern architecture and soft daylight",
-    "Non-Profit":               "an outdoor community gathering and event space with people",
-    "Adventure Travel":         "a scenic outdoor adventure basecamp at sunrise",
-}
 
-# ── Product category → clothing description for DALL-E prompt ────────────────
-PRODUCT_CLOTHING_MAP = {
-    "hoodie":   "premium pullover hoodies with kangaroo pockets",
-    "jacket":   "structured zip-up jackets with clean lines",
-    "denim":    "dark wash denim jackets with subtle stitching",
-    "tee":      "fitted crew-neck t-shirts",
-    "shirt":    "button-down collared shirts",
-    "knit":     "fine-knit crewneck sweaters",
-    "shorts":   "tailored chino shorts",
-    "outerwear":"lightweight performance outerwear jackets",
-    "accessory":"branded caps and tote bags",
-    "sock":     "crew-neck t-shirts and premium socks",
-    "swimwear": "performance athletic wear",
-    "underwear":"casual lifestyle t-shirts",
-}
-
-def get_clothing_description(products: list) -> str:
-    """Map top 2 recommended products to specific clothing descriptions."""
-    descriptions = []
-    for p in products[:2]:
-        name = (p.get("name") or "").lower()
-        category = (p.get("category") or "").lower()
-        combined = name + " " + category
-        for keyword, desc in PRODUCT_CLOTHING_MAP.items():
-            if keyword in combined:
-                descriptions.append(desc)
-                break
-        else:
-            descriptions.append("premium branded apparel")
-    
-    if not descriptions:
-        return "premium branded apparel"
-    return " and ".join(dict.fromkeys(descriptions))  # deduplicate
-
-# ── Fallback static hero (used if DALL-E fails) ───────────────────────────────
-FALLBACK_HERO = "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png"
 
 # ── Request model ─────────────────────────────────────────────────────────────
 class PXMCampaignRequest(BaseModel):
     company_name: str
     scenario:     Optional[str] = None
     tone:         Optional[str] = "confident"
+    hero_key:     Optional[str] = "default"   # ← add back
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -163,61 +119,6 @@ async def fetch_mockup(company_name: str, sku: str) -> Optional[str]:
     return None
 
 
-async def generate_contextual_hero(
-    company_name: str,
-    industry: str,
-    scenario: str,
-    products: list
-) -> Optional[str]:
-    """
-    Generate a contextual hero image via DALL-E 3 matching the customer's
-    industry and scenario, then upload to Cloudinary DAM for persistence.
-    Falls back to None on any failure (caller uses static fallback).
-    """
-    try:
-        scene    = INDUSTRY_SCENE_MAP.get(industry, "a professional business setting")
-        category = products[0].get("category", "apparel") if products else "apparel"
-        contact_industry = industry.lower()
-
-        clothing_desc = get_clothing_description(products)
-        
-        prompt = (
-            f"Professional commercial fashion photography, editorial style. "
-            f"A diverse group of confident professionals wearing {clothing_desc} "
-            f"with a small embroidered company logo on the chest, "
-            f"photographed in {scene}. "
-            f"Clothing palette: deep charcoal black and warm gold accents. "
-            f"Shot on medium format camera, shallow depth of field, "
-            f"warm cinematic lighting, clean composition. "
-            f"Aspirational lifestyle feel, authentic and modern. "
-            f"No visible text or readable words anywhere in the image. "
-            f"Wide landscape format suitable for email hero banner."
-        )
-        client_ai = OpenAI(api_key=OPENAI_KEY)
-        img_response = client_ai.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size="1792x1024",
-            quality="standard",
-            n=1,
-        )
-        dalle_url = img_response.data[0].url
-
-        # Upload to Cloudinary so URL persists (DALL-E URLs expire ~1hr)
-        slug = company_name.lower().replace(" ", "-").replace("'", "").replace(".", "")
-        upload_result = cloudinary.uploader.upload(
-            dalle_url,
-            public_id=f"pxm-campaigns/{slug}-hero",
-            overwrite=True,
-            resource_type="image",
-        )
-        cloudinary_url = upload_result["secure_url"]
-        print(f"✅ Hero generated + uploaded to Cloudinary: {cloudinary_url}")
-        return cloudinary_url
-
-    except Exception as e:
-        print(f"⚠️  Hero image generation failed: {e}")
-        return None
 
 
 def format_crm_for_prompt(account: dict) -> str:
@@ -404,21 +305,12 @@ async def generate_pxm_campaign(req: PXMCampaignRequest):
     # 3. Pull PXM-enriched products filtered for scenario
     products = await fetch_pxm_products(scenario)
 
-    # 4. Run mockup + hero image generation concurrently
-    hero_sku = SCENARIO_SKU_MAP.get(scenario, "HOD-001")
+    # 4. Fetch Printful mockup + resolve hero image from DAM
+    hero_sku   = SCENARIO_SKU_MAP.get(scenario, "HOD-001")
+    hero_image = HERO_IMAGES.get(req.hero_key or "default", HERO_IMAGES["default"])
+    mockup_url = await fetch_mockup(req.company_name, hero_sku)
 
-    mockup_url, generated_hero = await asyncio.gather(
-        fetch_mockup(req.company_name, hero_sku),
-        generate_contextual_hero(
-            company_name=req.company_name,
-            industry=account.get("industry", ""),
-            scenario=scenario,
-            products=products[:3],
-        )
-    )
 
-    # Use AI-generated hero; fall back to static if generation failed
-    hero_image = generated_hero or FALLBACK_HERO
 
     # 5. Build prompt context
     crm_context = format_crm_for_prompt(account)
@@ -434,8 +326,7 @@ CAMPAIGN SCENARIO: {scenario.upper()}
 TONE: {req.tone or 'confident'}
 HERO IMAGE URL: {hero_image}
 
-This hero image was AI-generated to match {account.get('company', req.company_name)}'s industry ({account.get('industry', '')}).
-Use it as the background for both the email and landing page hero sections.
+Use the hero image as the background for both email and landing page hero sections.
 Apply gradient overlays only — no texture images.
 Render the brand logotype as Bebas Neue text — no image tags for the logo.
 
@@ -467,8 +358,8 @@ Generate the full PXM campaign JSON now.
         "mockup_url":         mockup_url,
         "mockup_sku":         hero_sku,
         "hero_image_url":     hero_image,
-        "hero_generated":     generated_hero is not None,
         "model":              response.model,
         "tokens_used":        response.usage.total_tokens,
         "latency_ms":         latency_ms,
     }
+    
