@@ -573,15 +573,35 @@
     setTimeout(function() {
       var ef = document.getElementById('frame-email');
       var lf = document.getElementById('frame-landing');
+      var heroUrl = data.hero_image_url || '';
+
+      function injectHero(frame) {
+        if (!frame || !frame.contentDocument) return;
+        var doc = frame.contentDocument;
+        // Find any element using a Cloudinary URL as background-image and replace it
+        var all = doc.querySelectorAll('[style]');
+        all.forEach(function(el) {
+          var s = el.getAttribute('style') || '';
+          if (s.indexOf('background-image') !== -1 && s.indexOf('cloudinary') !== -1) {
+            el.setAttribute('style', s.replace(/url\([^)]+\)/g, 'url(' + heroUrl + ')'));
+          }
+        });
+        // Also catch inline background on elements using res.cloudinary.com
+        var imgs = doc.querySelectorAll('img[src*="cloudinary"]');
+        // Don't touch product images — only replace if it's clearly a hero (large, full-width)
+      }
+
       if (ef && ef.contentDocument) {
         ef.contentDocument.open();
         ef.contentDocument.write(b.email_html || '<p>No email generated.</p>');
         ef.contentDocument.close();
+        ef.onload = function() { injectHero(ef); };
       }
       if (lf && lf.contentDocument) {
         lf.contentDocument.open();
         lf.contentDocument.write(b.landing_page_html || '<p>No page generated.</p>');
         lf.contentDocument.close();
+        lf.onload = function() { injectHero(lf); };
       }
     }, 50);
   }
