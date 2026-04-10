@@ -163,9 +163,9 @@ URBAN_THREADS_BRAND = {
         "olive":  "#4E511E",
     },
     "fonts": {
-        "display":   "'Bebas Neue', Impact, sans-serif",
-        "editorial": "Open Sans, 'Tahoma', sans-serif",
-        "body":      "Verdana, Geneva, sans-serif",
+        "display":     "'Bebas Neue', Impact, sans-serif",   # headlines, logotype
+        "subheading":  "'Open Sans', Tahoma, sans-serif",    # subheads, product names, labels — bold weight
+        "body":        "'Open Sans', Tahoma, sans-serif",    # body copy, fine print — regular weight
     }
 }
 
@@ -201,11 +201,15 @@ COLORS — use ONLY these hex values:
 TYPOGRAPHY:
 - Display headlines:  'Bebas Neue', Impact, sans-serif
   → ALL CAPS, wide letter-spacing (2–4px), used for brand name logotype, hero headlines, section titles
-  → Load via Google Fonts: <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-- Editorial subheads: Open Sans, 'Tahoma', sans-serif
-  → Italic where appropriate, product names, pull quotes, personalization notes
-- Body / labels:      Verdana, Geneva, sans-serif
-  → Body copy, bullet points, fine print, meta data
+  → Load via: <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+- Subheadings / labels / product names:  'Open Sans', Tahoma, sans-serif — font-weight 700
+  → Use wherever Garamond or Times New Roman was previously specified
+  → No italic, no serif — clean, bold, modern
+
+- Body copy / fine print / meta:  'Open Sans', Tahoma, sans-serif — font-weight 400
+  → Use wherever Verdana was previously specified
+  → Line-height 1.7–1.8, readable at 13–15px
 
 LOGOTYPE — render the brand name as styled TEXT, not an image:
 - Use: <span style="font-family:'Bebas Neue',Impact,sans-serif; font-size:28px; letter-spacing:4px; color:#D4AF37;">URBAN THREADS</span>
@@ -220,7 +224,8 @@ All decorative styling over images must use CSS gradients or vignettes only.
 EMAIL HTML DESIGN REQUIREMENTS
 ═══════════════════════════════════════
 Build a complete, production-quality HTML email (600px max-width, inline styles for email client compatibility).
-Import Bebas Neue from Google Fonts in the <head>.
+Import in <head>:
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
 STRUCTURE:
 
@@ -236,7 +241,7 @@ STRUCTURE:
    - Overlay: linear-gradient(to bottom, rgba(25,23,20,0.45) 0%, rgba(25,23,20,0.75) 100%)
    - Min-height: 280px, display flex, align-items center, justify-content center, text-align center
    - Hero headline: Bebas Neue 52px, #F5F0E8, letter-spacing 3px, ALL CAPS, text-shadow 0 2px 8px rgba(0,0,0,0.6)
-   - Subheading: Garamond italic 19px, #D4AF37, margin-top 8px
+   - Subheading: Gara'Open Sans', Tahoma, sans-serif; font-style:normal; font-weight:600mond italic 19px, #D4AF37, margin-top 8px
 
 3. PERSONALIZED INTRO
    - Background: #F5F0E8
@@ -248,9 +253,9 @@ STRUCTURE:
 4. PRODUCT CARDS (one per recommendation)
    - Background: #191714, border: 1px solid #C4A882, border-radius: 4px
    - Left accent bar: 4px solid #D4AF37
-   - Product name: Garamond bold italic 20px, #D4AF37
+   - Product name: Open Sans', Tahoma, sans-serif; font-weight:700 20px, #D4AF37
    - Reason: Verdana 13px, #F5F0E8, line-height 1.6
-   - Personalization note: Garamond italic 13px, #C4A882
+   - Personalization note: 'Open Sans', Tahoma, sans-serif; font-style:normal; font-weight:600 13px, #C4A882
    - Padding: 16px 20px, margin-bottom 12px
 
 5. BUNDLE HIGHLIGHT
@@ -263,14 +268,15 @@ STRUCTURE:
 6. FOOTER
    - Background: #4E511E, padding 20px 24px
    - Logotype: URBAN THREADS in Bebas Neue 22px, #F5F0E8, letter-spacing 3px
-   - Tagline: Garamond italic 13px, #C4A882 — "Premium Apparel. Precision Marketing."
+   - Tagline: Garamo'Open Sans', Tahoma, sans-serif; font-style:normal; font-weight:600nd italic 13px, #C4A882 — "Premium Apparel. Precision Marketing."
    - Fine print: Verdana 10px, #C4A882 — unsubscribe placeholder
 
 ═══════════════════════════════════════
 LANDING PAGE HTML DESIGN REQUIREMENTS
 ═══════════════════════════════════════
 Build a complete, modern HTML landing page (full-width, internal <style> block).
-Import Bebas Neue from Google Fonts in the <head>.
+Import in <head>:
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
 STRUCTURE:
 
