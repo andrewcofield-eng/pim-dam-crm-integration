@@ -31,12 +31,15 @@ SCENARIO_SKU_MAP = {
 
 # ── Hero image map (Cloudinary DAM) ──────────────────────────────────────────
 HERO_IMAGES = {
-    "default":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727348/HOD-001_ACC_001City_street_heelsWoman_w18vkt.png",
-    "rooftop_couple": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727354/HOD-001_ACC_001Rooftopcouple_oh5qrh.png",
-    "wall_woman":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727359/HOD-001_ACC_001wallWoman_a0mjrd.png",
-    "car_couple":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727347/HOD-001_ACC_001carhoodcouple_jboayc.png",
-    "rooftop_man":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727352/HOD-001_ACC_001Rooftop_man_thivq3.png",
-    "coffee_man":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774727363/KNIT-001coffeeshopMan_rvhsik.png",
+    "tech_event":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853363/techevent_bope9u.png",
+    "quiet_wealth":       "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853363/quietwealth_wtessy.png",
+    "serious_purpose":    "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853362/seriouspurpose_riagvs.png",
+    "campus_crew":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853361/campuscrew_eemlmd.png",
+    "professional_pride": "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853360/professionalpride_v8bt3b.png",
+    "power_performance":  "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853359/powerandperformance_bkhluo.png",
+    "late_chemistry":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853359/latechemistry_w9zdf8.png",
+    "pool_party":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775853357/companypoolparty_jgqxdf.png",
+    "default":            "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775588160/image-img_01knmmr0tnfqdbscgy8jncxk04_doms3d.png",
 }
 
 
