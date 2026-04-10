@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from openai import OpenAI
-import httpx, os, json, time
+import httpx, os, json, time, re
 
 router = APIRouter(prefix="/pxm", tags=["PXM Campaign Studio"])
 
@@ -355,6 +355,28 @@ Render the brand logotype as Bebas Neue text — no image tags for the logo.
         response_format={"type": "json_object"},
     )
     brief = json.loads(response.choices[0].message.content)
+
+    response  = client_ai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": PXM_SYSTEM_PROMPT},
+            {"role": "user",   "content": user_message},
+        ],
+        temperature=0.7,
+        response_format={"type": "json_object"},
+    )
+
+    # ── Guaranteed hero URL injection — replace whatever GPT hardcoded ────────
+    for field in ("email_html", "landing_page_html"):
+        if isinstance(brief.get(field), str):
+            brief[field] = re.sub(
+                r"https://res\.cloudinary\.com/dp0cdq8bj/[^'\")\s]+",
+                hero_image,
+                brief[field],
+                count=1
+            )
+
+    
     latency_ms = int(time.time() * 1000) - start_ms
 
     # 7. Return unified response
