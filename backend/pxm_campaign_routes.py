@@ -153,22 +153,19 @@ def format_pxm_products_for_prompt(products: list) -> str:
 # ── System prompt ─────────────────────────────────────────────────────────────
 # ── Brand Asset Library (Cloudinary DAM) ─────────────────────────────────────
 # ── Brand Asset Library (Cloudinary DAM) ─────────────────────────────────────
+# ── Brand Asset Library (Cloudinary DAM) ─────────────────────────────────────
 URBAN_THREADS_BRAND = {
-    "logo_dark_bg":  "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774714664/urbanthreads-PrimaryLogo-DKbkgrd_dbzktr.png",
-    "logo_light_bg": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774714662/urbanthreads-PrimaryLogo-LTbkgrd_q1hdpt.png",
-    "texture_1":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774728063/image-img_01kmtgh0jtey4sgqqky0hjc0zh_cshocs.jpg",
-    "texture_2":     "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774728062/image-img_01kmtghapbf2hrqbv9ajx2zt5b_amokq5.jpg",
     "colors": {
-        "black":      "#191714",   # primary background, text
-        "cream":      "#F5F0E8",   # light background, body text on dark
-        "gold":       "#D4AF37",   # primary accent, CTAs, borders
-        "tan":        "#C4A882",   # secondary accent, muted highlights
-        "olive":      "#4E511E",   # tertiary accent, footer, badges
+        "black":  "#191714",
+        "cream":  "#F5F0E8",
+        "gold":   "#D4AF37",
+        "tan":    "#C4A882",
+        "olive":  "#4E511E",
     },
     "fonts": {
-        "display":    "'Bebas Neue', Impact, sans-serif",       # hero headlines, campaign titles
-        "editorial":  "Garamond, 'Times New Roman', serif",     # subheadings, pull quotes
-        "body":       "Verdana, Geneva, sans-serif",            # body copy, labels, meta
+        "display":   "'Bebas Neue', Impact, sans-serif",
+        "editorial": "Garamond, 'Times New Roman', serif",
+        "body":      "Verdana, Geneva, sans-serif",
     }
 }
 
@@ -191,32 +188,33 @@ You will receive:
 5. Hero image URL — a lifestyle photo from the Urban Threads DAM (Cloudinary)
 
 ═══════════════════════════════════════════════════════
-URBAN THREADS BRAND IDENTITY (ALWAYS USE THESE ASSETS)
+URBAN THREADS BRAND IDENTITY
 ═══════════════════════════════════════════════════════
 
 COLORS — use ONLY these hex values:
-- #191714  — Charcoal Black   → primary backgrounds, heavy text
-- #F5F0E8  — Warm Cream       → light section backgrounds, body text on dark
-- #D4AF37  — Antique Gold     → CTAs, borders, accent headlines, buttons
-- #C4A882  — Desert Tan       → secondary accents, muted labels, dividers
-- #4E511E  — Olive Dark       → footer backgrounds, badge backgrounds, tertiary elements
+- #191714  Charcoal Black  → primary backgrounds, heavy text
+- #F5F0E8  Warm Cream      → light section backgrounds, body text on dark
+- #D4AF37  Antique Gold    → CTAs, borders, accent headlines, buttons
+- #C4A882  Desert Tan      → secondary accents, muted labels, dividers
+- #4E511E  Olive Dark      → footer backgrounds, badge backgrounds
 
-TYPOGRAPHY — use ONLY these font stacks:
-- Display / Hero Headlines:  'Bebas Neue', Impact, sans-serif
-  → Use for: campaign title, hero headline, section headers — ALL CAPS, wide letter-spacing
-  → Load via: <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-- Editorial / Subheadings:   Garamond, 'Times New Roman', serif
-  → Use for: subheadings, pull quotes, product names, personalization notes — elegant, italic where appropriate
-- Body / Labels / Meta:      Verdana, Geneva, sans-serif
-  → Use for: body copy, bullet points, fine print, meta data — small, readable
+TYPOGRAPHY:
+- Display headlines:  'Bebas Neue', Impact, sans-serif
+  → ALL CAPS, wide letter-spacing (2–4px), used for brand name logotype, hero headlines, section titles
+  → Load via Google Fonts: <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+- Editorial subheads: Garamond, 'Times New Roman', serif
+  → Italic where appropriate, product names, pull quotes, personalization notes
+- Body / labels:      Verdana, Geneva, sans-serif
+  → Body copy, bullet points, fine print, meta data
 
-LOGO ASSETS (pull directly from Cloudinary DAM):
-- On dark/black backgrounds:  https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774714664/urbanthreads-PrimaryLogo-DKbkgrd_dbzktr.png
-- On light/cream backgrounds: https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774714662/urbanthreads-PrimaryLogo-LTbkgrd_q1hdpt.png
+LOGOTYPE — render the brand name as styled TEXT, not an image:
+- Use: <span style="font-family:'Bebas Neue',Impact,sans-serif; font-size:28px; letter-spacing:4px; color:#D4AF37;">URBAN THREADS</span>
+- On light/cream backgrounds use color #191714 instead of gold
+- NEVER use an <img> tag for the logo — always render as Bebas Neue text
+- Keep it compact: 28px in headers/footers, never larger
 
-TEXTURE ASSETS (use as background-image with overlay for richness):
-- Texture 1: https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774728063/image-img_01kmtgh0jtey4sgqqky0hjc0zh_cshocs.jpg
-- Texture 2: https://res.cloudinary.com/dp0cdq8bj/image/upload/v1774728062/image-img_01kmtghapbf2hrqbv9ajx2zt5b_amokq5.jpg
+NO TEXTURE IMAGES — do not use any background-image textures.
+All decorative styling over images must use CSS gradients or vignettes only.
 
 ═══════════════════════════════════════
 EMAIL HTML DESIGN REQUIREMENTS
@@ -225,103 +223,117 @@ Build a complete, production-quality HTML email (600px max-width, inline styles 
 Import Bebas Neue from Google Fonts in the <head>.
 
 STRUCTURE:
+
 1. HEADER
    - Background: #191714
-   - Urban Threads logo (dark bg version), centered, padding 24px
-   - 3px gold (#D4AF37) bottom border
+   - Left-aligned logotype: URBAN THREADS in Bebas Neue 28px, #D4AF37, letter-spacing 4px
+   - Right-aligned: small label "Premium Apparel" in Verdana 10px, #C4A882
+   - Bottom border: 2px solid #D4AF37
+   - Padding: 16px 24px
 
 2. HERO SECTION
-   - Background-image: the provided HERO IMAGE URL, cover, center
-   - Dark overlay: rgba(25,23,20,0.55)
-   - Hero headline: Bebas Neue, 48px, white, letter-spacing 3px, ALL CAPS
-   - Subheading: Garamond italic, 18px, #D4AF37
+   - Background-image: the provided HERO IMAGE URL, background-size: cover, background-position: center
+   - Overlay: linear-gradient(to bottom, rgba(25,23,20,0.45) 0%, rgba(25,23,20,0.75) 100%)
+   - Min-height: 280px, display flex, align-items center, justify-content center, text-align center
+   - Hero headline: Bebas Neue 52px, #F5F0E8, letter-spacing 3px, ALL CAPS, text-shadow 0 2px 8px rgba(0,0,0,0.6)
+   - Subheading: Garamond italic 19px, #D4AF37, margin-top 8px
 
 3. PERSONALIZED INTRO
    - Background: #F5F0E8
-   - Opening: "Hi [Contact Name]," in Bebas Neue 22px #191714
-   - Body copy: Verdana 14px #191714, line-height 1.7
-   - Left border accent: 3px solid #D4AF37
+   - Padding: 28px 32px
+   - Opening line: "Hi [Contact Name]," — Bebas Neue 22px, #191714, letter-spacing 1px
+   - Body copy: Verdana 14px, #191714, line-height 1.8
+   - Left accent border: 3px solid #D4AF37, padding-left 16px
 
-4. PRODUCT RECOMMENDATION CARDS (1 card per product)
-   - Background: #191714, border: 1px solid #C4A882, border-radius 4px
-   - Product name: Garamond bold italic, 20px, #D4AF37
-   - Reason copy: Verdana 13px, #F5F0E8
-   - Personalization note: Garamond italic, 13px, #C4A882
+4. PRODUCT CARDS (one per recommendation)
+   - Background: #191714, border: 1px solid #C4A882, border-radius: 4px
    - Left accent bar: 4px solid #D4AF37
+   - Product name: Garamond bold italic 20px, #D4AF37
+   - Reason: Verdana 13px, #F5F0E8, line-height 1.6
+   - Personalization note: Garamond italic 13px, #C4A882
+   - Padding: 16px 20px, margin-bottom 12px
 
 5. BUNDLE HIGHLIGHT
-   - Background: #D4AF37
-   - Bundle name: Bebas Neue 28px, #191714, letter-spacing 2px
+   - Background: #D4AF37, padding 24px 32px
+   - Bundle name: Bebas Neue 30px, #191714, letter-spacing 2px
    - SKU list: Verdana 12px, #4E511E
-   - CTA button: #191714 background, #D4AF37 text, Bebas Neue 18px, padding 12px 32px
+   - CTA button: background #191714, color #D4AF37, Bebas Neue 18px, padding 12px 36px,
+     border-radius 2px, letter-spacing 2px, display inline-block, text-decoration none
 
-6. TEXTURE ACCENT STRIP
-   - background-image: Texture 1 URL, height 60px, background-size cover
-   - overlay: rgba(25,23,20,0.6)
-
-7. FOOTER
-   - Background: #4E511E
-   - Urban Threads logo (light bg version — use on this olive background)
-   - Verdana 11px, #C4A882 text
-   - Tagline: "Premium Apparel. Precision Marketing." in Garamond italic #F5F0E8
+6. FOOTER
+   - Background: #4E511E, padding 20px 24px
+   - Logotype: URBAN THREADS in Bebas Neue 22px, #F5F0E8, letter-spacing 3px
+   - Tagline: Garamond italic 13px, #C4A882 — "Premium Apparel. Precision Marketing."
+   - Fine print: Verdana 10px, #C4A882 — unsubscribe placeholder
 
 ═══════════════════════════════════════
 LANDING PAGE HTML DESIGN REQUIREMENTS
 ═══════════════════════════════════════
-Build a complete, modern HTML landing page (full-width, CSS grid/flexbox, internal <style> block).
+Build a complete, modern HTML landing page (full-width, internal <style> block).
 Import Bebas Neue from Google Fonts in the <head>.
 
 STRUCTURE:
+
 1. NAV BAR
-   - Background: #191714, height 64px
-   - Urban Threads logo (dark bg version) left-aligned
-   - Right: gold CTA button — Bebas Neue, #D4AF37 background, #191714 text
+   - Background: #191714, height 60px, padding 0 40px
+   - Left: URBAN THREADS logotype — Bebas Neue 26px, #D4AF37, letter-spacing 4px
+   - Right: CTA button — background #D4AF37, color #191714, Bebas Neue 16px, letter-spacing 1px,
+     padding 8px 24px, border-radius 2px
 
 2. HERO SECTION
-   - Full-width, min-height 540px
-   - background-image: the provided HERO IMAGE URL + Texture 2 at 8% opacity overlay
-   - Dark gradient overlay: linear-gradient(rgba(25,23,20,0.7), rgba(25,23,20,0.5))
-   - H1: Bebas Neue 80px, #F5F0E8, letter-spacing 4px, ALL CAPS
-   - H2 subheading: Garamond italic 24px, #D4AF37
-   - CTA button: #D4AF37 background, #191714 text, Bebas Neue 20px
+   - Full-width, min-height 560px
+   - background-image: the provided HERO IMAGE URL, background-size: cover, background-position: center
+   - Overlay: linear-gradient(135deg, rgba(25,23,20,0.80) 0%, rgba(25,23,20,0.40) 60%, rgba(25,23,20,0.65) 100%)
+   - Display: flex, flex-direction: column, align-items: center, justify-content: center, text-align: center
+   - H1: Bebas Neue 88px, #F5F0E8, letter-spacing 5px, ALL CAPS, text-shadow 0 4px 16px rgba(0,0,0,0.5)
+   - H2: Garamond italic 26px, #D4AF37, margin-top 12px
+   - CTA button: background #D4AF37, color #191714, Bebas Neue 22px, padding 14px 48px,
+     letter-spacing 2px, border-radius 2px, margin-top 28px
 
 3. PERSONALIZATION BAND
-   - Background: #D4AF37, padding 16px
-   - Text: Verdana 13px, #191714, bold
+   - Background: #D4AF37, padding 14px 40px
+   - Text: Verdana 13px bold, #191714, text-align center
    - Content: "Crafted exclusively for [Company] · [Industry] · [Contact Name], [Title]"
 
 4. VALUE PROPS — 3 columns
-   - Background: #F5F0E8
-   - Icon (use emoji: ⚡ 🎨 ✦), Bebas Neue 18px label #191714, Verdana 13px description #4E511E
+   - Background: #F5F0E8, padding 60px 40px
+   - Section title: Bebas Neue 42px, #191714, text-align center, margin-bottom 40px
+   - Each column: emoji icon (⚡ 🎨 ✦), Bebas Neue 20px label #191714, Verdana 13px #4E511E description
 
 5. PRODUCT SHOWCASE
-   - Background: #191714
-   - Section header: Bebas Neue 48px #F5F0E8, gold underline
-   - Product cards: #F5F0E8 background, Garamond bold 20px product name in #191714,
-     Verdana 13px reason, #D4AF37 personalization note, olive (#4E511E) SKU badge
+   - Background: #191714, padding 60px 40px
+   - Section header: Bebas Neue 52px, #F5F0E8, text-align center
+   - Gold underline: 3px solid #D4AF37, width 60px, margin 12px auto 40px
+   - Product cards: background #F5F0E8, border-radius 4px, padding 24px
+     - SKU badge: background #4E511E, color #C4A882, Verdana 10px, letter-spacing 1px
+     - Product name: Garamond bold 20px, #191714
+     - Reason: Verdana 13px, #191714, line-height 1.6
+     - Personalization note: Garamond italic 13px, #D4AF37
 
 6. BUNDLE SECTION
-   - background-image: Texture 1, with rgba(25,23,20,0.8) overlay
-   - Bundle name: Bebas Neue 56px, #D4AF37, letter-spacing 3px
-   - SKU pills: #4E511E background, #C4A882 text
-   - CTA button: #D4AF37 background, #191714 text, large
+   - Background: #4E511E, padding 60px 40px, text-align center
+   - Bundle name: Bebas Neue 60px, #D4AF37, letter-spacing 4px
+   - SKU pills: background #191714, color #C4A882, Verdana 11px, padding 4px 14px, border-radius 20px
+   - CTA button: background #D4AF37, color #191714, Bebas Neue 24px, padding 16px 56px,
+     border-radius 2px, margin-top 28px
 
 7. STATS BAND
-   - Background: #2A2720 (near-black)
-   - 3 stats in Bebas Neue 36px #D4AF37 with Verdana 12px #C4A882 labels
+   - Background: #191714, padding 40px, border-top: 3px solid #D4AF37
+   - 3 stats side by side — Bebas Neue 44px #D4AF37, Verdana 12px #C4A882 label below
    - "500+ Brands Outfitted" · "48-Hour Rush Available" · "MOQ from 12 Units"
 
-8. FINAL CTA
-   - Background: #191714
-   - Headline: Bebas Neue 52px #F5F0E8
-   - Subtext: Garamond italic 18px #C4A882, tied to the scenario pain point
-   - Button: #D4AF37, Bebas Neue, large, hover effect
+8. FINAL CTA SECTION
+   - Background: #F5F0E8, padding 80px 40px, text-align center
+   - Headline: Bebas Neue 56px, #191714, letter-spacing 3px
+   - Subtext: Garamond italic 19px, #4E511E, tied to the scenario pain point
+   - Button: background #D4AF37, color #191714, Bebas Neue 22px, padding 16px 52px,
+     border-radius 2px, letter-spacing 2px
 
 9. FOOTER
-   - Background: #4E511E
-   - Logo: light bg version
-   - Tagline: Garamond italic, #F5F0E8, "Premium Apparel. Precision Marketing."
-   - Verdana 11px #C4A882 fine print
+   - Background: #4E511E, padding 28px 40px
+   - Logotype: URBAN THREADS — Bebas Neue 24px, #F5F0E8, letter-spacing 4px
+   - Tagline: Garamond italic 14px, #C4A882 — "Premium Apparel. Precision Marketing."
+   - Fine print: Verdana 10px, #C4A882
 
 ═══════════════════════════════════════
 OUTPUT FORMAT
@@ -349,11 +361,12 @@ Output a single valid JSON object with these exact keys:
 }
 
 RULES:
-- Always open the email with "Hi [contact_name]," using the actual contact name from CRM data
+- Always open the email with "Hi [contact_name]," using the actual first name from CRM data
 - Always reference the company name AND industry in body_copy
 - Match products precisely to the account's pain_point and use_case
-- Use the EXACT Cloudinary asset URLs above — never use placeholder or external images
-- The HERO IMAGE URL passed in the user message MUST be the email and landing page hero background
+- The HERO IMAGE URL passed in the user message MUST be the hero background in both email and landing page
+- Use CSS gradients/vignettes over the hero image — NO texture background-images anywhere
+- Render the brand name as Bebas Neue TEXT logotype only — NEVER use an <img> tag for the logo
 - email_html and landing_page_html must be complete, self-contained HTML documents
 - NO external CSS frameworks — inline styles for email, internal <style> block for landing page
 - Return ONLY valid JSON. No markdown, no explanation, no code fences.
@@ -399,13 +412,10 @@ CAMPAIGN SCENARIO: {scenario.upper()}
 TONE: {req.tone or 'confident'}
 HERO IMAGE URL: {hero_image}
 
-BRAND ASSETS AVAILABLE IN DAM:
-- Logo (dark bg): {URBAN_THREADS_BRAND['logo_dark_bg']}
-- Logo (light bg): {URBAN_THREADS_BRAND['logo_light_bg']}
-- Texture 1: {URBAN_THREADS_BRAND['texture_1']}
-- Texture 2: {URBAN_THREADS_BRAND['texture_2']}
-
-Generate the full PXM campaign JSON now. Use ALL brand assets in the HTML outputs.
+Generate the full PXM campaign JSON now.
+Use the hero image as the background for both email and landing page hero sections.
+Apply gradient overlays only — no texture images.
+Render the brand logotype as Bebas Neue text — no image tags for the logo.
 """
 
     # 6. Call GPT-4o
