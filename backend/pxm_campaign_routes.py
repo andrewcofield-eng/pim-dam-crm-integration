@@ -164,7 +164,7 @@ URBAN_THREADS_BRAND = {
     },
     "fonts": {
         "display":   "'Bebas Neue', Impact, sans-serif",
-        "editorial": "Garamond, 'Times New Roman', serif",
+        "editorial": "Open Sans, 'Tahoma', sans-serif",
         "body":      "Verdana, Geneva, sans-serif",
     }
 }
@@ -202,7 +202,7 @@ TYPOGRAPHY:
 - Display headlines:  'Bebas Neue', Impact, sans-serif
   → ALL CAPS, wide letter-spacing (2–4px), used for brand name logotype, hero headlines, section titles
   → Load via Google Fonts: <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-- Editorial subheads: Garamond, 'Times New Roman', serif
+- Editorial subheads: Open Sans, 'Tahoma', sans-serif
   → Italic where appropriate, product names, pull quotes, personalization notes
 - Body / labels:      Verdana, Geneva, sans-serif
   → Body copy, bullet points, fine print, meta data
@@ -286,7 +286,7 @@ STRUCTURE:
    - Overlay: linear-gradient(135deg, rgba(25,23,20,0.80) 0%, rgba(25,23,20,0.40) 60%, rgba(25,23,20,0.65) 100%)
    - Display: flex, flex-direction: column, align-items: center, justify-content: center, text-align: center
    - H1: Bebas Neue 88px, #F5F0E8, letter-spacing 5px, ALL CAPS, text-shadow 0 4px 16px rgba(0,0,0,0.5)
-   - H2: Garamond italic 26px, #D4AF37, margin-top 12px
+   - H2: Open Sans italic 26px, #D4AF37, margin-top 12px
    - CTA button: background #D4AF37, color #191714, Bebas Neue 22px, padding 14px 48px,
      letter-spacing 2px, border-radius 2px, margin-top 28px
 
@@ -306,9 +306,9 @@ STRUCTURE:
    - Gold underline: 3px solid #D4AF37, width 60px, margin 12px auto 40px
    - Product cards: background #F5F0E8, border-radius 4px, padding 24px
      - SKU badge: background #4E511E, color #C4A882, Verdana 10px, letter-spacing 1px
-     - Product name: Garamond bold 20px, #191714
+     - Product name: Open Sans bold 20px, #191714
      - Reason: Verdana 13px, #191714, line-height 1.6
-     - Personalization note: Garamond italic 13px, #D4AF37
+     - Personalization note: Open Sans italic 13px, #D4AF37
 
 6. BUNDLE SECTION
    - Background: #4E511E, padding 60px 40px, text-align center
@@ -325,14 +325,14 @@ STRUCTURE:
 8. FINAL CTA SECTION
    - Background: #F5F0E8, padding 80px 40px, text-align center
    - Headline: Bebas Neue 56px, #191714, letter-spacing 3px
-   - Subtext: Garamond italic 19px, #4E511E, tied to the scenario pain point
+   - Subtext: Open Sans italic 19px, #4E511E, tied to the scenario pain point
    - Button: background #D4AF37, color #191714, Bebas Neue 22px, padding 16px 52px,
      border-radius 2px, letter-spacing 2px
 
 9. FOOTER
    - Background: #4E511E, padding 28px 40px
    - Logotype: URBAN THREADS — Bebas Neue 24px, #F5F0E8, letter-spacing 4px
-   - Tagline: Garamond italic 14px, #C4A882 — "Premium Apparel. Precision Marketing."
+   - Tagline: Open Sans italic 14px, #C4A882 — "Premium Apparel. Precision Marketing."
    - Fine print: Verdana 10px, #C4A882
 
 ═══════════════════════════════════════
