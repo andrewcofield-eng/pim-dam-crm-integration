@@ -343,7 +343,7 @@ Apply gradient overlays only over the hero image — no textures.
 Render the brand logotype as Bebas Neue text — no image tags for the logo.
 """
 
-    # 6. Call GPT-4o
+    # 6. Call GPT-4o (single call)
     client_ai = OpenAI(api_key=OPENAI_KEY)
     response  = client_ai.chat.completions.create(
         model="gpt-4o",
@@ -356,29 +356,18 @@ Render the brand logotype as Bebas Neue text — no image tags for the logo.
     )
     brief = json.loads(response.choices[0].message.content)
 
-    response  = client_ai.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": PXM_SYSTEM_PROMPT},
-            {"role": "user",   "content": user_message},
-        ],
-        temperature=0.7,
-        response_format={"type": "json_object"},
-    )
-
-    brief = json.loads(response.choices[0].message.content)
-
-    # ── Force correct hero URL — replace any Cloudinary background-image GPT used ──
+    # ── Force correct hero URL — replace ANY Cloudinary URL in background-image ──
+    # GPT ignores the URL we pass and always uses a hardcoded one. We fix it here.
     for field in ("email_html", "landing_page_html"):
         html = brief.get(field, "")
         if isinstance(html, str) and hero_image:
-            # Replace every Cloudinary URL that appears inside a background-image CSS property
+            # Replace all Cloudinary URLs unconditionally — hero is always a background-image
             brief[field] = re.sub(
-                r"(background-image\s*:\s*url\(['\"]?)(https://res\.cloudinary\.com/dp0cdq8bj/[^'\"\)]+)(['\"]?\))",
-                lambda m: m.group(1) + hero_image + m.group(3),
+                r'https://res\.cloudinary\.com/dp0cdq8bj/image/upload/[^\s\'")\]]+',
+                hero_image,
                 html
             )
-    
+
     latency_ms = int(time.time() * 1000) - start_ms
 
     # 7. Return unified response
@@ -396,4 +385,3 @@ Render the brand logotype as Bebas Neue text — no image tags for the logo.
         "tokens_used":        response.usage.total_tokens,
         "latency_ms":         latency_ms,
     }
-    
