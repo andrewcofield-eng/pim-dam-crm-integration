@@ -366,16 +366,18 @@ Render the brand logotype as Bebas Neue text — no image tags for the logo.
         response_format={"type": "json_object"},
     )
 
-    # ── Guaranteed hero URL injection — replace whatever GPT hardcoded ────────
-    for field in ("email_html", "landing_page_html"):
-        if isinstance(brief.get(field), str):
-            brief[field] = re.sub(
-                r"https://res\.cloudinary\.com/dp0cdq8bj/[^'\")\s]+",
-                hero_image,
-                brief[field],
-                count=1
-            )
+    brief = json.loads(response.choices[0].message.content)
 
+    # ── Force correct hero URL — replace any Cloudinary background-image GPT used ──
+    for field in ("email_html", "landing_page_html"):
+        html = brief.get(field, "")
+        if isinstance(html, str) and hero_image:
+            # Replace every Cloudinary URL that appears inside a background-image CSS property
+            brief[field] = re.sub(
+                r"(background-image\s*:\s*url\(['\"]?)(https://res\.cloudinary\.com/dp0cdq8bj/[^'\"\)]+)(['\"]?\))",
+                lambda m: m.group(1) + hero_image + m.group(3),
+                html
+            )
     
     latency_ms = int(time.time() * 1000) - start_ms
 
