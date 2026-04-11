@@ -356,6 +356,12 @@ Render the brand logotype as Bebas Neue text — no image tags for the logo.
     )
     brief = json.loads(response.choices[0].message.content)
 
+    # DIAGNOSTIC — remove after fix confirmed
+    print(f"DEBUG hero_key received: {req.hero_key}")
+    print(f"DEBUG hero_image resolved: {hero_image}")
+    print(f"DEBUG email_html contains hero_image: {hero_image in brief.get('email_html', '')}")
+    print(f"DEBUG email_html cloudinary URLs: {re.findall(r'https://res\.cloudinary\.com/dp0cdq8bj/image/upload/[^\s\'\")\]]+', brief.get('email_html', ''))}")
+
     # ── Force correct hero URL — replace ANY Cloudinary URL in background-image ──
     # GPT ignores the URL we pass and always uses a hardcoded one. We fix it here.
     for field in ("email_html", "landing_page_html"):
