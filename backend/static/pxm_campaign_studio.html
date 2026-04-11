@@ -476,12 +476,11 @@
   }
 
   async function generate() {
-    const company  = document.getElementById('sel-company').value;
-    const scenario = document.getElementById('sel-scenario').value;
-    const tone     = document.getElementById('sel-tone').value;
-    const hero_key = document.getElementById('sel-hero').value;
-    // ...
-    body: JSON.stringify({ company_name: company, scenario: scenario, tone: tone, hero_key: hero_key })
+    const company    = document.getElementById('sel-company').value;
+    const scenario   = document.getElementById('sel-scenario').value;
+    const tone       = document.getElementById('sel-tone').value;
+    const activeHero = document.querySelector('.hero-opt.active');
+    const hero_key   = activeHero ? activeHero.dataset.val : 'default';
 
     if (!company) { showError('Please select an account first.'); return; }
     hideError();
@@ -496,7 +495,7 @@
       const res = await fetch(API + '/pxm/campaign/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ company_name: company, scenario: scenario, tone: tone })
+        body: JSON.stringify({ company_name: company, scenario: scenario, tone: tone, hero_key: hero_key })
       });
       if (!res.ok) {
         const e = await res.json();
