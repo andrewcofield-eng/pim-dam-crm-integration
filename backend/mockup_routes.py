@@ -31,9 +31,16 @@ COMPANY_LOGO_MAP = {
     "ngo relief partners":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586622/ngo_relief_partners-logo_bwbjsw.png",
     "premium resorts intl":          "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
     "premium resorts international": "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
+    "premium resorts int'l":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
     "summit events group":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586654/summit-events-group-logo_kv0rxk.png",
+    "techwear co":                   "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586721/TechWear-co-logo_dzxowy.png",
+    "urban streetwear collective":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586696/urban-streetwear-collective-logo_wvpvsh.png",
 }
 
+def get_logo_url(company_name: str) -> Optional[str]:
+    """Lookup logo — normalizes apostrophes and casing."""
+    key = company_name.strip().lower()
+    return COMPANY_LOGO_MAP.get(key)
 
 class MockupRequest(BaseModel):
     company_name:      str
@@ -89,7 +96,7 @@ async def generate_product_mockup(req: MockupRequest):
         }
 
     # 2. Look up logo URL
-    logo_url = COMPANY_LOGO_MAP.get(req.company_name.strip().lower())
+    logo_url = get_logo_url(req.company_name)
     if not logo_url:
         raise HTTPException(
             status_code=404,
