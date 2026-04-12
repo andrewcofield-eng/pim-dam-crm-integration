@@ -62,17 +62,19 @@ SKU_TEMPLATE_MAP = {
 }
 # ── Cloudinary logo map ────────────────────────────────────────────────────────
 COMPANY_LOGO_MAP = {
-    "collegiate spirit co":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586397/collegiate-spirit-co-logo_zkp0ol.png",
-    "corporate gifts inc":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
-    "corporate wellness llc":      "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586475/corporate-wellness-llc-logo_fdraoc.png",
-    "eco adventures tours":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586587/eco-adventures-tours-logo_j6vskl.png",
-    "summit events group":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586654/summit-events-group-logo_kv0rxk.png",
-    "urban streetwear collective": "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586696/urban-streetwear-collective-logo_wvpvsh.png",
-    "techwear":                    "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586721/TechWear-co-logo_dzxowy.png",
-    "fitlife gyms":                "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586540/fitlife-gyms-logo_bml45k.png",
-    "premium resorts intl":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/v1775586368/premium-resorts-intl-logo_yf57ak.png",
+    "collegiate spirit co":          "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586397/collegiate-spirit-co-logo_zkp0ol.png",
+    "corporate gifts inc":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586433/corporate-gifts-inc-logo_ohgcae.png",
+    "corporate wellness llc":        "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586475/corporate-wellness-llc-logo_fdraoc.png",
+    "eco adventures tours":          "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586587/eco-adventures-tours-logo_j6vskl.png",
+    "fitlife gyms":                  "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586540/fitlife-gyms-logo_bml45k.png",
+    "ngo relief partners":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586622/ngo_relief_partners-logo_bwbjsw.png",
+    "premium resorts intl":          "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
+    "premium resorts international": "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
+    "premium resorts int'l":         "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586368/premium-resorts-intl-logo_yf57ak.png",
+    "summit events group":           "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586654/summit-events-group-logo_kv0rxk.png",
+    "techwear co":                   "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586721/TechWear-co-logo_dzxowy.png",
+    "urban streetwear collective":   "https://res.cloudinary.com/dp0cdq8bj/image/upload/q_auto/f_auto/v1775586696/urban-streetwear-collective-logo_wvpvsh.png",
 }
-
 # ── Request / Response models ──────────────────────────────────────────────────
 class PrintfulMockupRequest(BaseModel):
     company_name: str
@@ -245,8 +247,10 @@ async def generate_printful_mockup(req: PrintfulMockupRequest):
             source="cached",
         )
 
-    # 2. Look up logo URL
-    logo_url = COMPANY_LOGO_MAP.get(req.company_name.strip().lower())
+    # 2. Look up logo URL — normalize apostrophes for tolerance
+    import re as _re
+    key = _re.sub(r"[''`]", "", req.company_name.strip().lower())
+    logo_url = COMPANY_LOGO_MAP.get(key) or COMPANY_LOGO_MAP.get(req.company_name.strip().lower())
     if not logo_url:
         raise HTTPException(
             status_code=404,
